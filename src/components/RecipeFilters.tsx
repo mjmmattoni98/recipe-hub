@@ -1,5 +1,5 @@
 import { FilterChip } from "./FilterChip";
-import type { FilterCriteria } from "@/types/recipe";
+import type { FilterCriteria } from "@/lib/recipe-types";
 import { ChefHat, Globe, Leaf, Clock, Heart } from "lucide-react";
 
 interface RecipeFiltersProps {

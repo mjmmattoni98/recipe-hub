@@ -1,17 +1,21 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { SearchBar } from "@/components/SearchBar";
-import { RecipeFilters } from "@/components/RecipeFilters";
 import { RecipeCard } from "@/components/RecipeCard";
+import { RecipeFilters } from "@/components/RecipeFilters";
 import { RecipeModal } from "@/components/RecipeModal";
-import type { Recipe, FilterCriteria } from "@/types/recipe";
-import recipesData from "@/data/recipes.json";
-import { UtensilsCrossed, Filter, X } from "lucide-react";
+import { SearchBar } from "@/components/SearchBar";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-
-const recipes: Recipe[] = recipesData as Recipe[];
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import type { FilterCriteria, RecipeWithVideoSource } from "@/lib/recipe-types";
+import { api } from "@/trpc/react";
+import { Filter, UtensilsCrossed, X } from "lucide-react";
+import { useMemo, useState } from "react";
 
 export default function Home() {
   const [filters, setFilters] = useState<FilterCriteria>({
@@ -22,26 +26,37 @@ export default function Home() {
     maxCookTime: null,
     dietaryRestrictions: [],
   });
-  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [selectedRecipe, setSelectedRecipe] =
+    useState<RecipeWithVideoSource | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
+  // Fetch recipes from the database
+  const { data: recipes = [] as RecipeWithVideoSource[] } =
+    api.recipe.getAll.useQuery();
+
   // Extract unique values for filters
   const availableCuisines = useMemo(
-    () => [...new Set(recipes.map((r) => r.cuisine))].sort(),
-    []
+    () =>
+      [...new Set(recipes.map((r) => r.cuisine))].sort((a, b) =>
+        a.localeCompare(b),
+      ),
+    [recipes],
   );
 
   const availableIngredients = useMemo(() => {
     const allIngredients = recipes.flatMap((r) => r.ingredients);
-    const counts = allIngredients.reduce((acc, ing) => {
-      acc[ing] = (acc[ing] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const counts = allIngredients.reduce(
+      (acc, ing) => {
+        acc[ing] = (acc[ing] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
     return Object.entries(counts)
       .sort((a, b) => b[1] - a[1])
       .map(([ing]) => ing);
-  }, []);
+  }, [recipes]);
 
   // Filter recipes
   const filteredRecipes = useMemo(() => {
@@ -74,77 +89,87 @@ export default function Home() {
       if (filters.ingredients.length > 0) {
         const hasAllIngredients = filters.ingredients.every((ing) =>
           recipe.ingredients.some((recipeIng) =>
-            recipeIng.toLowerCase().includes(ing.toLowerCase())
-          )
+            recipeIng.toLowerCase().includes(ing.toLowerCase()),
+          ),
         );
         if (!hasAllIngredients) return false;
       }
 
       // Cook time filter
-      if (filters.maxCookTime !== null && recipe.cookTime > filters.maxCookTime) {
+      if (
+        filters.maxCookTime !== null &&
+        recipe.cookTime > filters.maxCookTime
+      ) {
         return false;
       }
 
       // Dietary restrictions filter (check tags)
       if (filters.dietaryRestrictions.length > 0) {
-        const hasAllRestrictions = filters.dietaryRestrictions.every((restriction) =>
-          recipe.tags.some((tag) =>
-            tag.toLowerCase().includes(restriction.toLowerCase())
-          )
+        const hasAllRestrictions = filters.dietaryRestrictions.every(
+          (restriction) =>
+            recipe.tags.some((tag) =>
+              tag.toLowerCase().includes(restriction.toLowerCase()),
+            ),
         );
         if (!hasAllRestrictions) return false;
       }
 
       return true;
     });
-  }, [filters]);
+  }, [filters, recipes]);
 
   const activeFilterCount =
-    filters.cuisine.length + filters.difficulty.length + filters.ingredients.length +
-    (filters.maxCookTime !== null ? 1 : 0) + filters.dietaryRestrictions.length;
+    filters.cuisine.length +
+    filters.difficulty.length +
+    filters.ingredients.length +
+    (filters.maxCookTime !== null ? 1 : 0) +
+    filters.dietaryRestrictions.length;
 
-  const handleRecipeClick = (recipe: Recipe) => {
+  const handleRecipeClick = (recipe: RecipeWithVideoSource) => {
     setSelectedRecipe(recipe);
     setIsModalOpen(true);
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background min-h-screen">
       {/* Hero Section */}
-      <header className="relative gradient-hero border-b border-border">
-        <div className="container py-12 md:py-20 mx-auto">
-          <div className="max-w-3xl mx-auto text-center space-y-6">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary">
+      <header className="gradient-hero border-border relative border-b">
+        <div className="container mx-auto py-12 md:py-20">
+          <div className="mx-auto max-w-3xl space-y-6 text-center">
+            <div className="bg-primary/10 text-primary inline-flex items-center gap-2 rounded-full px-4 py-2">
               <UtensilsCrossed className="h-4 w-4" />
               <span className="text-sm font-medium">Recipe Collection</span>
             </div>
 
-            <h1 className="font-display text-4xl md:text-6xl font-bold text-foreground text-balance animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <h1 className="font-display text-foreground animate-in fade-in slide-in-from-bottom-4 text-4xl font-bold text-balance duration-500 md:text-6xl">
               Discover Delicious Recipes
             </h1>
 
-            <p className="text-lg text-muted-foreground max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
-              Explore our curated collection of recipes from around the world. 
-              Filter by cuisine, difficulty, or ingredients to find your perfect dish.
+            <p className="text-muted-foreground animate-in fade-in slide-in-from-bottom-4 mx-auto max-w-xl text-lg delay-100 duration-500">
+              Explore our curated collection of recipes from around the world.
+              Filter by cuisine, difficulty, or ingredients to find your perfect
+              dish.
             </p>
 
             {/* Search Bar */}
-            <div className="flex justify-center pt-4 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200">
+            <div className="animate-in fade-in slide-in-from-bottom-4 flex justify-center pt-4 delay-200 duration-500">
               <SearchBar
                 value={filters.searchQuery}
-                onChange={(value) => setFilters({ ...filters, searchQuery: value })}
+                onChange={(value) =>
+                  setFilters({ ...filters, searchQuery: value })
+                }
               />
             </div>
           </div>
         </div>
       </header>
 
-      <main className="container py-8 md:py-12 mx-auto">
-        <div className="flex flex-col lg:flex-row gap-8">
+      <main className="container mx-auto py-8 md:py-12">
+        <div className="flex flex-col gap-8 lg:flex-row">
           {/* Desktop Filters Sidebar */}
-          <aside className="hidden lg:block w-72 flex-shrink-0">
-            <div className="sticky top-8 bg-card rounded-xl p-6 shadow-card">
-              <h2 className="font-display text-lg font-semibold text-foreground mb-6">
+          <aside className="hidden w-72 shrink-0 lg:block">
+            <div className="bg-card shadow-card sticky top-8 rounded-xl p-6">
+              <h2 className="font-display text-foreground mb-6 text-lg font-semibold">
                 Filters
               </h2>
               <RecipeFilters
@@ -159,20 +184,20 @@ export default function Home() {
           {/* Main Content */}
           <div className="flex-1">
             {/* Mobile Filter Button */}
-            <div className="lg:hidden mb-6">
+            <div className="mb-6 lg:hidden">
               <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
                 <SheetTrigger asChild>
                   <Button variant="outline" className="gap-2">
                     <Filter className="h-4 w-4" />
                     Filters
                     {activeFilterCount > 0 && (
-                      <span className="ml-1 px-2 py-0.5 bg-primary text-primary-foreground rounded-full text-xs">
+                      <span className="bg-primary text-primary-foreground ml-1 rounded-full px-2 py-0.5 text-xs">
                         {activeFilterCount}
                       </span>
                     )}
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-80 bg-card">
+                <SheetContent side="left" className="bg-card w-80">
                   <SheetHeader>
                     <SheetTitle className="font-display">Filters</SheetTitle>
                   </SheetHeader>
@@ -189,19 +214,21 @@ export default function Home() {
             </div>
 
             {/* Results Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="mb-6 flex items-center justify-between">
               <p className="text-muted-foreground font-body">
-                <span className="font-semibold text-foreground">{filteredRecipes.length}</span>{" "}
+                <span className="text-foreground font-semibold">
+                  {filteredRecipes.length}
+                </span>{" "}
                 {filteredRecipes.length === 1 ? "recipe" : "recipes"} found
               </p>
 
               {/* Active Filters Pills */}
               {activeFilterCount > 0 && (
-                <div className="hidden md:flex items-center gap-2">
+                <div className="hidden items-center gap-2 md:flex">
                   {filters.cuisine.map((c) => (
                     <span
                       key={c}
-                      className="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium"
+                      className="bg-primary/10 text-primary inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium"
                     >
                       {c}
                       <button
@@ -211,6 +238,8 @@ export default function Home() {
                             cuisine: filters.cuisine.filter((x) => x !== c),
                           })
                         }
+                        title="Remove filter"
+                        type="button"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -219,16 +248,20 @@ export default function Home() {
                   {filters.difficulty.map((d) => (
                     <span
                       key={d}
-                      className="inline-flex items-center gap-1 px-3 py-1 bg-accent/20 text-accent-foreground rounded-full text-xs font-medium"
+                      className="bg-accent/20 text-accent-foreground inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium"
                     >
                       {d}
                       <button
                         onClick={() =>
                           setFilters({
                             ...filters,
-                            difficulty: filters.difficulty.filter((x) => x !== d),
+                            difficulty: filters.difficulty.filter(
+                              (x) => x !== d,
+                            ),
                           })
                         }
+                        title="Remove filter"
+                        type="button"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -240,7 +273,7 @@ export default function Home() {
 
             {/* Recipe Grid */}
             {filteredRecipes.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
                 {filteredRecipes.map((recipe, index) => (
                   <RecipeCard
                     key={recipe.id}
@@ -251,15 +284,16 @@ export default function Home() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-16">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-                  <UtensilsCrossed className="h-8 w-8 text-muted-foreground" />
+              <div className="py-16 text-center">
+                <div className="bg-muted mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+                  <UtensilsCrossed className="text-muted-foreground h-8 w-8" />
                 </div>
-                <h3 className="font-display text-xl font-semibold text-foreground mb-2">
+                <h3 className="font-display text-foreground mb-2 text-xl font-semibold">
                   No recipes found
                 </h3>
-                <p className="text-muted-foreground max-w-md mx-auto">
-                  Try adjusting your filters or search terms to find what you're looking for.
+                <p className="text-muted-foreground mx-auto max-w-md">
+                  Try adjusting your filters or search terms to find what you're
+                  looking for.
                 </p>
                 <Button
                   variant="outline"

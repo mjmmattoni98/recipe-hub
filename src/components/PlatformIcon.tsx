@@ -1,7 +1,7 @@
-import type { VideoSource } from "@/types/recipe";
+import type { VideoPlatform } from "@/lib/recipe-types";
 
 interface PlatformIconProps {
-  platform: VideoSource['platform'];
+  platform: VideoPlatform;
   className?: string;
 }
 
