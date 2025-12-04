@@ -44,6 +44,35 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  
+  /* Custom Fonts */
+  --font-display: "Playfair Display", serif;
+  --font-body: "Inter", sans-serif;
+
+  /* Custom Gradients */
+  --gradient-warm: linear-gradient(135deg, hsl(14 60% 55%) 0%, hsl(14 65% 70%) 100%);
+  --gradient-sage: linear-gradient(135deg, hsl(145 30% 45%) 0%, hsl(145 25% 65%) 100%);
+  --gradient-hero: linear-gradient(180deg, hsl(35 30% 97%) 0%, hsl(35 25% 92%) 100%);
+}
+
+@utility font-display {
+  font-family: var(--font-display);
+}
+
+@utility font-body {
+  font-family: var(--font-body);
+}
+
+@utility gradient-warm {
+  background: var(--gradient-warm);
+}
+
+@utility gradient-sage {
+  background: var(--gradient-sage);
+}
+
+@utility gradient-hero {
+  background: var(--gradient-hero);
 }
 
 :root {
@@ -123,3 +152,57 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .recipe-card {
+    @apply relative overflow-hidden rounded-xl bg-card transition-all duration-300 ease-out;
+    box-shadow: var(--shadow-card);
+  }
+
+  .recipe-card:hover {
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-4px);
+  }
+
+  .badge-difficulty {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+  }
+
+  .badge-easy {
+    @apply bg-secondary text-secondary-foreground;
+  }
+
+  .badge-medium {
+    @apply bg-primary/20 text-primary;
+  }
+
+  .badge-hard {
+    @apply bg-accent text-accent-foreground;
+  }
+
+  .filter-chip {
+    @apply inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer;
+    @apply bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary;
+  }
+
+  .filter-chip.active {
+    @apply bg-primary text-primary-foreground;
+  }
+
+  .platform-badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200;
+  }
+
+  .platform-youtube {
+    @apply bg-red-500/10 text-red-600 hover:bg-red-500/20;
+  }
+
+  .platform-instagram {
+    @apply bg-pink-500/10 text-pink-600 hover:bg-pink-500/20;
+  }
+
+  .platform-tiktok {
+    @apply bg-foreground/10 text-foreground hover:bg-foreground/20;
+  }
+}
+
