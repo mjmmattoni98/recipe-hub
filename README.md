@@ -1,29 +1,99 @@
-# Create T3 App
+# Recipe Hub
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+Recipe Hub is a modern recipe management application built with the [T3 Stack](https://create.t3.gg/). It allows users to organize their favorite recipes, track what they've cooked, and even link video tutorials from various platforms.
 
-## What's next? How do I make an app with this?
+## 🚀 Tech Stack
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+- **Framework:** [Next.js](https://nextjs.org)
+- **Language:** [TypeScript](https://www.typescriptlang.org)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com)
+- **Database:** [PostgreSQL](https://www.postgresql.org)
+- **ORM:** [Prisma](https://www.prisma.io)
+- **API:** [tRPC](https://trpc.io)
+- **Package Manager:** [pnpm](https://pnpm.io)
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+## ✨ Features
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+- **Recipe Management:** Create, read, update, and delete recipes.
+- **Detailed Tracking:**
+  - Track ingredients, cooking instructions, and preparation times.
+  - Categorize by cuisine and difficulty (Easy, Medium, Hard).
+  - Add tags for better organization.
+- **Progress Tracking:** Mark recipes as "Cooked" to keep track of your culinary adventures.
+- **Video Integration:** Link video tutorials directly to recipes from platforms like:
+  - YouTube
+  - Instagram
+  - TikTok
 
-## Learn More
+## 🛠️ Getting Started
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+### Prerequisites
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+- Node.js (Latest LTS recommended)
+- pnpm (`npm install -g pnpm`)
+- PostgreSQL database (local or cloud-hosted like Supabase/Neon)
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+### Installation
 
-## How do I deploy this?
+1. **Clone the repository:**
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+   ```bash
+   git clone <repository-url>
+   cd recipe-hub
+   ```
+
+2. **Install dependencies:**
+
+   ```bash
+   pnpm install
+   ```
+
+3. **Set up environment variables:**
+   Create a `.env` file in the root directory based on `.env.example`:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   Update the `DATABASE_URL` and other variables in `.env`.
+
+### Database Setup
+
+1. **Generate Prisma Client:**
+
+   ```bash
+   pnpm db:generate
+   ```
+
+2. **Push schema to the database:**
+
+   ```bash
+   pnpm db:push
+   ```
+
+   _Note: For production database changes, use `pnpm db:migrate`._
+
+### Running the Application
+
+Start the development server:
+
+```bash
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser to see the app.
+
+## 📜 Scripts
+
+- `pnpm dev` - Start the development server.
+- `pnpm build` - Build the application for production.
+- `pnpm start` - Start the production server.
+- `pnpm lint` - Run ESLint to check for code quality issues.
+- `pnpm typecheck` - Run TypeScript type checking.
+- `pnpm db:studio` - Open Prisma Studio to view/edit database records.
+
+## 📂 Project Structure
+
+- `src/` - Application source code.
+- `prisma/` - Database schema and configurations.
+- `public/` - Static assets.

@@ -4,7 +4,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
+  --font-sans:
+    var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
@@ -44,15 +45,27 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  
+
   /* Custom Fonts */
   --font-display: "Playfair Display", serif;
   --font-body: "Inter", sans-serif;
 
-  /* Custom Gradients */
-  --gradient-warm: linear-gradient(135deg, hsl(14 60% 55%) 0%, hsl(14 65% 70%) 100%);
-  --gradient-sage: linear-gradient(135deg, hsl(145 30% 45%) 0%, hsl(145 25% 65%) 100%);
-  --gradient-hero: linear-gradient(180deg, hsl(35 30% 97%) 0%, hsl(35 25% 92%) 100%);
+  /* Custom Gradients - Updated to match new palette */
+  --gradient-warm: linear-gradient(
+    135deg,
+    oklch(0.65 0.18 35) 0%,
+    oklch(0.7 0.15 45) 100%
+  );
+  --gradient-sage: linear-gradient(
+    135deg,
+    oklch(0.55 0.12 145) 0%,
+    oklch(0.6 0.1 155) 100%
+  );
+  --gradient-hero: linear-gradient(
+    180deg,
+    oklch(0.97 0.02 50) 0%,
+    oklch(0.95 0.03 45) 100%
+  );
 }
 
 @utility font-display {
@@ -77,22 +90,41 @@
 
 :root {
   --radius: 0.625rem;
+
+  /* Light Theme - A warm, appetizing palette */
+  --background: oklch(0.985 0.005 50); /* Warm White */
+  --foreground: oklch(0.15 0.02 50); /* Warm Charcoal */
+
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.15 0.02 50);
+
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.15 0.02 50);
+
+  --primary: oklch(0.6 0.18 35); /* Vibrant Persimmon Orange */
+  --primary-foreground: oklch(0.985 0.005 50);
+
+  --secondary: oklch(0.95 0.04 40); /* Soft Peach/Beige */
+  --secondary-foreground: oklch(0.4 0.08 35);
+
+  --muted: oklch(0.97 0.01 50);
+  --muted-foreground: oklch(0.5 0.02 50);
+
+  --accent: oklch(0.96 0.03 40);
+  --accent-foreground: oklch(0.6 0.18 35);
+
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+
+  --border: oklch(0.92 0.01 50);
+  --input: oklch(0.92 0.01 50);
+  --ring: oklch(0.6 0.18 35);
+
+  /* Shadows for depth */
+  --shadow-card:
+    0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-card-hover:
+    0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.08);
+
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -106,29 +138,43 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  /* Dark Theme - Deep, rich and cozy */
+  --background: oklch(0.12 0.01 40); /* Deep Cocoa/Charcoal */
+  --foreground: oklch(0.98 0.005 50);
+
+  --card: oklch(0.17 0.015 40); /* Slightly lighter cocoa */
+  --card-foreground: oklch(0.98 0.005 50);
+
+  --popover: oklch(0.17 0.015 40);
+  --popover-foreground: oklch(0.98 0.005 50);
+
+  --primary: oklch(0.65 0.2 35); /* Brighter Orange for dark mode */
+  --primary-foreground: oklch(0.12 0.01 40);
+
+  --secondary: oklch(0.25 0.03 35); /* Deep muted brown/orange */
+  --secondary-foreground: oklch(0.98 0.005 50);
+
+  --muted: oklch(0.2 0.01 40);
+  --muted-foreground: oklch(0.7 0.02 50);
+
+  --accent: oklch(0.22 0.02 35);
+  --accent-foreground: oklch(0.98 0.005 50);
+
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
+
+  --border: oklch(0.25 0.01 40);
+  --input: oklch(0.25 0.01 40);
   --ring: oklch(0.556 0 0);
+
+  /* Shadows for depth in dark mode (subtler but impactful) */
+  --shadow-card:
+    0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+  --shadow-card-hover:
+    0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -155,7 +201,7 @@
 
 @layer components {
   .recipe-card {
-    @apply relative overflow-hidden rounded-xl bg-card transition-all duration-300 ease-out;
+    @apply bg-card relative overflow-hidden rounded-xl transition-all duration-300 ease-out;
     box-shadow: var(--shadow-card);
   }
 
@@ -165,7 +211,7 @@
   }
 
   .badge-difficulty {
-    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-medium;
   }
 
   .badge-easy {
@@ -181,7 +227,7 @@
   }
 
   .filter-chip {
-    @apply inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer;
+    @apply inline-flex cursor-pointer items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200;
     @apply bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary;
   }
 
@@ -190,7 +236,7 @@
   }
 
   .platform-badge {
-    @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200;
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-200;
   }
 
   .platform-youtube {
@@ -205,4 +251,3 @@
     @apply bg-foreground/10 text-foreground hover:bg-foreground/20;
   }
 }
-

@@ -1,5 +1,5 @@
-import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Search, X } from "lucide-react";
 
 interface SearchBarProps {
   value: string;
@@ -9,18 +9,18 @@ interface SearchBarProps {
 export function SearchBar({ value, onChange }: SearchBarProps) {
   return (
     <div className="relative w-full max-w-md">
-      <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+      <Search className="text-muted-foreground absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2" />
       <Input
         type="text"
         placeholder="Search recipes by title..."
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="pl-12 pr-10 h-12 bg-card border-border/50 rounded-full font-body text-base placeholder:text-muted-foreground focus-visible:ring-primary/30"
+        className="bg-card border-border/50 font-body placeholder:text-muted-foreground focus-visible:ring-primary/30 h-12 rounded-full pr-10 pl-12 text-base"
       />
       {value && (
         <button
           onClick={() => onChange("")}
-          className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+          className="text-muted-foreground hover:text-foreground absolute top-1/2 right-4 -translate-y-1/2 transition-colors"
         >
           <X className="h-4 w-4" />
         </button>

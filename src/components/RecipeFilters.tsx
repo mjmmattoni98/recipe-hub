@@ -1,6 +1,6 @@
+import type { CookingStatus, FilterCriteria } from "@/lib/recipe-types";
+import { Bookmark, ChefHat, Clock, Globe, Heart, Leaf } from "lucide-react";
 import { FilterChip } from "./FilterChip";
-import type { FilterCriteria } from "@/lib/recipe-types";
-import { ChefHat, Globe, Leaf, Clock, Heart } from "lucide-react";
 
 interface RecipeFiltersProps {
   filters: FilterCriteria;
@@ -17,6 +17,11 @@ const cookTimeOptions = [
   { label: "Any time", value: null },
 ];
 const dietaryOptions = ["Vegetarian", "Vegan", "Gluten-Free"];
+const cookingStatusOptions: { label: string; value: CookingStatus }[] = [
+  { label: "All Recipes", value: "all" },
+  { label: "Already Cooked", value: "cooked" },
+  { label: "Want to Try", value: "wantToTry" },
+];
 
 export function RecipeFilters({
   filters,
@@ -56,12 +61,17 @@ export function RecipeFilters({
     onFilterChange({ ...filters, dietaryRestrictions: newRestrictions });
   };
 
+  const setCookingStatus = (status: CookingStatus) => {
+    onFilterChange({ ...filters, cookingStatus: status });
+  };
+
   const hasActiveFilters =
     filters.cuisine.length > 0 ||
     filters.difficulty.length > 0 ||
     filters.ingredients.length > 0 ||
     filters.maxCookTime !== null ||
-    filters.dietaryRestrictions.length > 0;
+    filters.dietaryRestrictions.length > 0 ||
+    filters.cookingStatus !== "all";
 
   const clearFilters = () => {
     onFilterChange({
@@ -71,15 +81,34 @@ export function RecipeFilters({
       ingredients: [],
       maxCookTime: null,
       dietaryRestrictions: [],
+      cookingStatus: "all",
     });
   };
 
   return (
     <div className="space-y-6">
+      {/* Cooking Status Filter */}
+      <div className="space-y-3">
+        <div className="text-foreground flex items-center gap-2 text-sm font-medium">
+          <Bookmark className="text-primary h-4 w-4" />
+          <span>Cooking Status</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {cookingStatusOptions.map((option) => (
+            <FilterChip
+              key={option.value}
+              label={option.label}
+              isActive={filters.cookingStatus === option.value}
+              onClick={() => setCookingStatus(option.value)}
+            />
+          ))}
+        </div>
+      </div>
+
       {/* Difficulty Filter */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-          <ChefHat className="h-4 w-4 text-primary" />
+        <div className="text-foreground flex items-center gap-2 text-sm font-medium">
+          <ChefHat className="text-primary h-4 w-4" />
           <span>Difficulty</span>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -96,8 +125,8 @@ export function RecipeFilters({
 
       {/* Cuisine Filter */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-          <Globe className="h-4 w-4 text-primary" />
+        <div className="text-foreground flex items-center gap-2 text-sm font-medium">
+          <Globe className="text-primary h-4 w-4" />
           <span>Cuisine</span>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -114,8 +143,8 @@ export function RecipeFilters({
 
       {/* Cook Time Filter */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-          <Clock className="h-4 w-4 text-primary" />
+        <div className="text-foreground flex items-center gap-2 text-sm font-medium">
+          <Clock className="text-primary h-4 w-4" />
           <span>Cook Time</span>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -132,8 +161,8 @@ export function RecipeFilters({
 
       {/* Dietary Restrictions Filter */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-          <Heart className="h-4 w-4 text-primary" />
+        <div className="text-foreground flex items-center gap-2 text-sm font-medium">
+          <Heart className="text-primary h-4 w-4" />
           <span>Dietary</span>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -150,8 +179,8 @@ export function RecipeFilters({
 
       {/* Ingredient Filter */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-          <Leaf className="h-4 w-4 text-primary" />
+        <div className="text-foreground flex items-center gap-2 text-sm font-medium">
+          <Leaf className="text-primary h-4 w-4" />
           <span>Key Ingredients</span>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -170,7 +199,7 @@ export function RecipeFilters({
       {hasActiveFilters && (
         <button
           onClick={clearFilters}
-          className="text-sm text-primary hover:text-primary/80 transition-colors underline underline-offset-2"
+          className="text-primary hover:text-primary/80 text-sm underline underline-offset-2 transition-colors"
         >
           Clear all filters
         </button>

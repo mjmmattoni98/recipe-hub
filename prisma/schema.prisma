@@ -26,6 +26,7 @@ model Recipe {
   instructions String[]
   image        String
   tags         String[]
+  cooked       Boolean          @default(false)
   videoSource  VideoSource?
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
