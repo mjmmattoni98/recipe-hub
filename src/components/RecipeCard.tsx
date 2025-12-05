@@ -1,7 +1,6 @@
 import { PlatformIcon } from "@/components/PlatformIcon";
 import type { RecipeWithVideoSource } from "@/lib/recipe-types";
 import { cn } from "@/lib/utils";
-import { api } from "@/trpc/react";
 import { CheckCircle, Clock, Users } from "lucide-react";
 import Image from "next/image";
 
@@ -16,18 +15,6 @@ export function RecipeCard({
   onClick,
   index,
 }: Readonly<RecipeCardProps>) {
-  const utils = api.useUtils();
-  const toggleCooked = api.recipe.toggleCooked.useMutation({
-    onSuccess: () => {
-      void utils.recipe.getAll.invalidate();
-    },
-  });
-
-  const handleToggleCooked = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    toggleCooked.mutate({ id: recipe.id });
-  };
-
   const difficultyClass = {
     Easy: "badge-easy",
     Medium: "badge-medium",
@@ -52,15 +39,13 @@ export function RecipeCard({
         <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent opacity-60 transition-opacity duration-300 group-hover:opacity-70" />
 
         {/* Cooked Badge */}
-        <button
-          onClick={handleToggleCooked}
+        <span
           className={cn(
-            "absolute top-3 left-3 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur-sm transition-all duration-200 hover:scale-105",
+            "absolute top-3 left-3 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur-sm",
             recipe.cooked
               ? "border border-green-400/50 bg-green-500/90 text-white"
-              : "bg-background/90 text-foreground border-border/50 hover:bg-primary/20 hover:border-primary/50 border",
+              : "bg-background/90 text-foreground border-border/50 border",
           )}
-          title={recipe.cooked ? "Mark as want to try" : "Mark as cooked"}
         >
           <CheckCircle
             className={cn(
@@ -69,7 +54,7 @@ export function RecipeCard({
             )}
           />
           <span>{recipe.cooked ? "Cooked" : "Want to try"}</span>
-        </button>
+        </span>
 
         {/* Difficulty Badge */}
         <span
