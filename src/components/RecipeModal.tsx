@@ -39,7 +39,10 @@ export function RecipeModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-card border-border max-h-[90vh] max-w-3xl overflow-y-auto p-0">
+      <DialogContent
+        showCloseButton={false}
+        className="bg-card border-border max-h-[90vh] max-w-3xl overflow-y-auto p-0"
+      >
         {/* Header Image */}
         <div className="relative aspect-video w-full">
           <Image
