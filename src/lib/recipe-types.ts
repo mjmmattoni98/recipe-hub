@@ -1,4 +1,8 @@
-import type { Recipe, VideoSource, VideoPlatform } from "../../generated/prisma/client";
+import type {
+  Recipe,
+  VideoSource,
+  VideoPlatform,
+} from "../../generated/prisma/client";
 
 // Recipe with VideoSource relation included
 export type RecipeWithVideoSource = Recipe & {
@@ -9,6 +13,8 @@ export type RecipeWithVideoSource = Recipe & {
 export type { VideoPlatform };
 
 // FilterCriteria for recipe filtering in the UI
+export type CookingStatus = "all" | "cooked" | "wantToTry";
+
 export type FilterCriteria = {
   cuisine: string[];
   difficulty: string[];
@@ -16,5 +22,5 @@ export type FilterCriteria = {
   searchQuery: string;
   maxCookTime: number | null;
   dietaryRestrictions: string[];
+  cookingStatus: CookingStatus;
 };
-

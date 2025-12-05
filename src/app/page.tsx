@@ -4,6 +4,7 @@ import { RecipeCard } from "@/components/RecipeCard";
 import { RecipeFilters } from "@/components/RecipeFilters";
 import { RecipeModal } from "@/components/RecipeModal";
 import { SearchBar } from "@/components/SearchBar";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -25,6 +26,7 @@ export default function Home() {
     searchQuery: "",
     maxCookTime: null,
     dietaryRestrictions: [],
+    cookingStatus: "all",
   });
   const [selectedRecipe, setSelectedRecipe] =
     useState<RecipeWithVideoSource | null>(null);
@@ -114,6 +116,14 @@ export default function Home() {
         if (!hasAllRestrictions) return false;
       }
 
+      // Cooking status filter
+      if (filters.cookingStatus === "cooked" && !recipe.cooked) {
+        return false;
+      }
+      if (filters.cookingStatus === "wantToTry" && recipe.cooked) {
+        return false;
+      }
+
       return true;
     });
   }, [filters, recipes]);
@@ -133,26 +143,61 @@ export default function Home() {
   return (
     <div className="bg-background min-h-screen">
       {/* Hero Section */}
-      <header className="gradient-hero border-border relative border-b">
-        <div className="container mx-auto py-12 md:py-20">
-          <div className="mx-auto max-w-3xl space-y-6 text-center">
-            <div className="bg-primary/10 text-primary inline-flex items-center gap-2 rounded-full px-4 py-2">
-              <UtensilsCrossed className="h-4 w-4" />
-              <span className="text-sm font-medium">Recipe Collection</span>
+      <header className="border-border bg-muted/20 relative overflow-hidden border-b">
+        {/* Abstract Background Pattern */}
+        <div className="absolute inset-0 -z-10 opacity-30">
+          <svg
+            className="h-full w-full"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+          >
+            <path d="M0 0 L100 0 L100 100 L0 100 Z" fill="url(#grid)" />
+            <defs>
+              <pattern
+                id="grid"
+                width="8"
+                height="8"
+                patternUnits="userSpaceOnUse"
+              >
+                <path
+                  d="M 8 0 L 0 0 0 8"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="0.5"
+                />
+              </pattern>
+            </defs>
+          </svg>
+        </div>
+
+        <div className="container mx-auto pt-8 pb-16 md:pt-12 md:pb-24">
+          <div className="mx-auto max-w-3xl space-y-8 text-center">
+            {/* Badge and Theme Toggle Row */}
+            <div className="animate-in fade-in slide-in-from-bottom-4 relative flex items-center justify-center duration-500">
+              <div className="bg-primary/10 text-primary border-primary/20 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 shadow-sm backdrop-blur-sm">
+                <UtensilsCrossed className="h-4 w-4" />
+                <span className="text-sm font-semibold tracking-wide">
+                  Recipe Collection
+                </span>
+              </div>
+              <div className="absolute right-0">
+                <ThemeToggle />
+              </div>
             </div>
 
-            <h1 className="font-display text-foreground animate-in fade-in slide-in-from-bottom-4 text-4xl font-bold text-balance duration-500 md:text-6xl">
-              Discover Delicious Recipes
+            <h1 className="font-display text-foreground animate-in fade-in slide-in-from-bottom-6 text-5xl font-extrabold tracking-tight text-balance delay-100 duration-700 md:text-7xl">
+              Discover <span className="text-primary italic">Delicious</span>{" "}
+              <br /> Recipes
             </h1>
 
-            <p className="text-muted-foreground animate-in fade-in slide-in-from-bottom-4 mx-auto max-w-xl text-lg delay-100 duration-500">
+            <p className="text-muted-foreground animate-in fade-in slide-in-from-bottom-6 mx-auto max-w-2xl text-lg leading-relaxed delay-200 duration-700 md:text-xl">
               Explore our curated collection of recipes from around the world.
               Filter by cuisine, difficulty, or ingredients to find your perfect
-              dish.
+              dish for any occasion.
             </p>
 
             {/* Search Bar */}
-            <div className="animate-in fade-in slide-in-from-bottom-4 flex justify-center pt-4 delay-200 duration-500">
+            <div className="animate-in fade-in slide-in-from-bottom-8 flex justify-center pt-6 delay-300 duration-700">
               <SearchBar
                 value={filters.searchQuery}
                 onChange={(value) =>
@@ -306,6 +351,7 @@ export default function Home() {
                       searchQuery: "",
                       maxCookTime: null,
                       dietaryRestrictions: [],
+                      cookingStatus: "all",
                     })
                   }
                 >
