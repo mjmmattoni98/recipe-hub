@@ -55,7 +55,7 @@ export function RecipeModal({
 
           <button
             onClick={onClose}
-            className="bg-background/80 text-foreground hover:bg-background absolute top-4 right-4 rounded-full p-2 backdrop-blur-sm transition-colors"
+            className="bg-background/80 text-foreground hover:bg-background absolute top-4 right-4 cursor-pointer rounded-full p-2 backdrop-blur-sm transition-colors"
             title="Close"
             type="button"
           >
