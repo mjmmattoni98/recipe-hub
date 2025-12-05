@@ -1,10 +1,9 @@
 import { ThemeProvider } from "@/components/theme-provider";
 import "@/styles/globals.css";
-
+import { TRPCReactProvider } from "@/trpc/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { type Metadata } from "next";
 import { Geist } from "next/font/google";
-
-import { TRPCReactProvider } from "@/trpc/react";
 
 export const metadata: Metadata = {
   title: "RecipeHub",
@@ -30,6 +29,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
+            <SpeedInsights />
             {children}
           </ThemeProvider>
         </TRPCReactProvider>
