@@ -7,6 +7,7 @@ import {
 import type { RecipeWithVideoSource } from "@/lib/recipe-types";
 import { cn } from "@/lib/utils";
 import { Clock, ExternalLink, Users, X } from "lucide-react";
+import Image from "next/image";
 import { PlatformIcon } from "./PlatformIcon";
 
 interface RecipeModalProps {
@@ -41,10 +42,11 @@ export function RecipeModal({
       <DialogContent className="bg-card border-border max-h-[90vh] max-w-3xl overflow-y-auto p-0">
         {/* Header Image */}
         <div className="relative aspect-video w-full">
-          <img
+          <Image
             src={recipe.image}
             alt={recipe.title}
-            className="h-full w-full object-cover"
+            fill
+            className="object-cover"
           />
           <div className="from-card absolute inset-0 bg-linear-to-t via-transparent to-transparent" />
 
