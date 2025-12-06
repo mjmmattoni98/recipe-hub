@@ -39,7 +39,7 @@ const recipesData: Prisma.RecipeCreateInput[] = [
       "Acaba amb una capa de carbassa i cobreix amb formatge ratllat.",
       "Gratina al forn fins que el formatge estigui desfet i torrat.",
     ],
-    image: "/recipe/lasanya-carbassa-ricotta-espinacs.png",
+    image: "/recipes/lasanya-carbassa-ricotta-espinacs.png",
     tags: ["vegetarian", "gluten-free", "healthy", "seasonal"],
     videoSource: {
       create: {
@@ -73,7 +73,7 @@ const recipesData: Prisma.RecipeCreateInput[] = [
       "Rompe el huevo y colócalo con cuidado sobre la pizza.",
       "Hornea durante 15-20 minutos hasta que la masa esté dorada y el huevo en su punto.",
     ],
-    image: "/recipe/pizza-casera-bacon-espinacas-huevo.png",
+    image: "/recipes/pizza-casera-bacon-espinacas-huevo.png",
     tags: ["pizza", "comfort food", "quick dinner"],
     videoSource: {
       create: {
@@ -104,7 +104,7 @@ const recipesData: Prisma.RecipeCreateInput[] = [
       "Añade las verduras trituradas al caldo caliente.",
       "Incorpora los fideos y cocina el tiempo indicado hasta que estén listos.",
     ],
-    image: "/recipe/sopa-vegetales-fideos.png",
+    image: "/recipes/sopa-vegetales-fideos.png",
     tags: ["vegan", "vegetarian", "healthy", "soup", "comfort food"],
     videoSource: {
       create: {
@@ -138,7 +138,7 @@ const recipesData: Prisma.RecipeCreateInput[] = [
       "Enrolla el conjunto con ayuda del papel film, presionando para que quede un rollo compacto.",
       "Retira el film, corta si es necesario y sirve decorando por encima con salsa thai y sésamo tostado.",
     ],
-    image: "/recipe/rollitos-jamon-salmon-guacamole.png",
+    image: "/recipes/rollitos-jamon-salmon-guacamole.png",
     tags: ["appetizer", "keto", "low carb", "no-cook"],
     videoSource: {
       create: {
@@ -172,7 +172,7 @@ const recipesData: Prisma.RecipeCreateInput[] = [
       "Pasa la pieza por huevo batido y rebózala en el queso parmesano en polvo.",
       "Cocina en la Airfryer durante 15 minutos a 195ºC, o en el horno durante 20 minutos a 195ºC.",
     ],
-    image: "/recipe/calzone-pollo-sin-harina-keto.png",
+    image: "/recipes/calzone-pollo-sin-harina-keto.png",
     tags: ["gluten-free", "keto", "high protein", "airfryer", "dinner"],
     videoSource: {
       create: {
@@ -210,7 +210,7 @@ const recipesData: Prisma.RecipeCreateInput[] = [
       "Cubre con el resto del queso Gouda por encima.",
       "Gratina en el horno 5 minutos a 220°C hasta que el queso se derrita y dore.",
     ],
-    image: "/recipe/patatas-rellenas-huevo-cebolla.png",
+    image: "/recipes/patatas-rellenas-huevo-cebolla.png",
     tags: [
       "vegetarian",
       "gluten-free",
@@ -251,7 +251,7 @@ const recipesData: Prisma.RecipeCreateInput[] = [
       "Mezcla la pasta caliente con la salsa. Si queda muy espesa, añade un poco del agua de cocción reservada para darle cremosidad.",
       "Sirve inmediatamente decorando con ralladura de lima y un chorrito de zumo de lima por encima.",
     ],
-    image: "/recipe/pasta-calabaza-mascarpone-lima.png",
+    image: "/recipes/pasta-calabaza-mascarpone-lima.png",
     tags: ["vegetarian", "pasta", "easy", "creamy", "winter"],
     videoSource: {
       create: {
@@ -287,7 +287,7 @@ const recipesData: Prisma.RecipeCreateInput[] = [
       "Hornea durante 15-20 minutos hasta que el hojaldre esté inflado y bien dorado.",
       "Retira del horno y sirve inmediatamente decorando con unos hilitos de miel por encima.",
     ],
-    image: "/recipe/hojaldritos-navidad-brie-panceta.png",
+    image: "/recipes/hojaldritos-navidad-brie-panceta.png",
     tags: [
       "christmas",
       "appetizer",
@@ -334,7 +334,7 @@ const recipesData: Prisma.RecipeCreateInput[] = [
       "Monta el pastel en una fuente: coloca una base con la mezcla de carne y cubre con el puré de patata.",
       "Gratina unos minutos en el horno antes de servir para que la superficie se dore.",
     ],
-    image: "/recipe/pastel-carrilleras-vino.png",
+    image: "/recipes/pastel-carrilleras-vino.png",
     tags: ["christmas", "meat", "make-ahead", "main-course", "gluten-free"],
     videoSource: {
       create: {
@@ -366,7 +366,7 @@ const recipesData: Prisma.RecipeCreateInput[] = [
       "Retira el recipiente con cuidado y mezcla todo bien para que el queso crema y los jugos del pollo se integren formando la salsa.",
       "Añade el queso cheddar rallado por encima para terminar el plato y que se funda con el calor residual.",
     ],
-    image: "/recipe/gnocchis-crema-queso-airfryer.png",
+    image: "/recipes/gnocchis-crema-queso-airfryer.png",
     tags: ["air-fryer", "high-protein", "meal-prep", "lunch", "healthy"],
     videoSource: {
       create: {
@@ -401,7 +401,7 @@ const recipesData: Prisma.RecipeCreateInput[] = [
       "Cocina la quesadilla 3-4 minutos por cada lado hasta que esté dorada y el queso se haya derretido.",
       "Deja reposar 1 minuto, corta en triángulos y sirve con la salsa ranchera.",
     ],
-    image: "/recipe/quesadillas-pollo-pesto.png",
+    image: "/recipes/quesadillas-pollo-pesto.png",
     tags: ["chicken", "pesto", "quick-dinner", "high-protein", "quesadilla"],
     videoSource: {
       create: {
@@ -441,7 +441,7 @@ const recipesData: Prisma.RecipeCreateInput[] = [
       "Saca la carne del horno y rómpela en trozos irregulares con las manos o un cuchillo para imitar el corte del kebab.",
       "Monta el pan de pita con la salsa, cebolla, la carne crujiente, queso y los extras que desees.",
     ],
-    image: "/recipe/doner-kebap-viral.png",
+    image: "/recipes/doner-kebap-viral.png",
     tags: ["meat", "fakeaway", "viral", "dinner", "kebab"],
     videoSource: {
       create: {
