@@ -1,3 +1,10 @@
 {
-  "cSpell.words": ["datasource", "geist", "Supabase", "tiktok"]
+  "cSpell.words": [
+    "CLIENTVAR",
+    "datasource",
+    "geist",
+    "Supabase",
+    "tiktok",
+    "typesafety"
+  ]
 }
