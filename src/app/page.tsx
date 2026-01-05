@@ -2,7 +2,6 @@
 
 import { RecipeCard } from "@/components/RecipeCard";
 import { RecipeFilters } from "@/components/RecipeFilters";
-import { RecipeModal } from "@/components/RecipeModal";
 import { SearchBar } from "@/components/SearchBar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
@@ -28,9 +27,6 @@ export default function Home() {
     dietaryRestrictions: [],
     cookingStatus: "all",
   });
-  const [selectedRecipe, setSelectedRecipe] =
-    useState<RecipeWithVideoSource | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   // Fetch recipes from the database
@@ -134,11 +130,6 @@ export default function Home() {
     filters.ingredients.length +
     (filters.maxCookTime !== null ? 1 : 0) +
     filters.dietaryRestrictions.length;
-
-  const handleRecipeClick = (recipe: RecipeWithVideoSource) => {
-    setSelectedRecipe(recipe);
-    setIsModalOpen(true);
-  };
 
   return (
     <div className="bg-background min-h-screen">
@@ -320,12 +311,7 @@ export default function Home() {
             {filteredRecipes.length > 0 ? (
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
                 {filteredRecipes.map((recipe, index) => (
-                  <RecipeCard
-                    key={recipe.id}
-                    recipe={recipe}
-                    onClick={() => handleRecipeClick(recipe)}
-                    index={index}
-                  />
+                  <RecipeCard key={recipe.id} recipe={recipe} index={index} />
                 ))}
               </div>
             ) : (
@@ -362,13 +348,6 @@ export default function Home() {
           </div>
         </div>
       </main>
-
-      {/* Recipe Modal */}
-      <RecipeModal
-        recipe={selectedRecipe}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
     </div>
   );
 }
