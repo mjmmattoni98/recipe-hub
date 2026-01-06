@@ -1,10 +1,11 @@
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 import "@/styles/globals.css";
 import { TRPCReactProvider } from "@/trpc/react";
+import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { type Metadata } from "next";
 import { Geist } from "next/font/google";
-import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: "RecipeHub",
@@ -32,6 +33,7 @@ export default function RootLayout({
           >
             <SpeedInsights />
             {children}
+            <Analytics />
             <Toaster />
           </ThemeProvider>
         </TRPCReactProvider>
