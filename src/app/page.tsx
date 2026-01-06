@@ -16,8 +16,13 @@ import type { FilterCriteria, RecipeWithVideoSource } from "@/lib/recipe-types";
 import { api } from "@/trpc/react";
 import { Filter, UtensilsCrossed, X } from "lucide-react";
 import { useMemo, useState } from "react";
+import { authClient } from "@/lib/auth-client";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
+  const { data: session } = authClient.useSession();
   const [filters, setFilters] = useState<FilterCriteria>({
     cuisine: [],
     difficulty: [],
@@ -162,6 +167,18 @@ export default function Home() {
         </div>
 
         <div className="container mx-auto pt-8 pb-16 md:pt-12 md:pb-24">
+            <div className="flex justify-end gap-4 mb-8">
+                {session ? (
+                    <Button variant="outline" onClick={async () => {
+                        await authClient.signOut();
+                        router.refresh();
+                    }}>Sign Out</Button>
+                ) : (
+                    <Link href="/sign-in">
+                        <Button>Sign In</Button>
+                    </Link>
+                )}
+            </div>
           <div className="mx-auto max-w-3xl space-y-8 text-center">
             {/* Badge and Theme Toggle Row */}
             <div className="animate-in fade-in slide-in-from-bottom-4 relative flex items-center justify-center duration-500">
@@ -311,7 +328,7 @@ export default function Home() {
             {filteredRecipes.length > 0 ? (
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
                 {filteredRecipes.map((recipe, index) => (
-                  <RecipeCard key={recipe.id} recipe={recipe} index={index} />
+                  <RecipeCard key={recipe.id} recipe={recipe} index={index} isLoggedIn={!!session} />
                 ))}
               </div>
             ) : (
