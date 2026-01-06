@@ -1,21 +1,49 @@
 import { PlatformIcon } from "@/components/PlatformIcon";
 import type { RecipeWithVideoSource } from "@/lib/recipe-types";
 import { cn } from "@/lib/utils";
+import { api } from "@/trpc/react";
 import { CheckCircle, Clock, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface RecipeCardProps {
   recipe: RecipeWithVideoSource;
   index: number;
+  isLoggedIn?: boolean;
 }
 
-export function RecipeCard({ recipe, index }: Readonly<RecipeCardProps>) {
+export function RecipeCard({ recipe, index, isLoggedIn }: Readonly<RecipeCardProps>) {
+  const router = useRouter();
+  const utils = api.useUtils();
+  const toggleCooked = api.recipe.toggleCooked.useMutation({
+    onSuccess: () => {
+      router.refresh();
+      utils.recipe.getAll.invalidate();
+      toast.success("Recipe status updated");
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
   const difficultyClass = {
     Easy: "badge-easy",
     Medium: "badge-medium",
     Hard: "badge-hard",
   }[recipe.difficulty];
+
+  const handleToggleCooked = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isLoggedIn) return;
+
+    toggleCooked.mutate({
+      id: recipe.id,
+      cooked: !recipe.cooked,
+    });
+  };
 
   return (
     <Link href={`/recipes/${recipe.id}`} className="group block">
@@ -35,12 +63,15 @@ export function RecipeCard({ recipe, index }: Readonly<RecipeCardProps>) {
           <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent opacity-60 transition-opacity duration-300 group-hover:opacity-70" />
 
           {/* Cooked Badge */}
-          <span
+          <button
+            onClick={handleToggleCooked}
+            disabled={!isLoggedIn}
             className={cn(
-              "absolute top-3 left-3 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur-sm",
+              "absolute top-3 left-3 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur-sm transition-colors",
               recipe.cooked
                 ? "border border-green-400/50 bg-green-500/90 text-white"
                 : "bg-background/90 text-foreground border-border/50 border",
+                isLoggedIn ? "cursor-pointer hover:bg-opacity-80" : "cursor-default"
             )}
           >
             <CheckCircle
@@ -50,7 +81,7 @@ export function RecipeCard({ recipe, index }: Readonly<RecipeCardProps>) {
               )}
             />
             <span>{recipe.cooked ? "Cooked" : "Want to try"}</span>
-          </span>
+          </button>
 
           {/* Difficulty Badge */}
           <span

@@ -1,4 +1,4 @@
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, publicProcedure, protectedProcedure } from "@/server/api/trpc";
 import { z } from "zod";
 
 export const recipeRouter = createTRPCRouter({
@@ -21,6 +21,15 @@ export const recipeRouter = createTRPCRouter({
         include: {
           videoSource: true,
         },
+      });
+    }),
+
+  toggleCooked: protectedProcedure
+    .input(z.object({ id: z.string(), cooked: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      return ctx.db.recipe.update({
+        where: { id: input.id },
+        data: { cooked: input.cooked },
       });
     }),
 });
