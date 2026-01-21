@@ -160,6 +160,7 @@ export default function Home() {
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="0.5"
+                  suppressHydrationWarning
                 />
               </pattern>
             </defs>
@@ -167,23 +168,33 @@ export default function Home() {
         </div>
 
         <div className="container mx-auto pt-8 pb-16 md:pt-12 md:pb-24">
-            <div className="flex justify-end gap-4 mb-8">
-                {session ? (
-                    <Button variant="outline" onClick={async () => {
-                        await authClient.signOut();
-                        router.refresh();
-                    }}>Sign Out</Button>
-                ) : (
-                    <Link href="/sign-in">
-                        <Button>Sign In</Button>
-                    </Link>
-                )}
-            </div>
+          <div className="mb-8 flex justify-end gap-4">
+            {session ? (
+              <div className="flex gap-2">
+                <Link href="/new-recipe">
+                  <Button>Add Recipe</Button>
+                </Link>
+                <Button
+                  variant="outline"
+                  onClick={async () => {
+                    await authClient.signOut();
+                    router.refresh();
+                  }}
+                >
+                  Sign Out
+                </Button>
+              </div>
+            ) : (
+              <Link href="/sign-in">
+                <Button>Sign In</Button>
+              </Link>
+            )}
+          </div>
           <div className="mx-auto max-w-3xl space-y-8 text-center">
             {/* Badge and Theme Toggle Row */}
             <div className="animate-in fade-in slide-in-from-bottom-4 relative flex items-center justify-center duration-500">
               <div className="bg-primary/10 text-primary border-primary/20 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 shadow-sm backdrop-blur-sm">
-                <UtensilsCrossed className="h-4 w-4" />
+                <UtensilsCrossed className="h-4 w-4" suppressHydrationWarning />
                 <span className="text-sm font-semibold tracking-wide">
                   Recipe Collection
                 </span>
@@ -241,7 +252,7 @@ export default function Home() {
               <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
                 <SheetTrigger asChild>
                   <Button variant="outline" className="gap-2">
-                    <Filter className="h-4 w-4" />
+                    <Filter className="h-4 w-4" suppressHydrationWarning />
                     Filters
                     {activeFilterCount > 0 && (
                       <span className="bg-primary text-primary-foreground ml-1 rounded-full px-2 py-0.5 text-xs">
@@ -294,7 +305,7 @@ export default function Home() {
                         title="Remove filter"
                         type="button"
                       >
-                        <X className="h-3 w-3" />
+                        <X className="h-3 w-3" suppressHydrationWarning />
                       </button>
                     </span>
                   ))}
@@ -316,7 +327,7 @@ export default function Home() {
                         title="Remove filter"
                         type="button"
                       >
-                        <X className="h-3 w-3" />
+                        <X className="h-3 w-3" suppressHydrationWarning />
                       </button>
                     </span>
                   ))}
@@ -328,13 +339,21 @@ export default function Home() {
             {filteredRecipes.length > 0 ? (
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
                 {filteredRecipes.map((recipe, index) => (
-                  <RecipeCard key={recipe.id} recipe={recipe} index={index} isLoggedIn={!!session} />
+                  <RecipeCard
+                    key={recipe.id}
+                    recipe={recipe}
+                    index={index}
+                    isLoggedIn={!!session}
+                  />
                 ))}
               </div>
             ) : (
               <div className="py-16 text-center">
                 <div className="bg-muted mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-                  <UtensilsCrossed className="text-muted-foreground h-8 w-8" />
+                  <UtensilsCrossed
+                    className="text-muted-foreground h-8 w-8"
+                    suppressHydrationWarning
+                  />
                 </div>
                 <h3 className="font-display text-foreground mb-2 text-xl font-semibold">
                   No recipes found

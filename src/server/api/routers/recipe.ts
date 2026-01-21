@@ -1,4 +1,8 @@
-import { createTRPCRouter, publicProcedure, protectedProcedure } from "@/server/api/trpc";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from "@/server/api/trpc";
 import { z } from "zod";
 
 export const recipeRouter = createTRPCRouter({
@@ -30,6 +34,51 @@ export const recipeRouter = createTRPCRouter({
       return ctx.db.recipe.update({
         where: { id: input.id },
         data: { cooked: input.cooked },
+      });
+    }),
+
+  create: protectedProcedure
+    .input(
+      z.object({
+        title: z.string().min(1),
+        description: z.string(),
+        cuisine: z.string(),
+        difficulty: z.enum(["Easy", "Medium", "Hard"]),
+        cookTime: z.number().int().min(0),
+        prepTime: z.number().int().min(0),
+        servings: z.number().int().min(1),
+        ingredients: z.array(z.string()),
+        instructions: z.array(z.string()),
+        image: z.string(),
+        tags: z.array(z.string()),
+        videoSource: z
+          .object({
+            platform: z.enum(["YouTube", "Instagram", "TikTok"]),
+            url: z.string().url(),
+          })
+          .optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return ctx.db.recipe.create({
+        data: {
+          title: input.title,
+          description: input.description,
+          cuisine: input.cuisine,
+          difficulty: input.difficulty,
+          cookTime: input.cookTime,
+          prepTime: input.prepTime,
+          servings: input.servings,
+          ingredients: input.ingredients,
+          instructions: input.instructions,
+          image: input.image,
+          tags: input.tags,
+          videoSource: input.videoSource
+            ? {
+                create: input.videoSource,
+              }
+            : undefined,
+        },
       });
     }),
 });

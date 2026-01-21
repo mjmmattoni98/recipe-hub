@@ -14,7 +14,11 @@ interface RecipeCardProps {
   isLoggedIn?: boolean;
 }
 
-export function RecipeCard({ recipe, index, isLoggedIn }: Readonly<RecipeCardProps>) {
+export function RecipeCard({
+  recipe,
+  index,
+  isLoggedIn,
+}: Readonly<RecipeCardProps>) {
   const router = useRouter();
   const utils = api.useUtils();
   const toggleCooked = api.recipe.toggleCooked.useMutation({
@@ -71,7 +75,9 @@ export function RecipeCard({ recipe, index, isLoggedIn }: Readonly<RecipeCardPro
               recipe.cooked
                 ? "border border-green-400/50 bg-green-500/90 text-white"
                 : "bg-background/90 text-foreground border-border/50 border",
-                isLoggedIn ? "cursor-pointer hover:bg-opacity-80" : "cursor-default"
+              isLoggedIn
+                ? "hover:bg-opacity-80 cursor-pointer"
+                : "cursor-default",
             )}
           >
             <CheckCircle
@@ -79,6 +85,7 @@ export function RecipeCard({ recipe, index, isLoggedIn }: Readonly<RecipeCardPro
                 "h-3.5 w-3.5",
                 recipe.cooked ? "text-white" : "text-muted-foreground",
               )}
+              suppressHydrationWarning
             />
             <span>{recipe.cooked ? "Cooked" : "Want to try"}</span>
           </button>
@@ -122,11 +129,17 @@ export function RecipeCard({ recipe, index, isLoggedIn }: Readonly<RecipeCardPro
           {/* Meta Info */}
           <div className="text-muted-foreground border-border/50 mt-4 flex items-center gap-4 border-t pt-2 text-sm">
             <div className="mt-3 flex items-center gap-1.5">
-              <Clock className="text-primary/70 h-4 w-4" />
+              <Clock
+                className="text-primary/70 h-4 w-4"
+                suppressHydrationWarning
+              />
               <span>{recipe.cookTime + recipe.prepTime} min</span>
             </div>
             <div className="mt-3 flex items-center gap-1.5">
-              <Users className="text-primary/70 h-4 w-4" />
+              <Users
+                className="text-primary/70 h-4 w-4"
+                suppressHydrationWarning
+              />
               <span>{recipe.servings} servings</span>
             </div>
           </div>

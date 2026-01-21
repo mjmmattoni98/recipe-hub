@@ -9,7 +9,10 @@ interface SearchBarProps {
 export function SearchBar({ value, onChange }: SearchBarProps) {
   return (
     <div className="relative w-full max-w-md">
-      <Search className="text-muted-foreground absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2" />
+      <Search
+        className="text-muted-foreground absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2"
+        suppressHydrationWarning
+      />
       <Input
         type="text"
         placeholder="Search recipes by title..."
@@ -22,7 +25,7 @@ export function SearchBar({ value, onChange }: SearchBarProps) {
           onClick={() => onChange("")}
           className="text-muted-foreground hover:text-foreground absolute top-1/2 right-4 -translate-y-1/2 transition-colors"
         >
-          <X className="h-4 w-4" />
+          <X className="h-4 w-4" suppressHydrationWarning />
         </button>
       )}
     </div>
