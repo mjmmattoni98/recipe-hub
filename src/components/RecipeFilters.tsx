@@ -90,7 +90,7 @@ export function RecipeFilters({
       {/* Cooking Status Filter */}
       <div className="space-y-3">
         <div className="text-foreground flex items-center gap-2 text-sm font-medium">
-          <Bookmark className="text-primary h-4 w-4" />
+          <Bookmark className="text-primary h-4 w-4" suppressHydrationWarning />
           <span>Cooking Status</span>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -108,7 +108,7 @@ export function RecipeFilters({
       {/* Difficulty Filter */}
       <div className="space-y-3">
         <div className="text-foreground flex items-center gap-2 text-sm font-medium">
-          <ChefHat className="text-primary h-4 w-4" />
+          <ChefHat className="text-primary h-4 w-4" suppressHydrationWarning />
           <span>Difficulty</span>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -126,7 +126,7 @@ export function RecipeFilters({
       {/* Cuisine Filter */}
       <div className="space-y-3">
         <div className="text-foreground flex items-center gap-2 text-sm font-medium">
-          <Globe className="text-primary h-4 w-4" />
+          <Globe className="text-primary h-4 w-4" suppressHydrationWarning />
           <span>Cuisine</span>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -144,7 +144,7 @@ export function RecipeFilters({
       {/* Cook Time Filter */}
       <div className="space-y-3">
         <div className="text-foreground flex items-center gap-2 text-sm font-medium">
-          <Clock className="text-primary h-4 w-4" />
+          <Clock className="text-primary h-4 w-4" suppressHydrationWarning />
           <span>Cook Time</span>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -162,7 +162,7 @@ export function RecipeFilters({
       {/* Dietary Restrictions Filter */}
       <div className="space-y-3">
         <div className="text-foreground flex items-center gap-2 text-sm font-medium">
-          <Heart className="text-primary h-4 w-4" />
+          <Heart className="text-primary h-4 w-4" suppressHydrationWarning />
           <span>Dietary</span>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -180,7 +180,7 @@ export function RecipeFilters({
       {/* Ingredient Filter */}
       <div className="space-y-3">
         <div className="text-foreground flex items-center gap-2 text-sm font-medium">
-          <Leaf className="text-primary h-4 w-4" />
+          <Leaf className="text-primary h-4 w-4" suppressHydrationWarning />
           <span>Key Ingredients</span>
         </div>
         <div className="flex flex-wrap gap-2">
