@@ -2,10 +2,12 @@ import { PlatformIcon } from "@/components/PlatformIcon";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/server";
-import { ChevronLeft, Clock, ExternalLink, Users } from "lucide-react";
+import { ChevronLeft, Clock, ExternalLink, Users, Edit } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export default async function RecipePage({
   params,
@@ -18,6 +20,10 @@ export default async function RecipePage({
   if (!recipe) {
     notFound();
   }
+
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
   const difficultyClass = {
     Easy: "badge-easy",
@@ -46,7 +52,7 @@ export default async function RecipePage({
         />
         <div className="from-background absolute inset-0 bg-linear-to-t via-transparent to-transparent" />
 
-        <div className="absolute top-4 left-4 z-10">
+        <div className="absolute top-4 left-4 right-4 z-10 flex justify-between">
           <Link href="/">
             <Button
               variant="secondary"
@@ -56,6 +62,17 @@ export default async function RecipePage({
               <ChevronLeft className="h-6 w-6" />
             </Button>
           </Link>
+          {session?.user && (
+            <Link href={`/recipes/${id}/edit`}>
+              <Button
+                variant="secondary"
+                size="icon"
+                className="bg-background/80 hover:bg-background h-10 w-10 rounded-full backdrop-blur-sm"
+              >
+                <Edit className="h-5 w-5" />
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
