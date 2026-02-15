@@ -42,12 +42,12 @@ export const recipeFormSchema = z.object({
   instructions: z
     .array(z.string())
     .min(1, "At least one instruction is required"),
-  image: z.string().min(1, "Image URL/Path is required"),
+  image: z.string().min(1, "Image is required"),
   tags: z.array(z.string()),
   videoSource: z
     .object({
       platform: z.enum(["YouTube", "Instagram", "TikTok"]),
-      url: z.string().url("Must be a valid URL"),
+      url: z.url("Must be a valid URL"),
     })
     .optional(),
 });
@@ -67,6 +67,8 @@ export function RecipeForm({
   isSubmitting,
   submitLabel = "Save Recipe",
 }: Readonly<RecipeFormProps>) {
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const form = useForm({
     defaultValues:
       defaultValues ??
@@ -87,18 +89,75 @@ export function RecipeForm({
       onSubmit: recipeFormSchema,
     },
     onSubmit: async ({ value }) => {
+      const uploadImageToBlob = async (file: File) => {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const response = await fetch("/api/blob/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const payload = (await response.json().catch(() => null)) as {
+            error?: string;
+          } | null;
+          throw new Error(payload?.error ?? "Failed to upload image");
+        }
+
+        const payload = (await response.json()) as { url?: string };
+
+        if (!payload.url) {
+          throw new Error("Upload response did not include an image URL");
+        }
+
+        return payload.url;
+      };
+
       const cleanedValue = {
         ...value,
         ingredients: value.ingredients.filter((i) => i.trim() !== ""),
         instructions: value.instructions.filter((i) => i.trim() !== ""),
         tags: value.tags.filter((t) => t.trim() !== ""),
       };
-      await onSubmit(cleanedValue);
+
+      let image = cleanedValue.image;
+
+      if (imageFile) {
+        setIsUploadingImage(true);
+        try {
+          image = await uploadImageToBlob(imageFile);
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : "Failed to upload image";
+          toast.error(message);
+          return;
+        } finally {
+          setIsUploadingImage(false);
+        }
+      }
+
+      if (!image) {
+        toast.error("Please upload an image");
+        return;
+      }
+
+      await onSubmit({
+        ...cleanedValue,
+        image,
+      });
     },
   });
 
   const [jsonInput, setJsonInput] = useState("");
   const [isJsonDialogOpen, setIsJsonDialogOpen] = useState(false);
+
+  let submitButtonLabel = submitLabel;
+  if (isUploadingImage) {
+    submitButtonLabel = "Uploading image...";
+  } else if (isSubmitting) {
+    submitButtonLabel = "Saving...";
+  }
 
   const handleImportJson = () => {
     try {
@@ -373,7 +432,6 @@ You will receive:
           </form.Field>
         </div>
 
-        {/* Ingredients Array */}
         <form.Field name="ingredients" mode="array">
           {(field) => (
             <div className="space-y-4">
@@ -420,7 +478,6 @@ You will receive:
           )}
         </form.Field>
 
-        {/* Instructions Array */}
         <form.Field name="instructions" mode="array">
           {(field) => (
             <div className="space-y-4">
@@ -471,7 +528,6 @@ You will receive:
           )}
         </form.Field>
 
-        {/* Tags Array */}
         <form.Field name="tags" mode="array">
           {(field) => (
             <div className="space-y-4">
@@ -529,18 +585,36 @@ You will receive:
         <form.Field name="image">
           {(field) => (
             <div className="space-y-2">
-              <Label htmlFor={field.name}>Image Blob Path / URL</Label>
+              <Label htmlFor="recipe-image-upload">Recipe Image</Label>
               <Input
-                id={field.name}
-                name={field.name}
-                value={field.state.value}
+                id="recipe-image-upload"
+                name="recipe-image-upload"
+                type="file"
+                accept="image/*"
                 onBlur={field.handleBlur}
-                onChange={(e) => field.handleChange(e.target.value)}
-                placeholder="my-recipe.png or https://..."
+                onChange={(e) => {
+                  const selectedFile = e.target.files?.[0] ?? null;
+                  setImageFile(selectedFile);
+
+                  if (selectedFile) {
+                    field.handleChange(selectedFile.name);
+                    return;
+                  }
+
+                  field.handleChange(defaultValues?.image ?? "");
+                }}
               />
               <p className="text-muted-foreground text-xs">
-                Use a Vercel Blob URL, blob pathname, or just the filename.
+                Upload an image and it will be stored in Vercel Blob
+                automatically.
               </p>
+              {field.state.value ? (
+                <p className="text-muted-foreground text-xs">
+                  {imageFile
+                    ? `Selected file: ${imageFile.name}`
+                    : "Current image is already saved for this recipe."}
+                </p>
+              ) : null}
               {field.state.meta.errors ? (
                 <p className="text-destructive text-sm">
                   {field.state.meta.errors.join(", ")}
@@ -591,8 +665,6 @@ You will receive:
                     value={field.state.value || ""}
                     onChange={(e) => {
                       field.handleChange(e.target.value);
-                      // If url is typed, ensure object exists. Note: platform might be missing if user types URL first, need to handle that or force platform selection.
-                      // Validation handles missing platform if videoSource object exists.
                       const currentPlatform = form.getFieldValue(
                         "videoSource.platform",
                       );
@@ -612,13 +684,16 @@ You will receive:
         </div>
 
         <div className="flex justify-end pt-4">
-          <Button type="submit" size="lg" disabled={isSubmitting}>
-            {isSubmitting ? "Saving..." : submitLabel}
+          <Button
+            type="submit"
+            size="lg"
+            disabled={isSubmitting || isUploadingImage}
+          >
+            {submitButtonLabel}
           </Button>
         </div>
       </form>
 
-      {/* Image Generation Help */}
       <div className="bg-muted/50 mt-12 rounded-lg border p-6">
         <h3 className="mb-2 flex items-center gap-2 text-lg font-semibold">
           <Wand2 className="h-5 w-5" />
