@@ -1,5 +1,5 @@
 import { env } from "@/env";
-import { auth } from "@/lib/auth";
+import { getSessionFromHeaders } from "@/server/auth/get-session";
 import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
 
@@ -26,9 +26,7 @@ const getPutOptions = () => {
 };
 
 export async function POST(request: Request) {
-  const session = await auth.api.getSession({
-    headers: request.headers,
-  });
+  const session = await getSessionFromHeaders(request.headers);
 
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

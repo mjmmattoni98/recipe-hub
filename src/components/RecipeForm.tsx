@@ -154,9 +154,9 @@ export function RecipeForm({
 
   let submitButtonLabel = submitLabel;
   if (isUploadingImage) {
-    submitButtonLabel = "Uploading image...";
+    submitButtonLabel = "Uploading image…";
   } else if (isSubmitting) {
-    submitButtonLabel = "Saving...";
+    submitButtonLabel = "Saving…";
   }
 
   const handleImportJson = () => {
@@ -191,7 +191,7 @@ export function RecipeForm({
       setIsJsonDialogOpen(false);
       setJsonInput("");
       toast.success("Recipe data imported successfully");
-    } catch (e) {
+    } catch {
       toast.error("Invalid JSON format");
     }
   };
@@ -464,6 +464,7 @@ You will receive:
                     size="icon"
                     onClick={() => field.removeValue(index)}
                     disabled={field.state.value.length === 1}
+                    aria-label={`Remove ingredient ${index + 1}`}
                   >
                     <Trash2 className="text-muted-foreground hover:text-destructive h-4 w-4" />
                   </Button>
@@ -514,6 +515,7 @@ You will receive:
                     size="icon"
                     onClick={() => field.removeValue(index)}
                     disabled={field.state.value.length === 1}
+                    aria-label={`Remove step ${index + 1}`}
                   >
                     <Trash2 className="text-muted-foreground hover:text-destructive h-4 w-4" />
                   </Button>
@@ -567,6 +569,7 @@ You will receive:
                       size="icon-sm"
                       onClick={() => field.removeValue(index)}
                       className="h-6 w-6"
+                      aria-label={`Remove tag ${index + 1}`}
                     >
                       <X className="h-3 w-3" />
                     </Button>
@@ -711,6 +714,7 @@ You will receive:
             variant="ghost"
             size="icon"
             className="absolute top-2 right-2 opacity-0 transition-opacity group-hover:opacity-100"
+            aria-label="Copy image generation prompt"
             onClick={() => {
               navigator.clipboard.writeText(
                 "Generate a photorealistic food photography image for a recipe with this title: [Title] and description: [Description]. Top-down view, high quality.",

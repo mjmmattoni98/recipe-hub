@@ -145,6 +145,8 @@
 }
 
 .dark {
+  color-scheme: dark;
+
   /* Dark Theme — Deep, rich and cozy */
   --background: oklch(0.12 0.01 40);
   --foreground: oklch(0.98 0.005 50);
@@ -194,11 +196,17 @@
 }
 
 @layer base {
+  html {
+    color-scheme: light;
+    -webkit-tap-highlight-color: rgb(0 0 0 / 10%);
+  }
+
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground font-body antialiased;
+    touch-action: manipulation;
   }
 }
 
@@ -206,6 +214,8 @@
   .recipe-card {
     @apply bg-card relative overflow-hidden rounded-2xl transition-all duration-500 ease-out;
     box-shadow: var(--shadow-card);
+    content-visibility: auto;
+    contain-intrinsic-size: 420px;
   }
 
   .recipe-card:hover {
