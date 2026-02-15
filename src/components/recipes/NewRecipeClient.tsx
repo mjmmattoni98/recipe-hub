@@ -14,7 +14,7 @@ export function NewRecipeClient() {
 
   const createRecipe = api.recipe.create.useMutation({
     onSuccess: () => {
-      toast.success("Recipe created successfully");
+      toast.success("Receta creada con éxito");
       router.push("/");
       router.refresh();
       void utils.recipe.getAll.invalidate();
@@ -37,13 +37,13 @@ export function NewRecipeClient() {
               variant="ghost"
               size="icon"
               className="rounded-full"
-              aria-label="Back to recipes"
+              aria-label="Volver a las recetas"
             >
               <ArrowLeft className="h-5 w-5" aria-hidden="true" />
             </Button>
           </Link>
           <h1 className="font-display text-foreground text-xl font-bold">
-            Create New Recipe
+            Crear Nueva Receta
           </h1>
         </div>
       </div>
@@ -54,14 +54,15 @@ export function NewRecipeClient() {
       >
         <div className="mb-8">
           <p className="font-body text-muted-foreground">
-            Add a new recipe to your collection. Fill in the details below.
+            Añade una nueva receta a tu colección. Rellena los detalles a
+            continuación.
           </p>
         </div>
 
         <RecipeForm
           onSubmit={handleSubmit}
           isSubmitting={createRecipe.isPending}
-          submitLabel="Create Recipe"
+          submitLabel="Crear Receta"
         />
       </main>
     </div>

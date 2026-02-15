@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.siteUrl),
   applicationName: siteConfig.name,
   title: {
-    default: `${siteConfig.name} | Discover Recipes`,
+    default: `${siteConfig.name} | Descubre Recetas`,
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
         url: absoluteUrl(siteConfig.defaultImagePath),
         width: 64,
         height: 64,
-        alt: `${siteConfig.name} icon`,
+        alt: `${siteConfig.name} icono`,
       },
     ],
   },
@@ -75,7 +75,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
-      lang="en"
+      lang="es"
       className={`${geist.variable} ${fraunces.variable} ${dmSans.variable}`}
       suppressHydrationWarning
     >
@@ -89,9 +89,9 @@ export default function RootLayout({
           >
             <a
               href="#main-content"
-              className="focus:bg-background focus:text-foreground focus:ring-ring sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-[100] focus:rounded-md focus:px-3 focus:py-2 focus:ring-2 focus:outline-none"
+              className="focus:bg-background focus:text-foreground focus:ring-ring sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-100 focus:rounded-md focus:px-3 focus:py-2 focus:ring-2 focus:outline-none"
             >
-              Skip to content
+              Saltar al contenido
             </a>
             <SpeedInsights />
             {children}

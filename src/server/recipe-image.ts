@@ -122,7 +122,7 @@ export async function resolveRecipeImageUrl(image: string): Promise<string> {
   const value = image.trim();
 
   if (!value) {
-    throw new Error("Image is required.");
+    throw new Error("La imagen es obligatoria.");
   }
 
   if (isHttpUrl(value)) {
@@ -130,12 +130,12 @@ export async function resolveRecipeImageUrl(image: string): Promise<string> {
       return value;
     }
 
-    throw new Error("Image URL must come from Vercel Blob storage.");
+    throw new Error("La URL de la imagen debe provenir del almacenamiento Vercel Blob.");
   }
 
   const keys = getLookupKeys(value);
   if (!keys) {
-    throw new Error("Image is required.");
+    throw new Error("La imagen es obligatoria.");
   }
 
   const { byPath, byFilename } = await getBlobIndex();
@@ -149,5 +149,5 @@ export async function resolveRecipeImageUrl(image: string): Promise<string> {
     return blobUrl;
   }
 
-  throw new Error("Image not found in Vercel Blob storage.");
+  throw new Error("Imagen no encontrada en el almacenamiento Vercel Blob.");
 }

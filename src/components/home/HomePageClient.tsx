@@ -47,18 +47,18 @@ function AuthenticatedActions({
   return (
     <>
       <Link href="/new-recipe">
-        <Button size="sm" className="gap-2 rounded-full">
+        <Button size="sm" className="cursor-pointer gap-2 rounded-full">
           <Plus className="h-4 w-4" aria-hidden="true" />
-          <span className="hidden sm:inline">New Recipe</span>
+          <span className="hidden sm:inline">Nueva Receta</span>
         </Button>
       </Link>
       <Button
         variant="ghost"
         size="sm"
-        className="text-muted-foreground rounded-full"
+        className="text-muted-foreground cursor-pointer rounded-full"
         onClick={onSignOut}
       >
-        Sign Out
+        Cerrar Sesión
       </Button>
     </>
   );
@@ -67,8 +67,12 @@ function AuthenticatedActions({
 function GuestActions() {
   return (
     <Link href="/sign-in">
-      <Button size="sm" variant="outline" className="rounded-full">
-        Sign In
+      <Button
+        size="sm"
+        variant="outline"
+        className="cursor-pointer rounded-full"
+      >
+        Iniciar Sesión
       </Button>
     </Link>
   );
@@ -174,7 +178,7 @@ export function HomePageClient({
     filters.cuisine.length +
     filters.difficulty.length +
     filters.ingredients.length +
-    (filters.maxCookTime !== null ? 1 : 0) +
+    (filters.maxCookTime === null ? 0 : 1) +
     filters.dietaryRestrictions.length;
 
   const clearAllFilters = () => {
@@ -225,20 +229,19 @@ export function HomePageClient({
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               <span className="font-body bg-primary/10 text-primary border-primary/20 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium">
                 <UtensilsCrossed className="h-3.5 w-3.5" aria-hidden="true" />
-                Your Recipe Collection
+                Tu Colección de Recetas
               </span>
             </div>
 
             <h1 className="font-display text-foreground animate-in fade-in slide-in-from-bottom-6 text-5xl leading-[1.1] font-bold tracking-tight text-balance delay-100 duration-700 md:text-7xl">
-              Discover <span className="text-primary italic">Delicious</span>
-              <br />
-              Recipes
+              Descubre Recetas{" "}
+              <span className="text-primary italic">Deliciosas</span>
             </h1>
 
             <p className="font-body text-muted-foreground animate-in fade-in slide-in-from-bottom-6 mx-auto max-w-xl text-lg leading-relaxed delay-200 duration-700">
-              Explore a curated collection of recipes from around the world.
-              Filter by cuisine, difficulty, or ingredients to find your next
-              culinary adventure.
+              Explora una colección seleccionada de recetas de todo el mundo.
+              Filtra por tipo de cocina, dificultad o ingredientes para
+              encontrar tu próxima aventura culinaria.
             </p>
 
             <div className="animate-in fade-in slide-in-from-bottom-8 flex justify-center pt-4 delay-300 duration-700">
@@ -267,7 +270,7 @@ export function HomePageClient({
                       className="text-primary h-4 w-4"
                       aria-hidden="true"
                     />
-                    Filters
+                    Filtros
                   </h2>
                   {activeFilterCount > 0 ? (
                     <span className="bg-primary text-primary-foreground rounded-full px-2.5 py-0.5 text-xs font-semibold">
@@ -291,7 +294,7 @@ export function HomePageClient({
                 <SheetTrigger asChild>
                   <Button variant="outline" className="gap-2 rounded-full">
                     <Filter className="h-4 w-4" aria-hidden="true" />
-                    Filters
+                    Filtros
                     {activeFilterCount > 0 ? (
                       <span className="bg-primary text-primary-foreground ml-1 rounded-full px-2 py-0.5 text-xs font-semibold">
                         {activeFilterCount}
@@ -301,7 +304,7 @@ export function HomePageClient({
                 </SheetTrigger>
                 <SheetContent side="left" className="bg-card w-80">
                   <SheetHeader>
-                    <SheetTitle className="font-display">Filters</SheetTitle>
+                    <SheetTitle className="font-display">Filtros</SheetTitle>
                   </SheetHeader>
                   <div className="mt-6">
                     <RecipeFilters
@@ -317,11 +320,11 @@ export function HomePageClient({
 
             <div className="mb-8 flex items-center justify-between gap-4">
               <p className="font-body text-muted-foreground text-sm">
-                Showing{" "}
+                Mostrando{" "}
                 <span className="text-foreground font-semibold">
                   {filteredRecipes.length}
                 </span>{" "}
-                {filteredRecipes.length === 1 ? "recipe" : "recipes"}
+                {filteredRecipes.length === 1 ? "receta" : "recetas"}
               </p>
 
               {activeFilterCount > 0 ? (
@@ -342,8 +345,8 @@ export function HomePageClient({
                             ),
                           }))
                         }
-                        aria-label={`Remove ${cuisine} filter`}
-                        className="hover:bg-primary/20 -mr-1 rounded-full p-0.5 transition-colors"
+                        aria-label={`Eliminar filtro ${cuisine}`}
+                        className="hover:bg-primary/20 -mr-1 cursor-pointer rounded-full p-0.5 transition-colors"
                       >
                         <X className="h-3 w-3" aria-hidden="true" />
                       </button>
@@ -366,8 +369,8 @@ export function HomePageClient({
                             ),
                           }))
                         }
-                        aria-label={`Remove ${difficulty} filter`}
-                        className="hover:bg-accent/80 -mr-1 rounded-full p-0.5 transition-colors"
+                        aria-label={`Eliminar filtro ${difficulty}`}
+                        className="hover:bg-accent/80 -mr-1 cursor-pointer rounded-full p-0.5 transition-colors"
                       >
                         <X className="h-3 w-3" aria-hidden="true" />
                       </button>
@@ -377,9 +380,9 @@ export function HomePageClient({
                   <button
                     type="button"
                     onClick={clearAllFilters}
-                    className="text-muted-foreground hover:text-foreground ml-1 text-xs underline underline-offset-2 transition-colors"
+                    className="text-muted-foreground hover:text-foreground ml-1 cursor-pointer text-xs underline underline-offset-2 transition-colors"
                   >
-                    Clear all
+                    Borrar todo
                   </button>
                 </div>
               ) : null}
@@ -405,19 +408,19 @@ export function HomePageClient({
                   />
                 </div>
                 <h3 className="font-display text-foreground mb-2 text-2xl font-semibold">
-                  No recipes found
+                  No se encontraron recetas
                 </h3>
                 <p className="text-muted-foreground font-body mx-auto mb-6 max-w-sm text-sm leading-relaxed">
-                  Try adjusting your filters or search terms to discover
-                  something delicious.
+                  Intenta ajustar tus filtros o términos de búsqueda para
+                  descubrir algo delicioso.
                 </p>
                 <Button
                   type="button"
                   variant="outline"
-                  className="rounded-full"
+                  className="cursor-pointer rounded-full"
                   onClick={clearAllFilters}
                 >
-                  Clear all filters
+                  Borrar todos los filtros
                 </Button>
               </div>
             )}
@@ -437,7 +440,7 @@ export function HomePageClient({
               </span>
             </div>
             <p className="font-body text-muted-foreground text-xs">
-              Made with love for food lovers everywhere.
+              Hecho con amor para amantes de la comida en todas partes.
             </p>
           </div>
         </div>

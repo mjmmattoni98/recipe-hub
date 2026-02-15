@@ -25,12 +25,18 @@ export function RecipeCard({
     onSuccess: () => {
       router.refresh();
       utils.recipe.getAll.invalidate();
-      toast.success("Recipe status updated");
+      toast.success("Estado de la receta actualizado");
     },
     onError: (error) => {
       toast.error(error.message);
     },
   });
+
+  const difficultyLabels = {
+    Easy: "Fácil",
+    Medium: "Media",
+    Hard: "Difícil",
+  };
 
   const difficultyClass = {
     Easy: "badge-easy",
@@ -68,7 +74,7 @@ export function RecipeCard({
             loading="lazy"
             sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent" />
 
           {/* Cooked Badge */}
           <button
@@ -90,20 +96,18 @@ export function RecipeCard({
               )}
               aria-hidden="true"
             />
-            <span>{recipe.cooked ? "Cooked" : "Want to try"}</span>
+            <span>{recipe.cooked ? "Cocinada" : "Pendiente"}</span>
           </button>
 
-          {/* Difficulty Badge */}
           <span
             className={cn(
               "badge-difficulty absolute top-3 right-3 shadow-lg backdrop-blur-sm",
               difficultyClass,
             )}
           >
-            {recipe.difficulty}
+            {difficultyLabels[recipe.difficulty]}
           </span>
 
-          {/* Bottom row */}
           <div className="absolute right-3 bottom-3 left-3 flex items-end justify-between">
             <span className="rounded-full border border-white/20 bg-white/20 px-3 py-1 text-xs font-semibold text-white shadow-lg backdrop-blur-md">
               {recipe.cuisine}
@@ -120,7 +124,6 @@ export function RecipeCard({
           </div>
         </div>
 
-        {/* Content */}
         <div className="p-5">
           <h3 className="font-display text-foreground group-hover:text-primary line-clamp-2 text-lg leading-snug font-semibold transition-colors duration-300">
             {recipe.title}
@@ -130,7 +133,6 @@ export function RecipeCard({
             {recipe.description}
           </p>
 
-          {/* Meta */}
           <div className="text-muted-foreground border-border/50 mt-4 flex items-center gap-4 border-t pt-4 text-sm">
             <div className="flex items-center gap-1.5">
               <Clock className="text-primary/60 h-4 w-4" aria-hidden="true" />
@@ -142,7 +144,7 @@ export function RecipeCard({
             <div className="flex items-center gap-1.5">
               <Users className="text-primary/60 h-4 w-4" aria-hidden="true" />
               <span className="font-body font-medium">
-                {recipe.servings} servings
+                {recipe.servings} raciones
               </span>
             </div>
           </div>

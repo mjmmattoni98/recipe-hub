@@ -21,8 +21,8 @@ const resolveCallbackUrl = (candidate?: string) => {
 };
 
 export const metadata: Metadata = {
-  title: "Sign In",
-  description: "Sign in to manage your saved recipes.",
+  title: "Iniciar Sesión",
+  description: "Inicia sesión para gestionar tus recetas guardadas.",
   alternates: {
     canonical: "/sign-in",
   },
@@ -33,8 +33,8 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: absoluteUrl("/sign-in"),
-    title: "Sign In | Recipe Hub",
-    description: "Sign in to manage your saved recipes.",
+    title: "Iniciar Sesión | Recipe Hub",
+    description: "Inicia sesión para gestionar tus recetas guardadas.",
   },
 };
 

@@ -6,18 +6,18 @@ import { type Metadata } from "next";
 import { connection } from "next/server";
 
 export const metadata: Metadata = {
-  title: "Discover Recipes",
+  title: "Descubre Recetas",
   description:
-    "Explore a curated recipe collection with filters for cuisine, difficulty, ingredients, and cooking status.",
+    "Explora una colección de recetas seleccionadas con filtros por tipo de cocina, dificultad, ingredientes y estado de cocción.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
     type: "website",
     url: absoluteUrl("/"),
-    title: "Discover Recipes | Recipe Hub",
+    title: "Descubre Recetas | Recipe Hub",
     description:
-      "Explore a curated recipe collection with filters for cuisine, difficulty, ingredients, and cooking status.",
+      "Explora una colección de recetas seleccionadas con filtros por tipo de cocina, dificultad, ingredientes y estado de cocción.",
   },
 };
 

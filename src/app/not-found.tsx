@@ -18,12 +18,12 @@ export default function NotFound() {
           404
         </h1>
         <p className="font-body text-muted-foreground mb-8 text-lg">
-          This recipe seems to have gone missing from the kitchen.
+          Parece que esta receta ha desaparecido de la cocina.
         </p>
         <Link href="/">
-          <Button className="gap-2 rounded-full" size="lg">
+          <Button className="cursor-pointer gap-2 rounded-full" size="lg">
             <Home className="h-4 w-4" />
-            Back to Recipes
+            Volver a las Recetas
           </Button>
         </Link>
       </div>

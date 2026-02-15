@@ -35,7 +35,7 @@ export async function generateMetadata({
 
   if (!recipe) {
     return {
-      title: "Recipe Not Found",
+      title: "Receta No Encontrada",
       robots: {
         index: false,
         follow: false,
@@ -97,6 +97,12 @@ export default async function RecipePage({
       }[recipe.videoSource.platform]
     : null;
 
+  const difficultyLabels = {
+    Easy: "Fácil",
+    Medium: "Media",
+    Hard: "Difícil",
+  };
+
   const recipeJsonLd = {
     "@context": "https://schema.org",
     "@type": "Recipe",
@@ -105,15 +111,15 @@ export default async function RecipePage({
     image: [recipe.image],
     url: absoluteUrl(`/recipes/${recipe.id}`),
     recipeCuisine: recipe.cuisine,
-    recipeCategory: recipe.difficulty,
+    recipeCategory: difficultyLabels[recipe.difficulty],
     prepTime: `PT${recipe.prepTime}M`,
     cookTime: `PT${recipe.cookTime}M`,
     totalTime: `PT${recipe.prepTime + recipe.cookTime}M`,
-    recipeYield: `${recipe.servings} servings`,
+    recipeYield: `${recipe.servings} raciones`,
     recipeIngredient: recipe.ingredients,
     recipeInstructions: recipe.instructions.map((instruction, index) => ({
       "@type": "HowToStep",
-      name: `Step ${index + 1}`,
+      name: `Paso ${index + 1}`,
       text: instruction,
     })),
     keywords: recipe.tags.join(", "),
@@ -142,8 +148,8 @@ export default async function RecipePage({
             <Button
               variant="secondary"
               size="icon"
-              className="bg-background/80 hover:bg-background h-11 w-11 rounded-full shadow-lg backdrop-blur-md transition-transform duration-200 hover:scale-105"
-              aria-label="Back to recipes"
+              className="bg-background/80 hover:bg-background h-11 w-11 cursor-pointer rounded-full shadow-lg backdrop-blur-md transition-transform duration-200 hover:scale-105"
+              aria-label="Volver a las recetas"
             >
               <ArrowLeft className="h-5 w-5" aria-hidden="true" />
             </Button>
@@ -153,8 +159,8 @@ export default async function RecipePage({
               <Button
                 variant="secondary"
                 size="icon"
-                className="bg-background/80 hover:bg-background h-11 w-11 rounded-full shadow-lg backdrop-blur-md transition-transform duration-200 hover:scale-105"
-                aria-label="Edit recipe"
+                className="bg-background/80 hover:bg-background h-11 w-11 cursor-pointer rounded-full shadow-lg backdrop-blur-md transition-transform duration-200 hover:scale-105"
+                aria-label="Editar receta"
               >
                 <Edit className="h-5 w-5" aria-hidden="true" />
               </Button>
@@ -173,7 +179,7 @@ export default async function RecipePage({
               {recipe.cuisine}
             </span>
             <span className={cn("badge-difficulty", difficultyClass)}>
-              {recipe.difficulty}
+              {difficultyLabels[recipe.difficulty]}
             </span>
           </div>
 
@@ -192,7 +198,7 @@ export default async function RecipePage({
               </div>
               <div>
                 <p className="text-muted-foreground text-xs font-medium">
-                  Prep Time
+                  Tiempo Prep.
                 </p>
                 <p className="text-foreground font-body text-sm font-semibold">
                   {recipe.prepTime} min
@@ -205,7 +211,7 @@ export default async function RecipePage({
               </div>
               <div>
                 <p className="text-muted-foreground text-xs font-medium">
-                  Cook Time
+                  Tiempo Cocción
                 </p>
                 <p className="text-foreground font-body text-sm font-semibold">
                   {recipe.cookTime} min
@@ -218,7 +224,7 @@ export default async function RecipePage({
               </div>
               <div>
                 <p className="text-muted-foreground text-xs font-medium">
-                  Servings
+                  Raciones
                 </p>
                 <p className="text-foreground font-body text-sm font-semibold">
                   {recipe.servings}
@@ -238,7 +244,7 @@ export default async function RecipePage({
               )}
             >
               <PlatformIcon platform={recipe.videoSource.platform} />
-              <span>Watch on {recipe.videoSource.platform}</span>
+              <span>Ver en {recipe.videoSource.platform}</span>
               <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
             </a>
           ) : null}
@@ -246,7 +252,7 @@ export default async function RecipePage({
           <div className="mt-10 grid gap-10 md:grid-cols-2">
             <section>
               <h2 className="font-display text-foreground mb-5 text-2xl font-semibold">
-                Ingredients
+                Ingredientes
               </h2>
               <ul className="space-y-2">
                 {recipe.ingredients.map((ingredient, index) => (
@@ -265,7 +271,7 @@ export default async function RecipePage({
 
             <section>
               <h2 className="font-display text-foreground mb-5 text-2xl font-semibold">
-                Instructions
+                Instrucciones
               </h2>
               <ol className="space-y-5">
                 {recipe.instructions.map((instruction, index) => (
@@ -285,7 +291,7 @@ export default async function RecipePage({
           {recipe.tags.length > 0 ? (
             <section className="border-border mt-10 border-t pt-6">
               <h3 className="text-muted-foreground font-body mb-3 text-xs font-semibold tracking-wider uppercase">
-                Tags
+                Etiquetas
               </h3>
               <div className="flex flex-wrap gap-2">
                 {recipe.tags.map((tag) => (

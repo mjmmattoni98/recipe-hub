@@ -22,7 +22,7 @@ export function EditRecipeClient({
 
   const updateRecipe = api.recipe.update.useMutation({
     onSuccess: () => {
-      toast.success("Recipe updated successfully");
+      toast.success("Receta actualizada con éxito");
       router.push(`/recipes/${recipeId}`);
       router.refresh();
       void utils.recipe.getById.invalidate({ id: recipeId });
@@ -48,14 +48,14 @@ export function EditRecipeClient({
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full"
-              aria-label="Back to recipe"
+              className="cursor-pointer rounded-full"
+              aria-label="Volver a la receta"
             >
               <ArrowLeft className="h-5 w-5" aria-hidden="true" />
             </Button>
           </Link>
           <h1 className="font-display text-foreground text-xl font-bold">
-            Edit Recipe
+            Editar Receta
           </h1>
         </div>
       </div>
@@ -66,7 +66,7 @@ export function EditRecipeClient({
       >
         <div className="mb-8">
           <p className="font-body text-muted-foreground">
-            Update the details for your recipe.
+            Actualiza los detalles de tu receta.
           </p>
         </div>
 
@@ -74,7 +74,7 @@ export function EditRecipeClient({
           defaultValues={defaultValues}
           onSubmit={handleSubmit}
           isSubmitting={updateRecipe.isPending}
-          submitLabel="Update Recipe"
+          submitLabel="Actualizar Receta"
         />
       </main>
     </div>
