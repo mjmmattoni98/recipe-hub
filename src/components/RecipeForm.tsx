@@ -66,21 +66,23 @@ export function RecipeForm({
   onSubmit,
   isSubmitting,
   submitLabel = "Save Recipe",
-}: RecipeFormProps) {
+}: Readonly<RecipeFormProps>) {
   const form = useForm({
-    defaultValues: defaultValues ?? {
-      title: "",
-      description: "",
-      cuisine: "",
-      difficulty: "Medium",
-      cookTime: 0,
-      prepTime: 0,
-      servings: 1,
-      ingredients: [""] as string[],
-      instructions: [""] as string[],
-      image: "",
-      tags: [] as string[],
-    } as RecipeFormValues,
+    defaultValues:
+      defaultValues ??
+      ({
+        title: "",
+        description: "",
+        cuisine: "",
+        difficulty: "Medium",
+        cookTime: 0,
+        prepTime: 0,
+        servings: 1,
+        ingredients: [""] as string[],
+        instructions: [""] as string[],
+        image: "",
+        tags: [] as string[],
+      } as RecipeFormValues),
     validators: {
       onSubmit: recipeFormSchema,
     },
@@ -103,7 +105,7 @@ export function RecipeForm({
       const parsed = JSON.parse(jsonInput);
 
       let videoSource = parsed.videoSource;
-      if (videoSource && videoSource.create) {
+      if (videoSource?.create) {
         videoSource = videoSource.create;
       }
 
@@ -170,7 +172,7 @@ You will receive:
 
   return (
     <div className="space-y-8">
-       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
         <div className="flex gap-2">
           <Button variant="outline" onClick={copyPrompt}>
             <Copy className="mr-2 h-4 w-4" />
@@ -193,7 +195,7 @@ You will receive:
               <Textarea
                 value={jsonInput}
                 onChange={(e) => setJsonInput(e.target.value)}
-                className="min-h-[300px] font-mono text-xs"
+                className="min-h-75 font-mono text-xs"
                 placeholder='{ "title": "..." }'
               />
               <DialogFooter>
@@ -212,9 +214,8 @@ You will receive:
         }}
         className="space-y-8"
       >
-        <form.Field
-          name="title"
-          children={(field) => (
+        <form.Field name="title">
+          {(field) => (
             <div className="space-y-2">
               <Label htmlFor={field.name}>Title</Label>
               <Input
@@ -232,11 +233,10 @@ You will receive:
               ) : null}
             </div>
           )}
-        />
+        </form.Field>
 
-        <form.Field
-          name="description"
-          children={(field) => (
+        <form.Field name="description">
+          {(field) => (
             <div className="space-y-2">
               <Label htmlFor={field.name}>Description</Label>
               <Textarea
@@ -254,12 +254,11 @@ You will receive:
               ) : null}
             </div>
           )}
-        />
+        </form.Field>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <form.Field
-            name="cuisine"
-            children={(field) => (
+          <form.Field name="cuisine">
+            {(field) => (
               <div className="space-y-2">
                 <Label htmlFor={field.name}>Cuisine</Label>
                 <Input
@@ -277,11 +276,10 @@ You will receive:
                 ) : null}
               </div>
             )}
-          />
+          </form.Field>
 
-          <form.Field
-            name="difficulty"
-            children={(field) => (
+          <form.Field name="difficulty">
+            {(field) => (
               <div className="space-y-2">
                 <Label htmlFor={field.name}>Difficulty</Label>
                 <Select
@@ -306,13 +304,12 @@ You will receive:
                 ) : null}
               </div>
             )}
-          />
+          </form.Field>
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          <form.Field
-            name="prepTime"
-            children={(field) => (
+          <form.Field name="prepTime">
+            {(field) => (
               <div className="space-y-2">
                 <Label htmlFor={field.name}>Prep Time (min)</Label>
                 <Input
@@ -331,10 +328,9 @@ You will receive:
                 ) : null}
               </div>
             )}
-          />
-          <form.Field
-            name="cookTime"
-            children={(field) => (
+          </form.Field>
+          <form.Field name="cookTime">
+            {(field) => (
               <div className="space-y-2">
                 <Label htmlFor={field.name}>Cook Time (min)</Label>
                 <Input
@@ -353,10 +349,9 @@ You will receive:
                 ) : null}
               </div>
             )}
-          />
-          <form.Field
-            name="servings"
-            children={(field) => (
+          </form.Field>
+          <form.Field name="servings">
+            {(field) => (
               <div className="space-y-2">
                 <Label htmlFor={field.name}>Servings</Label>
                 <Input
@@ -375,14 +370,12 @@ You will receive:
                 ) : null}
               </div>
             )}
-          />
+          </form.Field>
         </div>
 
         {/* Ingredients Array */}
-        <form.Field
-          name="ingredients"
-          mode="array"
-          children={(field) => (
+        <form.Field name="ingredients" mode="array">
+          {(field) => (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label className="text-base">Ingredients</Label>
@@ -397,9 +390,8 @@ You will receive:
               </div>
               {field.state.value.map((_, index) => (
                 <div key={index} className="flex items-center gap-2">
-                  <form.Field
-                    name={`ingredients[${index}]`}
-                    children={(subField) => (
+                  <form.Field name={`ingredients[${index}]`}>
+                    {(subField) => (
                       <Input
                         value={subField.state.value}
                         onBlur={subField.handleBlur}
@@ -407,7 +399,7 @@ You will receive:
                         placeholder={`Ingredient ${index + 1}`}
                       />
                     )}
-                  />
+                  </form.Field>
                   <Button
                     type="button"
                     variant="ghost"
@@ -426,13 +418,11 @@ You will receive:
               ) : null}
             </div>
           )}
-        />
+        </form.Field>
 
         {/* Instructions Array */}
-        <form.Field
-          name="instructions"
-          mode="array"
-          children={(field) => (
+        <form.Field name="instructions" mode="array">
+          {(field) => (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label className="text-base">Instructions</Label>
@@ -450,9 +440,8 @@ You will receive:
                   <span className="text-muted-foreground mt-2 w-6 text-sm font-medium">
                     {index + 1}.
                   </span>
-                  <form.Field
-                    name={`instructions[${index}]`}
-                    children={(subField) => (
+                  <form.Field name={`instructions[${index}]`}>
+                    {(subField) => (
                       <Textarea
                         value={subField.state.value}
                         onBlur={subField.handleBlur}
@@ -461,7 +450,7 @@ You will receive:
                         className="min-h-[80px]"
                       />
                     )}
-                  />
+                  </form.Field>
                   <Button
                     type="button"
                     variant="ghost"
@@ -480,13 +469,11 @@ You will receive:
               ) : null}
             </div>
           )}
-        />
+        </form.Field>
 
         {/* Tags Array */}
-        <form.Field
-          name="tags"
-          mode="array"
-          children={(field) => (
+        <form.Field name="tags" mode="array">
+          {(field) => (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label className="text-base">Tags</Label>
@@ -505,9 +492,8 @@ You will receive:
                     key={index}
                     className="bg-muted/50 flex items-center gap-2 rounded-md p-1"
                   >
-                    <form.Field
-                      name={`tags[${index}]`}
-                      children={(subField) => (
+                    <form.Field name={`tags[${index}]`}>
+                      {(subField) => (
                         <Input
                           value={subField.state.value}
                           onBlur={subField.handleBlur}
@@ -518,7 +504,7 @@ You will receive:
                           className="h-8 w-32 border-none bg-transparent px-2 shadow-none focus-visible:ring-0"
                         />
                       )}
-                    />
+                    </form.Field>
                     <Button
                       type="button"
                       variant="ghost"
@@ -538,11 +524,10 @@ You will receive:
               ) : null}
             </div>
           )}
-        />
+        </form.Field>
 
-        <form.Field
-          name="image"
-          children={(field) => (
+        <form.Field name="image">
+          {(field) => (
             <div className="space-y-2">
               <Label htmlFor={field.name}>Image Path / URL</Label>
               <Input
@@ -564,15 +549,14 @@ You will receive:
               ) : null}
             </div>
           )}
-        />
+        </form.Field>
 
         {/* Video Source */}
         <div className="space-y-4 rounded-lg border p-4">
           <h3 className="font-medium">Video Source (Optional)</h3>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <form.Field
-              name="videoSource.platform"
-              children={(field) => (
+            <form.Field name="videoSource.platform">
+              {(field) => (
                 <div className="space-y-2">
                   <Label>Platform</Label>
                   <Select
@@ -599,10 +583,9 @@ You will receive:
                   </Select>
                 </div>
               )}
-            />
-            <form.Field
-              name="videoSource.url"
-              children={(field) => (
+            </form.Field>
+            <form.Field name="videoSource.url">
+              {(field) => (
                 <div className="space-y-2 md:col-span-2">
                   <Label>URL</Label>
                   <Input
@@ -625,7 +608,7 @@ You will receive:
                   />
                 </div>
               )}
-            />
+            </form.Field>
           </div>
         </div>
 
