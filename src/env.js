@@ -13,6 +13,7 @@ export const env = createEnv({
       .default("development"),
     BETTER_AUTH_SECRET: z.string(),
     BETTER_AUTH_URL: z.url().optional(),
+    BLOB_READ_WRITE_TOKEN: z.string().optional(),
   },
 
   /**
@@ -33,6 +34,7 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
     BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
+    BLOB_READ_WRITE_TOKEN: process.env.BLOB_READ_WRITE_TOKEN,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**

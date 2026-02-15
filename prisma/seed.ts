@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { list } from "@vercel/blob";
 import { PrismaClient, Prisma } from "../generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
@@ -7,6 +8,38 @@ const adapter = new PrismaPg({
 });
 
 const prisma = new PrismaClient({ adapter });
+
+const getBlobListOptions = (cursor?: string) => {
+  const token = process.env.BLOB_READ_WRITE_TOKEN;
+
+  if (token) {
+    return { cursor, token };
+  }
+
+  return { cursor };
+};
+
+async function getBlobImagesByFilename() {
+  const byFilename = new Map<string, string>();
+  let cursor: string | undefined;
+
+  do {
+    const page = await list(getBlobListOptions(cursor));
+
+    for (const blob of page.blobs) {
+      const segments = blob.pathname.split("/").filter(Boolean);
+      const filename = segments.at(-1);
+
+      if (filename && !byFilename.has(filename)) {
+        byFilename.set(filename, blob.url);
+      }
+    }
+
+    cursor = page.hasMore ? page.cursor : undefined;
+  } while (cursor);
+
+  return byFilename;
+}
 
 const recipesData: Prisma.RecipeCreateInput[] = [
   {
@@ -39,7 +72,7 @@ const recipesData: Prisma.RecipeCreateInput[] = [
       "Acaba amb una capa de carbassa i cobreix amb formatge ratllat.",
       "Gratina al forn fins que el formatge estigui desfet i torrat.",
     ],
-    image: "/recipes/lasanya-carbassa-ricotta-espinacs.png",
+    image: "lasanya-carbassa-ricotta-espinacs.png",
     tags: ["vegetarian", "gluten-free", "healthy", "seasonal"],
     videoSource: {
       create: {
@@ -73,7 +106,7 @@ const recipesData: Prisma.RecipeCreateInput[] = [
       "Rompe el huevo y colócalo con cuidado sobre la pizza.",
       "Hornea durante 15-20 minutos hasta que la masa esté dorada y el huevo en su punto.",
     ],
-    image: "/recipes/pizza-casera-bacon-espinacas-huevo.png",
+    image: "pizza-casera-bacon-espinacas-huevo.png",
     tags: ["pizza", "comfort food", "quick dinner"],
     videoSource: {
       create: {
@@ -104,7 +137,7 @@ const recipesData: Prisma.RecipeCreateInput[] = [
       "Añade las verduras trituradas al caldo caliente.",
       "Incorpora los fideos y cocina el tiempo indicado hasta que estén listos.",
     ],
-    image: "/recipes/sopa-vegetales-fideos.png",
+    image: "sopa-vegetales-fideos.png",
     tags: ["vegan", "vegetarian", "healthy", "soup", "comfort food"],
     videoSource: {
       create: {
@@ -138,7 +171,7 @@ const recipesData: Prisma.RecipeCreateInput[] = [
       "Enrolla el conjunto con ayuda del papel film, presionando para que quede un rollo compacto.",
       "Retira el film, corta si es necesario y sirve decorando por encima con salsa thai y sésamo tostado.",
     ],
-    image: "/recipes/rollitos-jamon-salmon-guacamole.png",
+    image: "rollitos-jamon-salmon-guacamole.png",
     tags: ["appetizer", "keto", "low carb", "no-cook"],
     videoSource: {
       create: {
@@ -172,7 +205,7 @@ const recipesData: Prisma.RecipeCreateInput[] = [
       "Pasa la pieza por huevo batido y rebózala en el queso parmesano en polvo.",
       "Cocina en la Airfryer durante 15 minutos a 195ºC, o en el horno durante 20 minutos a 195ºC.",
     ],
-    image: "/recipes/calzone-pollo-sin-harina-keto.png",
+    image: "calzone-pollo-sin-harina-keto.png",
     tags: ["gluten-free", "keto", "high protein", "airfryer", "dinner"],
     videoSource: {
       create: {
@@ -210,7 +243,7 @@ const recipesData: Prisma.RecipeCreateInput[] = [
       "Cubre con el resto del queso Gouda por encima.",
       "Gratina en el horno 5 minutos a 220°C hasta que el queso se derrita y dore.",
     ],
-    image: "/recipes/patatas-rellenas-huevo-cebolla.png",
+    image: "patatas-rellenas-huevo-cebolla.png",
     tags: [
       "vegetarian",
       "gluten-free",
@@ -251,7 +284,7 @@ const recipesData: Prisma.RecipeCreateInput[] = [
       "Mezcla la pasta caliente con la salsa. Si queda muy espesa, añade un poco del agua de cocción reservada para darle cremosidad.",
       "Sirve inmediatamente decorando con ralladura de lima y un chorrito de zumo de lima por encima.",
     ],
-    image: "/recipes/pasta-calabaza-mascarpone-lima.png",
+    image: "pasta-calabaza-mascarpone-lima.png",
     tags: ["vegetarian", "pasta", "easy", "creamy", "winter"],
     videoSource: {
       create: {
@@ -287,7 +320,7 @@ const recipesData: Prisma.RecipeCreateInput[] = [
       "Hornea durante 15-20 minutos hasta que el hojaldre esté inflado y bien dorado.",
       "Retira del horno y sirve inmediatamente decorando con unos hilitos de miel por encima.",
     ],
-    image: "/recipes/hojaldritos-navidad-brie-panceta.png",
+    image: "hojaldritos-navidad-brie-panceta.png",
     tags: [
       "christmas",
       "appetizer",
@@ -334,7 +367,7 @@ const recipesData: Prisma.RecipeCreateInput[] = [
       "Monta el pastel en una fuente: coloca una base con la mezcla de carne y cubre con el puré de patata.",
       "Gratina unos minutos en el horno antes de servir para que la superficie se dore.",
     ],
-    image: "/recipes/pastel-carrilleras-vino.png",
+    image: "pastel-carrilleras-vino.png",
     tags: ["christmas", "meat", "make-ahead", "main-course", "gluten-free"],
     videoSource: {
       create: {
@@ -366,7 +399,7 @@ const recipesData: Prisma.RecipeCreateInput[] = [
       "Retira el recipiente con cuidado y mezcla todo bien para que el queso crema y los jugos del pollo se integren formando la salsa.",
       "Añade el queso cheddar rallado por encima para terminar el plato y que se funda con el calor residual.",
     ],
-    image: "/recipes/gnocchis-crema-queso-airfryer.png",
+    image: "gnocchis-crema-queso-airfryer.png",
     tags: ["air-fryer", "high-protein", "meal-prep", "lunch", "healthy"],
     videoSource: {
       create: {
@@ -401,7 +434,7 @@ const recipesData: Prisma.RecipeCreateInput[] = [
       "Cocina la quesadilla 3-4 minutos por cada lado hasta que esté dorada y el queso se haya derretido.",
       "Deja reposar 1 minuto, corta en triángulos y sirve con la salsa ranchera.",
     ],
-    image: "/recipes/quesadillas-pollo-pesto.png",
+    image: "quesadillas-pollo-pesto.png",
     tags: ["chicken", "pesto", "quick-dinner", "high-protein", "quesadilla"],
     videoSource: {
       create: {
@@ -441,7 +474,7 @@ const recipesData: Prisma.RecipeCreateInput[] = [
       "Saca la carne del horno y rómpela en trozos irregulares con las manos o un cuchillo para imitar el corte del kebab.",
       "Monta el pan de pita con la salsa, cebolla, la carne crujiente, queso y los extras que desees.",
     ],
-    image: "/recipes/doner-kebap-viral.png",
+    image: "doner-kebap-viral.png",
     tags: ["meat", "fakeaway", "viral", "dinner", "kebab"],
     videoSource: {
       create: {
@@ -455,6 +488,8 @@ const recipesData: Prisma.RecipeCreateInput[] = [
 async function main() {
   console.log("🌱 Starting seed...");
 
+  const blobImagesByFilename = await getBlobImagesByFilename();
+
   // Clear existing data
   await prisma.videoSource.deleteMany();
   await prisma.recipe.deleteMany();
@@ -463,8 +498,23 @@ async function main() {
 
   // Create recipes
   for (const recipe of recipesData) {
+    const filename = recipe.image.split("/").filter(Boolean).at(-1);
+
+    if (!filename) {
+      throw new Error(`Invalid image value for recipe: ${recipe.title}`);
+    }
+
+    const blobUrl = blobImagesByFilename.get(filename);
+
+    if (!blobUrl) {
+      throw new Error(`Blob image not found for file: ${filename}`);
+    }
+
     await prisma.recipe.create({
-      data: recipe,
+      data: {
+        ...recipe,
+        image: blobUrl,
+      },
     });
   }
 
