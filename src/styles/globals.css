@@ -46,15 +46,15 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  /* Custom Fonts */
-  --font-display: "Playfair Display", serif;
-  --font-body: "Inter", sans-serif;
+  /* Custom Fonts — Distinctive choices */
+  --font-display: "Fraunces", serif;
+  --font-body: "DM Sans", sans-serif;
 
-  /* Custom Gradients - Updated to match new palette */
+  /* Custom Gradients */
   --gradient-warm: linear-gradient(
     135deg,
     oklch(0.65 0.18 35) 0%,
-    oklch(0.7 0.15 45) 100%
+    oklch(0.72 0.14 50) 100%
   );
   --gradient-sage: linear-gradient(
     135deg,
@@ -88,12 +88,16 @@
   background: var(--gradient-hero);
 }
 
+@utility grain {
+  position: relative;
+}
+
 :root {
   --radius: 0.625rem;
 
-  /* Light Theme - A warm, appetizing palette */
-  --background: oklch(0.985 0.005 50); /* Warm White */
-  --foreground: oklch(0.15 0.02 50); /* Warm Charcoal */
+  /* Light Theme — Warm, appetizing palette */
+  --background: oklch(0.985 0.005 50);
+  --foreground: oklch(0.15 0.02 50);
 
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.15 0.02 50);
@@ -101,10 +105,10 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.15 0.02 50);
 
-  --primary: oklch(0.6 0.18 35); /* Vibrant Persimmon Orange */
+  --primary: oklch(0.6 0.18 35);
   --primary-foreground: oklch(0.985 0.005 50);
 
-  --secondary: oklch(0.95 0.04 40); /* Soft Peach/Beige */
+  --secondary: oklch(0.95 0.04 40);
   --secondary-foreground: oklch(0.4 0.08 35);
 
   --muted: oklch(0.97 0.01 50);
@@ -119,11 +123,11 @@
   --input: oklch(0.92 0.01 50);
   --ring: oklch(0.6 0.18 35);
 
-  /* Shadows for depth */
-  --shadow-card:
-    0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  /* Shadows */
+  --shadow-card: 0 1px 3px rgb(0 0 0 / 0.04), 0 4px 12px rgb(0 0 0 / 0.06);
   --shadow-card-hover:
-    0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.08);
+    0 4px 12px rgb(0 0 0 / 0.08), 0 12px 28px rgb(0 0 0 / 0.1);
+  --shadow-elevated: 0 8px 30px rgb(0 0 0 / 0.08), 0 2px 8px rgb(0 0 0 / 0.04);
 
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -141,20 +145,20 @@
 }
 
 .dark {
-  /* Dark Theme - Deep, rich and cozy */
-  --background: oklch(0.12 0.01 40); /* Deep Cocoa/Charcoal */
+  /* Dark Theme — Deep, rich and cozy */
+  --background: oklch(0.12 0.01 40);
   --foreground: oklch(0.98 0.005 50);
 
-  --card: oklch(0.17 0.015 40); /* Slightly lighter cocoa */
+  --card: oklch(0.17 0.015 40);
   --card-foreground: oklch(0.98 0.005 50);
 
   --popover: oklch(0.17 0.015 40);
   --popover-foreground: oklch(0.98 0.005 50);
 
-  --primary: oklch(0.65 0.2 35); /* Brighter Orange for dark mode */
+  --primary: oklch(0.65 0.2 35);
   --primary-foreground: oklch(0.12 0.01 40);
 
-  --secondary: oklch(0.25 0.03 35); /* Deep muted brown/orange */
+  --secondary: oklch(0.25 0.03 35);
   --secondary-foreground: oklch(0.98 0.005 50);
 
   --muted: oklch(0.2 0.01 40);
@@ -169,11 +173,10 @@
   --input: oklch(0.25 0.01 40);
   --ring: oklch(0.556 0 0);
 
-  /* Shadows for depth in dark mode (subtler but impactful) */
-  --shadow-card:
-    0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+  --shadow-card: 0 1px 3px rgb(0 0 0 / 0.2), 0 4px 12px rgb(0 0 0 / 0.25);
   --shadow-card-hover:
-    0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+    0 4px 12px rgb(0 0 0 / 0.3), 0 12px 28px rgb(0 0 0 / 0.35);
+  --shadow-elevated: 0 8px 30px rgb(0 0 0 / 0.3), 0 2px 8px rgb(0 0 0 / 0.2);
 
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
@@ -195,44 +198,56 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-body antialiased;
   }
 }
 
 @layer components {
   .recipe-card {
-    @apply bg-card relative overflow-hidden rounded-xl transition-all duration-300 ease-out;
+    @apply bg-card relative overflow-hidden rounded-2xl transition-all duration-500 ease-out;
     box-shadow: var(--shadow-card);
   }
 
   .recipe-card:hover {
     box-shadow: var(--shadow-card-hover);
-    transform: translateY(-4px);
+    transform: translateY(-6px) scale(1.01);
   }
 
   .badge-difficulty {
-    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-medium;
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold tracking-wide;
   }
 
   .badge-easy {
-    @apply bg-secondary text-secondary-foreground;
+    @apply bg-emerald-100 text-emerald-700;
+  }
+
+  :is(.dark) .badge-easy {
+    @apply bg-emerald-900/40 text-emerald-400;
   }
 
   .badge-medium {
-    @apply bg-primary/20 text-primary;
+    @apply bg-amber-100 text-amber-700;
+  }
+
+  :is(.dark) .badge-medium {
+    @apply bg-amber-900/40 text-amber-400;
   }
 
   .badge-hard {
-    @apply bg-accent text-accent-foreground;
+    @apply bg-rose-100 text-rose-700;
+  }
+
+  :is(.dark) .badge-hard {
+    @apply bg-rose-900/40 text-rose-400;
   }
 
   .filter-chip {
-    @apply inline-flex cursor-pointer items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200;
-    @apply bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary;
+    @apply inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium transition-all duration-300;
+    @apply border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-primary hover:shadow-sm;
   }
 
   .filter-chip.active {
-    @apply bg-primary text-primary-foreground;
+    @apply bg-primary text-primary-foreground border-primary shadow-sm;
   }
 
   .platform-badge {

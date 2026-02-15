@@ -52,40 +52,40 @@ export function RecipeCard({
   return (
     <Link href={`/recipes/${recipe.id}`} className="group block">
       <article
-        className="recipe-card border-border/50 bg-card hover:border-primary/50 border transition-colors"
-        style={{ animationDelay: `${index * 0.1}s` }}
+        className="recipe-card border-border/40 border"
+        style={{
+          animationDelay: `${index * 80}ms`,
+          animationFillMode: "backwards",
+        }}
       >
-        {/* Image Container */}
+        {/* Image */}
         <div className="relative aspect-4/3 overflow-hidden">
           <Image
             src={recipe.image}
             alt={recipe.title}
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
             loading="lazy"
           />
-          <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent opacity-60 transition-opacity duration-300 group-hover:opacity-70" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 
           {/* Cooked Badge */}
           <button
             onClick={handleToggleCooked}
             disabled={!isLoggedIn}
             className={cn(
-              "absolute top-3 left-3 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur-sm transition-colors",
+              "absolute top-3 left-3 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold shadow-lg backdrop-blur-md transition-all duration-300",
               recipe.cooked
-                ? "border border-green-400/50 bg-green-500/90 text-white"
-                : "bg-background/90 text-foreground border-border/50 border",
-              isLoggedIn
-                ? "hover:bg-opacity-80 cursor-pointer"
-                : "cursor-default",
+                ? "border border-emerald-400/30 bg-emerald-500/90 text-white"
+                : "border border-white/20 bg-white/20 text-white",
+              isLoggedIn ? "cursor-pointer hover:scale-105" : "cursor-default",
             )}
           >
             <CheckCircle
               className={cn(
                 "h-3.5 w-3.5",
-                recipe.cooked ? "text-white" : "text-muted-foreground",
+                recipe.cooked ? "text-white" : "text-white/70",
               )}
-              suppressHydrationWarning
             />
             <span>{recipe.cooked ? "Cooked" : "Want to try"}</span>
           </button>
@@ -93,54 +93,54 @@ export function RecipeCard({
           {/* Difficulty Badge */}
           <span
             className={cn(
-              "badge-difficulty absolute top-3 right-3 shadow-sm",
+              "badge-difficulty absolute top-3 right-3 shadow-lg backdrop-blur-sm",
               difficultyClass,
             )}
           >
             {recipe.difficulty}
           </span>
 
-          {/* Cuisine Tag */}
-          <span className="bg-background/90 text-foreground border-border/50 absolute bottom-3 left-3 rounded-full border px-3 py-1 text-xs font-medium shadow-sm backdrop-blur-sm">
-            {recipe.cuisine}
-          </span>
+          {/* Bottom row */}
+          <div className="absolute right-3 bottom-3 left-3 flex items-end justify-between">
+            <span className="rounded-full border border-white/20 bg-white/20 px-3 py-1 text-xs font-semibold text-white shadow-lg backdrop-blur-md">
+              {recipe.cuisine}
+            </span>
 
-          {/* Play Icon / Video Source Indicator */}
-          {recipe.videoSource && (
-            <div className="absolute right-3 bottom-3 flex h-8 w-8 items-center justify-center rounded-full border border-white/30 bg-white/20 text-white shadow-sm backdrop-blur-md transition-transform duration-300 group-hover:scale-110">
-              <PlatformIcon
-                platform={recipe.videoSource.platform}
-                className="h-4 w-4"
-              />
-            </div>
-          )}
+            {recipe.videoSource && (
+              <div className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/20 text-white shadow-lg backdrop-blur-md transition-transform duration-300 group-hover:scale-110">
+                <PlatformIcon
+                  platform={recipe.videoSource.platform}
+                  className="h-4 w-4"
+                />
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Content */}
-        <div className="space-y-3 p-5">
-          <h3 className="font-display text-foreground group-hover:text-primary line-clamp-2 text-xl leading-tight font-semibold transition-colors duration-200">
+        <div className="p-5">
+          <h3 className="font-display text-foreground group-hover:text-primary line-clamp-2 text-lg leading-snug font-semibold transition-colors duration-300">
             {recipe.title}
           </h3>
 
-          <p className="text-muted-foreground font-body line-clamp-2 text-sm">
+          <p className="text-muted-foreground font-body mt-2 line-clamp-2 text-sm leading-relaxed">
             {recipe.description}
           </p>
 
-          {/* Meta Info */}
-          <div className="text-muted-foreground border-border/50 mt-4 flex items-center gap-4 border-t pt-2 text-sm">
-            <div className="mt-3 flex items-center gap-1.5">
-              <Clock
-                className="text-primary/70 h-4 w-4"
-                suppressHydrationWarning
-              />
-              <span>{recipe.cookTime + recipe.prepTime} min</span>
+          {/* Meta */}
+          <div className="text-muted-foreground border-border/50 mt-4 flex items-center gap-4 border-t pt-4 text-sm">
+            <div className="flex items-center gap-1.5">
+              <Clock className="text-primary/60 h-4 w-4" />
+              <span className="font-body font-medium">
+                {recipe.cookTime + recipe.prepTime} min
+              </span>
             </div>
-            <div className="mt-3 flex items-center gap-1.5">
-              <Users
-                className="text-primary/70 h-4 w-4"
-                suppressHydrationWarning
-              />
-              <span>{recipe.servings} servings</span>
+            <div className="bg-border h-3.5 w-px" />
+            <div className="flex items-center gap-1.5">
+              <Users className="text-primary/60 h-4 w-4" />
+              <span className="font-body font-medium">
+                {recipe.servings} servings
+              </span>
             </div>
           </div>
         </div>

@@ -14,7 +14,14 @@ import {
 } from "@/components/ui/sheet";
 import type { FilterCriteria, RecipeWithVideoSource } from "@/lib/recipe-types";
 import { api } from "@/trpc/react";
-import { Filter, UtensilsCrossed, X } from "lucide-react";
+import {
+  ChefHat,
+  Filter,
+  Plus,
+  SlidersHorizontal,
+  UtensilsCrossed,
+  X,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
@@ -34,11 +41,9 @@ export default function Home() {
   });
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  // Fetch recipes from the database
   const { data: recipes = [] as RecipeWithVideoSource[] } =
     api.recipe.getAll.useQuery();
 
-  // Extract unique values for filters
   const availableCuisines = useMemo(
     () =>
       [...new Set(recipes.map((r) => r.cuisine))].sort((a, b) =>
@@ -61,34 +66,26 @@ export default function Home() {
       .map(([ing]) => ing);
   }, [recipes]);
 
-  // Filter recipes
   const filteredRecipes = useMemo(() => {
     return recipes.filter((recipe) => {
-      // Search query filter
       if (
         filters.searchQuery &&
         !recipe.title.toLowerCase().includes(filters.searchQuery.toLowerCase())
       ) {
         return false;
       }
-
-      // Cuisine filter
       if (
         filters.cuisine.length > 0 &&
         !filters.cuisine.includes(recipe.cuisine)
       ) {
         return false;
       }
-
-      // Difficulty filter
       if (
         filters.difficulty.length > 0 &&
         !filters.difficulty.includes(recipe.difficulty)
       ) {
         return false;
       }
-
-      // Ingredients filter (recipe must contain ALL selected ingredients)
       if (filters.ingredients.length > 0) {
         const hasAllIngredients = filters.ingredients.every((ing) =>
           recipe.ingredients.some((recipeIng) =>
@@ -97,16 +94,12 @@ export default function Home() {
         );
         if (!hasAllIngredients) return false;
       }
-
-      // Cook time filter
       if (
         filters.maxCookTime !== null &&
         recipe.cookTime > filters.maxCookTime
       ) {
         return false;
       }
-
-      // Dietary restrictions filter (check tags)
       if (filters.dietaryRestrictions.length > 0) {
         const hasAllRestrictions = filters.dietaryRestrictions.every(
           (restriction) =>
@@ -116,15 +109,12 @@ export default function Home() {
         );
         if (!hasAllRestrictions) return false;
       }
-
-      // Cooking status filter
       if (filters.cookingStatus === "cooked" && !recipe.cooked) {
         return false;
       }
       if (filters.cookingStatus === "wantToTry" && recipe.cooked) {
         return false;
       }
-
       return true;
     });
   }, [filters, recipes]);
@@ -136,46 +126,45 @@ export default function Home() {
     (filters.maxCookTime !== null ? 1 : 0) +
     filters.dietaryRestrictions.length;
 
+  const clearAllFilters = () =>
+    setFilters({
+      cuisine: [],
+      difficulty: [],
+      ingredients: [],
+      searchQuery: "",
+      maxCookTime: null,
+      dietaryRestrictions: [],
+      cookingStatus: "all",
+    });
+
   return (
     <div className="bg-background min-h-screen">
-      {/* Hero Section */}
-      <header className="border-border bg-muted/20 relative overflow-hidden border-b">
-        {/* Abstract Background Pattern */}
-        <div className="absolute inset-0 -z-10 opacity-30">
-          <svg
-            className="h-full w-full"
-            viewBox="0 0 100 100"
-            preserveAspectRatio="none"
-          >
-            <path d="M0 0 L100 0 L100 100 L0 100 Z" fill="url(#grid)" />
-            <defs>
-              <pattern
-                id="grid"
-                width="8"
-                height="8"
-                patternUnits="userSpaceOnUse"
-              >
-                <path
-                  d="M 8 0 L 0 0 0 8"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="0.5"
-                  suppressHydrationWarning
-                />
-              </pattern>
-            </defs>
-          </svg>
-        </div>
+      {/* Navbar */}
+      <nav className="border-border/60 bg-background/80 sticky top-0 z-50 border-b backdrop-blur-xl">
+        <div className="container mx-auto flex h-16 items-center justify-between px-4">
+          <Link href="/" className="flex items-center gap-2.5">
+            <div className="bg-primary flex h-9 w-9 items-center justify-center rounded-xl">
+              <ChefHat className="text-primary-foreground h-5 w-5" />
+            </div>
+            <span className="font-display text-foreground text-xl font-bold tracking-tight">
+              RecipeHub
+            </span>
+          </Link>
 
-        <div className="container mx-auto pt-8 pb-16 md:pt-12 md:pb-24">
-          <div className="mb-8 flex justify-end gap-4">
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
             {session ? (
-              <div className="flex gap-2">
+              <>
                 <Link href="/new-recipe">
-                  <Button>Add Recipe</Button>
+                  <Button size="sm" className="gap-2 rounded-full">
+                    <Plus className="h-4 w-4" />
+                    <span className="hidden sm:inline">New Recipe</span>
+                  </Button>
                 </Link>
                 <Button
-                  variant="outline"
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground rounded-full"
                   onClick={async () => {
                     await authClient.signOut();
                     router.refresh();
@@ -183,40 +172,48 @@ export default function Home() {
                 >
                   Sign Out
                 </Button>
-              </div>
+              </>
             ) : (
               <Link href="/sign-in">
-                <Button>Sign In</Button>
+                <Button size="sm" variant="outline" className="rounded-full">
+                  Sign In
+                </Button>
               </Link>
             )}
           </div>
+        </div>
+      </nav>
+
+      <header className="relative overflow-hidden">
+        <div className="from-primary/6 via-secondary/50 to-background absolute inset-0 bg-linear-to-b" />
+        <div className="from-primary/4 to-accent/3 absolute inset-0 bg-linear-to-r" />
+
+        <div className="bg-primary/10 absolute -top-24 -right-24 h-96 w-96 rounded-full blur-3xl" />
+        <div className="bg-accent/10 absolute -bottom-32 -left-32 h-80 w-80 rounded-full blur-3xl" />
+
+        <div className="relative container mx-auto px-4 pt-16 pb-20 md:pt-24 md:pb-28">
           <div className="mx-auto max-w-3xl space-y-8 text-center">
-            {/* Badge and Theme Toggle Row */}
-            <div className="animate-in fade-in slide-in-from-bottom-4 relative flex items-center justify-center duration-500">
-              <div className="bg-primary/10 text-primary border-primary/20 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 shadow-sm backdrop-blur-sm">
-                <UtensilsCrossed className="h-4 w-4" suppressHydrationWarning />
-                <span className="text-sm font-semibold tracking-wide">
-                  Recipe Collection
-                </span>
-              </div>
-              <div className="absolute right-0">
-                <ThemeToggle />
-              </div>
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <span className="font-body bg-primary/10 text-primary border-primary/20 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium">
+                <UtensilsCrossed className="h-3.5 w-3.5" />
+                Your Recipe Collection
+              </span>
             </div>
 
-            <h1 className="font-display text-foreground animate-in fade-in slide-in-from-bottom-6 text-5xl font-extrabold tracking-tight text-balance delay-100 duration-700 md:text-7xl">
-              Discover <span className="text-primary italic">Delicious</span>{" "}
-              <br /> Recipes
+            <h1 className="font-display text-foreground animate-in fade-in slide-in-from-bottom-6 text-5xl leading-[1.1] font-bold tracking-tight text-balance delay-100 duration-700 md:text-7xl">
+              Discover{" "}
+              <span className="text-primary italic">Delicious</span>
+              <br />
+              Recipes
             </h1>
 
-            <p className="text-muted-foreground animate-in fade-in slide-in-from-bottom-6 mx-auto max-w-2xl text-lg leading-relaxed delay-200 duration-700 md:text-xl">
+            <p className="font-body text-muted-foreground animate-in fade-in slide-in-from-bottom-6 mx-auto max-w-xl text-lg leading-relaxed delay-200 duration-700">
               Explore our curated collection of recipes from around the world.
-              Filter by cuisine, difficulty, or ingredients to find your perfect
-              dish for any occasion.
+              Filter by cuisine, difficulty, or ingredients to find your next
+              culinary adventure.
             </p>
 
-            {/* Search Bar */}
-            <div className="animate-in fade-in slide-in-from-bottom-8 flex justify-center pt-6 delay-300 duration-700">
+            <div className="animate-in fade-in slide-in-from-bottom-8 flex justify-center pt-4 delay-300 duration-700">
               <SearchBar
                 value={filters.searchQuery}
                 onChange={(value) =>
@@ -228,34 +225,44 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="container mx-auto py-8 md:py-12">
-        <div className="flex flex-col gap-8 lg:flex-row">
-          {/* Desktop Filters Sidebar */}
+      <main className="container mx-auto px-4 py-10 md:py-14">
+        <div className="flex flex-col gap-10 lg:flex-row">
           <aside className="hidden w-72 shrink-0 lg:block">
-            <div className="bg-card shadow-card sticky top-8 rounded-xl p-6">
-              <h2 className="font-display text-foreground mb-6 text-lg font-semibold">
-                Filters
-              </h2>
-              <RecipeFilters
-                filters={filters}
-                onFilterChange={setFilters}
-                availableCuisines={availableCuisines}
-                availableIngredients={availableIngredients}
-              />
+            <div className="sticky top-24">
+              <div className="bg-card rounded-2xl border p-6" style={{ boxShadow: "var(--shadow-card)" }}>
+                <div className="mb-6 flex items-center justify-between">
+                  <h2 className="font-display text-foreground flex items-center gap-2 text-lg font-semibold">
+                    <SlidersHorizontal className="text-primary h-4 w-4" />
+                    Filters
+                  </h2>
+                  {activeFilterCount > 0 && (
+                    <span className="bg-primary text-primary-foreground rounded-full px-2.5 py-0.5 text-xs font-semibold">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </div>
+                <RecipeFilters
+                  filters={filters}
+                  onFilterChange={setFilters}
+                  availableCuisines={availableCuisines}
+                  availableIngredients={availableIngredients}
+                />
+              </div>
             </div>
           </aside>
 
-          {/* Main Content */}
           <div className="flex-1">
-            {/* Mobile Filter Button */}
             <div className="mb-6 lg:hidden">
               <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="outline" className="gap-2">
-                    <Filter className="h-4 w-4" suppressHydrationWarning />
+                  <Button
+                    variant="outline"
+                    className="gap-2 rounded-full"
+                  >
+                    <Filter className="h-4 w-4" />
                     Filters
                     {activeFilterCount > 0 && (
-                      <span className="bg-primary text-primary-foreground ml-1 rounded-full px-2 py-0.5 text-xs">
+                      <span className="bg-primary text-primary-foreground ml-1 rounded-full px-2 py-0.5 text-xs font-semibold">
                         {activeFilterCount}
                       </span>
                     )}
@@ -277,22 +284,21 @@ export default function Home() {
               </Sheet>
             </div>
 
-            {/* Results Header */}
-            <div className="mb-6 flex items-center justify-between">
-              <p className="text-muted-foreground font-body">
+            <div className="mb-8 flex items-center justify-between">
+              <p className="font-body text-muted-foreground text-sm">
+                Showing{" "}
                 <span className="text-foreground font-semibold">
                   {filteredRecipes.length}
                 </span>{" "}
-                {filteredRecipes.length === 1 ? "recipe" : "recipes"} found
+                {filteredRecipes.length === 1 ? "recipe" : "recipes"}
               </p>
 
-              {/* Active Filters Pills */}
               {activeFilterCount > 0 && (
                 <div className="hidden items-center gap-2 md:flex">
                   {filters.cuisine.map((c) => (
                     <span
                       key={c}
-                      className="bg-primary/10 text-primary inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium"
+                      className="bg-primary/10 text-primary inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium"
                     >
                       {c}
                       <button
@@ -304,15 +310,16 @@ export default function Home() {
                         }
                         title="Remove filter"
                         type="button"
+                        className="hover:bg-primary/20 -mr-1 rounded-full p-0.5 transition-colors"
                       >
-                        <X className="h-3 w-3" suppressHydrationWarning />
+                        <X className="h-3 w-3" />
                       </button>
                     </span>
                   ))}
                   {filters.difficulty.map((d) => (
                     <span
                       key={d}
-                      className="bg-accent/20 text-accent-foreground inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium"
+                      className="bg-accent text-accent-foreground inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium"
                     >
                       {d}
                       <button
@@ -326,18 +333,24 @@ export default function Home() {
                         }
                         title="Remove filter"
                         type="button"
+                        className="hover:bg-accent/80 -mr-1 rounded-full p-0.5 transition-colors"
                       >
-                        <X className="h-3 w-3" suppressHydrationWarning />
+                        <X className="h-3 w-3" />
                       </button>
                     </span>
                   ))}
+                  <button
+                    onClick={clearAllFilters}
+                    className="text-muted-foreground hover:text-foreground ml-1 text-xs underline underline-offset-2 transition-colors"
+                  >
+                    Clear all
+                  </button>
                 </div>
               )}
             </div>
 
-            {/* Recipe Grid */}
             {filteredRecipes.length > 0 ? (
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid grid-cols-1 gap-7 sm:grid-cols-2 xl:grid-cols-3">
                 {filteredRecipes.map((recipe, index) => (
                   <RecipeCard
                     key={recipe.id}
@@ -348,34 +361,21 @@ export default function Home() {
                 ))}
               </div>
             ) : (
-              <div className="py-16 text-center">
-                <div className="bg-muted mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-                  <UtensilsCrossed
-                    className="text-muted-foreground h-8 w-8"
-                    suppressHydrationWarning
-                  />
+              <div className="py-24 text-center">
+                <div className="bg-muted mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl">
+                  <UtensilsCrossed className="text-muted-foreground h-10 w-10" />
                 </div>
-                <h3 className="font-display text-foreground mb-2 text-xl font-semibold">
+                <h3 className="font-display text-foreground mb-2 text-2xl font-semibold">
                   No recipes found
                 </h3>
-                <p className="text-muted-foreground mx-auto max-w-md">
-                  Try adjusting your filters or search terms to find what you're
-                  looking for.
+                <p className="text-muted-foreground font-body mx-auto mb-6 max-w-sm text-sm leading-relaxed">
+                  Try adjusting your filters or search terms to discover
+                  something delicious.
                 </p>
                 <Button
                   variant="outline"
-                  className="mt-4"
-                  onClick={() =>
-                    setFilters({
-                      cuisine: [],
-                      difficulty: [],
-                      ingredients: [],
-                      searchQuery: "",
-                      maxCookTime: null,
-                      dietaryRestrictions: [],
-                      cookingStatus: "all",
-                    })
-                  }
+                  className="rounded-full"
+                  onClick={clearAllFilters}
                 >
                   Clear all filters
                 </Button>
@@ -384,6 +384,24 @@ export default function Home() {
           </div>
         </div>
       </main>
+
+      <footer className="border-border/60 mt-12 border-t">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
+            <div className="flex items-center gap-2">
+              <div className="bg-primary/10 flex h-7 w-7 items-center justify-center rounded-lg">
+                <ChefHat className="text-primary h-4 w-4" />
+              </div>
+              <span className="font-display text-muted-foreground text-sm font-semibold">
+                RecipeHub
+              </span>
+            </div>
+            <p className="font-body text-muted-foreground text-xs">
+              Made with love for food lovers everywhere.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

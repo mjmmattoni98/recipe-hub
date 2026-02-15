@@ -5,11 +5,11 @@ import { TRPCReactProvider } from "@/trpc/react";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { type Metadata } from "next";
-import { Geist } from "next/font/google";
+import { DM_Sans, Fraunces, Geist } from "next/font/google";
 
 export const metadata: Metadata = {
   title: "RecipeHub",
-  description: "RecipeHub",
+  description: "Discover delicious recipes from around the world",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
@@ -18,11 +18,27 @@ const geist = Geist({
   variable: "--font-geist-sans",
 });
 
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-body",
+  display: "swap",
+});
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${geist.variable}`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${geist.variable} ${fraunces.variable} ${dmSans.variable}`}
+      suppressHydrationWarning
+    >
       <body>
         <TRPCReactProvider>
           <ThemeProvider
