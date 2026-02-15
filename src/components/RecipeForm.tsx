@@ -447,7 +447,7 @@ You will receive:
                         onBlur={subField.handleBlur}
                         onChange={(e) => subField.handleChange(e.target.value)}
                         placeholder={`Step ${index + 1}`}
-                        className="min-h-[80px]"
+                        className="min-h-20"
                       />
                     )}
                   </form.Field>
@@ -529,18 +529,17 @@ You will receive:
         <form.Field name="image">
           {(field) => (
             <div className="space-y-2">
-              <Label htmlFor={field.name}>Image Path / URL</Label>
+              <Label htmlFor={field.name}>Image Blob Path / URL</Label>
               <Input
                 id={field.name}
                 name={field.name}
                 value={field.state.value}
                 onBlur={field.handleBlur}
                 onChange={(e) => field.handleChange(e.target.value)}
-                placeholder="/recipes/my-recipe.png or https://..."
+                placeholder="my-recipe.png or https://..."
               />
               <p className="text-muted-foreground text-xs">
-                For local images, place them in public/recipes and use the path
-                like /recipes/image.png
+                Use a Vercel Blob URL, blob pathname, or just the filename.
               </p>
               {field.state.meta.errors ? (
                 <p className="text-destructive text-sm">

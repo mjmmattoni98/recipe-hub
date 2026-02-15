@@ -3,6 +3,7 @@ import {
   protectedProcedure,
   publicProcedure,
 } from "@/server/api/trpc";
+import { resolveRecipeImageUrl } from "@/server/recipe-image";
 import { z } from "zod";
 
 export const recipeRouter = createTRPCRouter({
@@ -60,6 +61,8 @@ export const recipeRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const resolvedImage = await resolveRecipeImageUrl(input.image);
+
       return ctx.db.recipe.create({
         data: {
           title: input.title,
@@ -71,7 +74,7 @@ export const recipeRouter = createTRPCRouter({
           servings: input.servings,
           ingredients: input.ingredients,
           instructions: input.instructions,
-          image: input.image,
+          image: resolvedImage,
           tags: input.tags,
           videoSource: input.videoSource
             ? {
@@ -106,6 +109,8 @@ export const recipeRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const resolvedImage = await resolveRecipeImageUrl(input.image);
+
       // First check if video source exists to decide whether to update or create
       const existingRecipe = await ctx.db.recipe.findUnique({
         where: { id: input.id },
@@ -128,7 +133,7 @@ export const recipeRouter = createTRPCRouter({
           servings: input.servings,
           ingredients: input.ingredients,
           instructions: input.instructions,
-          image: input.image,
+          image: resolvedImage,
           tags: input.tags,
           videoSource: input.videoSource
             ? {
