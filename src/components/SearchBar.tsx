@@ -15,8 +15,8 @@ export function SearchBar({ value, onChange }: Readonly<SearchBarProps>) {
       />
       <Input
         type="text"
-        placeholder="Search recipes…"
-        aria-label="Search recipes"
+        placeholder="Buscar recetas…"
+        aria-label="Buscar recetas"
         name="search"
         autoComplete="off"
         value={value}
@@ -27,7 +27,7 @@ export function SearchBar({ value, onChange }: Readonly<SearchBarProps>) {
         <button
           type="button"
           onClick={() => onChange("")}
-          aria-label="Clear search"
+          aria-label="Limpiar búsqueda"
           className="text-muted-foreground hover:text-foreground hover:bg-muted absolute top-1/2 right-4 -translate-y-1/2 rounded-full p-1 transition-all"
         >
           <X className="h-4 w-4" aria-hidden="true" />

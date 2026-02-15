@@ -5,8 +5,8 @@ import { type Metadata } from "next";
 import { connection } from "next/server";
 
 export const metadata: Metadata = {
-  title: "Create Recipe",
-  description: "Create a new recipe in your recipe collection.",
+  title: "Crear Receta",
+  description: "Crea una nueva receta en tu colección.",
   alternates: {
     canonical: "/new-recipe",
   },
@@ -17,8 +17,8 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: absoluteUrl("/new-recipe"),
-    title: "Create Recipe | Recipe Hub",
-    description: "Create a new recipe in your recipe collection.",
+    title: "Crear Receta | Recipe Hub",
+    description: "Crea una nueva receta en tu colección.",
   },
 };
 

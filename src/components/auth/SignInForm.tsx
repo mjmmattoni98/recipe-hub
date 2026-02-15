@@ -20,7 +20,7 @@ import { z } from "zod";
 
 const signInSchema = z.object({
   email: z.email(),
-  password: z.string().min(1, "Password is required"),
+  password: z.string().min(1, "La contraseña es obligatoria"),
 });
 
 type SignInFormProps = {
@@ -88,10 +88,10 @@ export function SignInForm({ callbackUrl }: Readonly<SignInFormProps>) {
         >
           <CardHeader className="pb-2 text-center">
             <CardTitle className="font-display text-2xl font-bold">
-              Welcome back
+              Bienvenido de nuevo
             </CardTitle>
             <CardDescription className="font-body">
-              Sign in to manage your recipe collection
+              Inicia sesión para gestionar tu colección de recetas
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -111,7 +111,9 @@ export function SignInForm({ callbackUrl }: Readonly<SignInFormProps>) {
 
                   return (
                     <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+                      <FieldLabel htmlFor={field.name}>
+                        Correo electrónico
+                      </FieldLabel>
                       <Input
                         id={field.name}
                         name={field.name}
@@ -123,7 +125,7 @@ export function SignInForm({ callbackUrl }: Readonly<SignInFormProps>) {
                         }
                         aria-invalid={isInvalid}
                         className="h-12 rounded-xl"
-                        placeholder="you@example.com…"
+                        placeholder="tu@ejemplo.com…"
                         autoComplete="email"
                         spellCheck={false}
                       />
@@ -141,7 +143,7 @@ export function SignInForm({ callbackUrl }: Readonly<SignInFormProps>) {
 
                   return (
                     <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={field.name}>Password</FieldLabel>
+                      <FieldLabel htmlFor={field.name}>Contraseña</FieldLabel>
                       <Input
                         id={field.name}
                         name={field.name}
@@ -153,7 +155,7 @@ export function SignInForm({ callbackUrl }: Readonly<SignInFormProps>) {
                         }
                         aria-invalid={isInvalid}
                         className="h-12 rounded-xl"
-                        placeholder="Enter your password…"
+                        placeholder="Introduce tu contraseña…"
                         autoComplete="current-password"
                       />
                       <FieldError errors={field.state.meta.errors} />
@@ -168,10 +170,10 @@ export function SignInForm({ callbackUrl }: Readonly<SignInFormProps>) {
                 {([canSubmit, isSubmitting]) => (
                   <Button
                     type="submit"
-                    className="h-12 w-full rounded-xl text-base font-semibold"
+                    className="h-12 w-full cursor-pointer rounded-xl text-base font-semibold"
                     disabled={!canSubmit || isSubmitting}
                   >
-                    {isSubmitting ? "Signing in…" : "Sign In"}
+                    {isSubmitting ? "Iniciando sesión…" : "Iniciar Sesión"}
                   </Button>
                 )}
               </form.Subscribe>

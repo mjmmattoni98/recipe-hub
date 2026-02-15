@@ -11,7 +11,7 @@ export const siteConfig = {
   name: "Recipe Hub",
   shortName: "RecipeHub",
   description:
-    "Discover, organize, and cook recipes with filters for cuisine, difficulty, and ingredients.",
+    "Descubre, organiza y cocina recetas con filtros por tipo de cocina, dificultad e ingredientes.",
   siteUrl: normalizedSiteUrl,
   defaultImagePath: "/favicon.ico",
 };

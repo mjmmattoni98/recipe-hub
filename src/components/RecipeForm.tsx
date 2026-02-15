@@ -29,25 +29,27 @@ import * as z from "zod";
 type VideoPlatform = "YouTube" | "Instagram" | "TikTok";
 
 export const recipeFormSchema = z.object({
-  title: z.string().min(5, "Title must be at least 5 characters"),
-  description: z.string().min(10, "Description must be at least 10 characters"),
-  cuisine: z.string().min(1, "Cuisine is required"),
+  title: z.string().min(5, "El título debe tener al menos 5 caracteres"),
+  description: z
+    .string()
+    .min(10, "La descripción debe tener al menos 10 caracteres"),
+  cuisine: z.string().min(1, "El tipo de cocina es obligatorio"),
   difficulty: z.enum(["Easy", "Medium", "Hard"]),
   cookTime: z.number().min(0),
   prepTime: z.number().min(0),
   servings: z.number().min(1),
   ingredients: z
     .array(z.string())
-    .min(1, "At least one ingredient is required"),
+    .min(1, "Se requiere al menos un ingrediente"),
   instructions: z
     .array(z.string())
-    .min(1, "At least one instruction is required"),
-  image: z.string().min(1, "Image is required"),
+    .min(1, "Se requiere al menos una instrucción"),
+  image: z.string().min(1, "La imagen es obligatoria"),
   tags: z.array(z.string()),
   videoSource: z
     .object({
       platform: z.enum(["YouTube", "Instagram", "TikTok"]),
-      url: z.url("Must be a valid URL"),
+      url: z.url("Debe ser una URL válida"),
     })
     .optional(),
 });
@@ -102,13 +104,15 @@ export function RecipeForm({
           const payload = (await response.json().catch(() => null)) as {
             error?: string;
           } | null;
-          throw new Error(payload?.error ?? "Failed to upload image");
+          throw new Error(payload?.error ?? "Error al subir la imagen");
         }
 
         const payload = (await response.json()) as { url?: string };
 
         if (!payload.url) {
-          throw new Error("Upload response did not include an image URL");
+          throw new Error(
+            "La respuesta de subida no incluyó la URL de la imagen",
+          );
         }
 
         return payload.url;
@@ -129,7 +133,7 @@ export function RecipeForm({
           image = await uploadImageToBlob(imageFile);
         } catch (error) {
           const message =
-            error instanceof Error ? error.message : "Failed to upload image";
+            error instanceof Error ? error.message : "Error al subir la imagen";
           toast.error(message);
           return;
         } finally {
@@ -138,7 +142,7 @@ export function RecipeForm({
       }
 
       if (!image) {
-        toast.error("Please upload an image");
+        toast.error("Por favor, sube una imagen");
         return;
       }
 
@@ -154,9 +158,9 @@ export function RecipeForm({
 
   let submitButtonLabel = submitLabel;
   if (isUploadingImage) {
-    submitButtonLabel = "Uploading image…";
+    submitButtonLabel = "Subiendo imagen…";
   } else if (isSubmitting) {
-    submitButtonLabel = "Saving…";
+    submitButtonLabel = "Guardando…";
   }
 
   const handleImportJson = () => {
@@ -190,43 +194,43 @@ export function RecipeForm({
 
       setIsJsonDialogOpen(false);
       setJsonInput("");
-      toast.success("Recipe data imported successfully");
+      toast.success("Datos de la receta importados con éxito");
     } catch {
-      toast.error("Invalid JSON format");
+      toast.error("Formato JSON inválido");
     }
   };
 
   const copyPrompt = () => {
-    const prompt = `You are an expert data extraction assistant. Your task is to transform raw recipe text (typically from social media captions like Instagram or TikTok) into a structured JSON object.
+    const prompt = `Eres un asistente experto en extracción de datos. Tu tarea es transformar el texto sin formato de una receta (normalmente de subtítulos de redes sociales como Instagram o TikTok) en un objeto JSON estructurado.
 
-**Input Data:**
-You will receive:
+**Datos de Entrada:**
+Recibirás:
 
-1. The Platform and URL of the video.
-2. The raw text description of the recipe (ingredients, steps, etc.).
+1. La Plataforma y URL del vídeo.
+2. La descripción del texto sin formato de la receta (ingredientes, pasos, etc.).
 
-**Output Rules:**
+**Reglas de Salida:**
 
-1. **Format:** Return **only** the raw JSON object. Do not wrap it in markdown code blocks if possible, and do not add conversational text.
-2. **Language:**
-* **JSON Keys:** English.
-* **Content Values** (Title, Description, Ingredients, Instructions, Cuisine): **Spanish**.
-* **Tags & Difficulty:** **English**.
+1. **Formato:** Devuelve **solo** el objeto JSON sin procesar. No lo envuelvas en bloques de código markdown si es posible, y no añadas texto conversacional.
+2. **Idioma:**
+* **Claves JSON:** Inglés.
+* **Valores de contenido** (Título, Descripción, Ingredientes, Instrucciones, Cocina): **Español**.
+* **Etiquetas y Dificultad:** **Inglés** (Easy, Medium, Hard).
 
 
-3. **Field Specifics:**
+3. **Detalles del Campo:**
 *
 *
 *
 *
 
 
-**JSON Structure Template:**
+**Plantilla de Estructura JSON:**
 
 
 `;
     navigator.clipboard.writeText(prompt);
-    toast.success("Prompt copied to clipboard");
+    toast.success("Prompt copiado al portapapeles");
   };
 
   return (
@@ -235,20 +239,20 @@ You will receive:
         <div className="flex gap-2">
           <Button variant="outline" onClick={copyPrompt}>
             <Copy className="mr-2 h-4 w-4" />
-            Copy AI Prompt
+            Copiar Prompt de IA
           </Button>
           <Dialog open={isJsonDialogOpen} onOpenChange={setIsJsonDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline">
                 <Wand2 className="mr-2 h-4 w-4" />
-                Import JSON
+                Importar JSON
               </Button>
             </DialogTrigger>
             <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Import Recipe JSON</DialogTitle>
+                <DialogTitle>Importar JSON de Receta</DialogTitle>
                 <DialogDescription>
-                  Paste the JSON generated by the AI assistant below.
+                  Pega el JSON generado por el asistente de IA a continuación.
                 </DialogDescription>
               </DialogHeader>
               <Textarea
@@ -258,7 +262,7 @@ You will receive:
                 placeholder='{ "title": "..." }'
               />
               <DialogFooter>
-                <Button onClick={handleImportJson}>Import</Button>
+                <Button onClick={handleImportJson}>Importar</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -276,14 +280,14 @@ You will receive:
         <form.Field name="title">
           {(field) => (
             <div className="space-y-2">
-              <Label htmlFor={field.name}>Title</Label>
+              <Label htmlFor={field.name}>Título</Label>
               <Input
                 id={field.name}
                 name={field.name}
                 value={field.state.value}
                 onBlur={field.handleBlur}
                 onChange={(e) => field.handleChange(e.target.value)}
-                placeholder="Recipe Title"
+                placeholder="Título de la receta"
               />
               {field.state.meta.errors ? (
                 <p className="text-destructive text-sm">
@@ -297,14 +301,14 @@ You will receive:
         <form.Field name="description">
           {(field) => (
             <div className="space-y-2">
-              <Label htmlFor={field.name}>Description</Label>
+              <Label htmlFor={field.name}>Descripción</Label>
               <Textarea
                 id={field.name}
                 name={field.name}
                 value={field.state.value}
                 onBlur={field.handleBlur}
                 onChange={(e) => field.handleChange(e.target.value)}
-                placeholder="Recipe description..."
+                placeholder="Descripción de la receta..."
               />
               {field.state.meta.errors ? (
                 <p className="text-destructive text-sm">
@@ -319,14 +323,14 @@ You will receive:
           <form.Field name="cuisine">
             {(field) => (
               <div className="space-y-2">
-                <Label htmlFor={field.name}>Cuisine</Label>
+                <Label htmlFor={field.name}>Cocina</Label>
                 <Input
                   id={field.name}
                   name={field.name}
                   value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="e.g. Italian"
+                  placeholder="ej. Italiana"
                 />
                 {field.state.meta.errors ? (
                   <p className="text-destructive text-sm">
@@ -340,7 +344,7 @@ You will receive:
           <form.Field name="difficulty">
             {(field) => (
               <div className="space-y-2">
-                <Label htmlFor={field.name}>Difficulty</Label>
+                <Label htmlFor={field.name}>Dificultad</Label>
                 <Select
                   value={field.state.value}
                   onValueChange={(val: "Easy" | "Medium" | "Hard") =>
@@ -348,12 +352,12 @@ You will receive:
                   }
                 >
                   <SelectTrigger id={field.name}>
-                    <SelectValue placeholder="Select difficulty" />
+                    <SelectValue placeholder="Selecciona la dificultad" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Easy">Easy</SelectItem>
-                    <SelectItem value="Medium">Medium</SelectItem>
-                    <SelectItem value="Hard">Hard</SelectItem>
+                    <SelectItem value="Easy">Fácil</SelectItem>
+                    <SelectItem value="Medium">Media</SelectItem>
+                    <SelectItem value="Hard">Difícil</SelectItem>
                   </SelectContent>
                 </Select>
                 {field.state.meta.errors ? (
@@ -370,7 +374,7 @@ You will receive:
           <form.Field name="prepTime">
             {(field) => (
               <div className="space-y-2">
-                <Label htmlFor={field.name}>Prep Time (min)</Label>
+                <Label htmlFor={field.name}>Tiempo Prep. (min)</Label>
                 <Input
                   id={field.name}
                   name={field.name}
@@ -391,7 +395,7 @@ You will receive:
           <form.Field name="cookTime">
             {(field) => (
               <div className="space-y-2">
-                <Label htmlFor={field.name}>Cook Time (min)</Label>
+                <Label htmlFor={field.name}>Tiempo Cocción (min)</Label>
                 <Input
                   id={field.name}
                   name={field.name}
@@ -412,7 +416,7 @@ You will receive:
           <form.Field name="servings">
             {(field) => (
               <div className="space-y-2">
-                <Label htmlFor={field.name}>Servings</Label>
+                <Label htmlFor={field.name}>Raciones</Label>
                 <Input
                   id={field.name}
                   name={field.name}
@@ -436,14 +440,14 @@ You will receive:
           {(field) => (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label className="text-base">Ingredients</Label>
+                <Label className="text-base">Ingredientes</Label>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => field.pushValue("")}
                 >
-                  <Plus className="mr-2 h-4 w-4" /> Add Ingredient
+                  <Plus className="mr-2 h-4 w-4" /> Añadir Ingrediente
                 </Button>
               </div>
               {field.state.value.map((_, index) => (
@@ -454,7 +458,7 @@ You will receive:
                         value={subField.state.value}
                         onBlur={subField.handleBlur}
                         onChange={(e) => subField.handleChange(e.target.value)}
-                        placeholder={`Ingredient ${index + 1}`}
+                        placeholder={`Ingrediente ${index + 1}`}
                       />
                     )}
                   </form.Field>
@@ -464,7 +468,7 @@ You will receive:
                     size="icon"
                     onClick={() => field.removeValue(index)}
                     disabled={field.state.value.length === 1}
-                    aria-label={`Remove ingredient ${index + 1}`}
+                    aria-label={`Eliminar ingrediente ${index + 1}`}
                   >
                     <Trash2 className="text-muted-foreground hover:text-destructive h-4 w-4" />
                   </Button>
@@ -483,14 +487,14 @@ You will receive:
           {(field) => (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label className="text-base">Instructions</Label>
+                <Label className="text-base">Instrucciones</Label>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => field.pushValue("")}
                 >
-                  <Plus className="mr-2 h-4 w-4" /> Add Step
+                  <Plus className="mr-2 h-4 w-4" /> Añadir Paso
                 </Button>
               </div>
               {field.state.value.map((_, index) => (
@@ -504,7 +508,7 @@ You will receive:
                         value={subField.state.value}
                         onBlur={subField.handleBlur}
                         onChange={(e) => subField.handleChange(e.target.value)}
-                        placeholder={`Step ${index + 1}`}
+                        placeholder={`Paso ${index + 1}`}
                         className="min-h-20"
                       />
                     )}
@@ -515,7 +519,7 @@ You will receive:
                     size="icon"
                     onClick={() => field.removeValue(index)}
                     disabled={field.state.value.length === 1}
-                    aria-label={`Remove step ${index + 1}`}
+                    aria-label={`Eliminar paso ${index + 1}`}
                   >
                     <Trash2 className="text-muted-foreground hover:text-destructive h-4 w-4" />
                   </Button>
@@ -534,14 +538,14 @@ You will receive:
           {(field) => (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label className="text-base">Tags</Label>
+                <Label className="text-base">Etiquetas</Label>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => field.pushValue("")}
                 >
-                  <Plus className="mr-2 h-4 w-4" /> Add Tag
+                  <Plus className="mr-2 h-4 w-4" /> Añadir Etiqueta
                 </Button>
               </div>
               <div className="flex flex-wrap gap-3">
@@ -558,7 +562,7 @@ You will receive:
                           onChange={(e) =>
                             subField.handleChange(e.target.value)
                           }
-                          placeholder="Tag"
+                          placeholder="Etiqueta"
                           className="h-8 w-32 border-none bg-transparent px-2 shadow-none focus-visible:ring-0"
                         />
                       )}
@@ -569,7 +573,7 @@ You will receive:
                       size="icon-sm"
                       onClick={() => field.removeValue(index)}
                       className="h-6 w-6"
-                      aria-label={`Remove tag ${index + 1}`}
+                      aria-label={`Eliminar etiqueta ${index + 1}`}
                     >
                       <X className="h-3 w-3" />
                     </Button>
@@ -588,7 +592,7 @@ You will receive:
         <form.Field name="image">
           {(field) => (
             <div className="space-y-2">
-              <Label htmlFor="recipe-image-upload">Recipe Image</Label>
+              <Label htmlFor="recipe-image-upload">Imagen de la Receta</Label>
               <Input
                 id="recipe-image-upload"
                 name="recipe-image-upload"
@@ -608,14 +612,13 @@ You will receive:
                 }}
               />
               <p className="text-muted-foreground text-xs">
-                Upload an image and it will be stored in Vercel Blob
-                automatically.
+                Sube una imagen y se guardará en Vercel Blob automáticamente.
               </p>
               {field.state.value ? (
                 <p className="text-muted-foreground text-xs">
                   {imageFile
-                    ? `Selected file: ${imageFile.name}`
-                    : "Current image is already saved for this recipe."}
+                    ? `Archivo seleccionado: ${imageFile.name}`
+                    : "La imagen actual ya está guardada para esta receta."}
                 </p>
               ) : null}
               {field.state.meta.errors ? (
@@ -629,12 +632,12 @@ You will receive:
 
         {/* Video Source */}
         <div className="space-y-4 rounded-lg border p-4">
-          <h3 className="font-medium">Video Source (Optional)</h3>
+          <h3 className="font-medium">Origen del Vídeo (Opcional)</h3>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <form.Field name="videoSource.platform">
               {(field) => (
                 <div className="space-y-2">
-                  <Label>Platform</Label>
+                  <Label>Plataforma</Label>
                   <Select
                     value={field.state.value}
                     onValueChange={(val: VideoPlatform) => {
@@ -649,7 +652,7 @@ You will receive:
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select platform" />
+                      <SelectValue placeholder="Selecciona plataforma" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="YouTube">YouTube</SelectItem>
@@ -700,26 +703,26 @@ You will receive:
       <div className="bg-muted/50 mt-12 rounded-lg border p-6">
         <h3 className="mb-2 flex items-center gap-2 text-lg font-semibold">
           <Wand2 className="h-5 w-5" />
-          How to generate an image?
+          ¿Cómo generar una imagen?
         </h3>
         <p className="text-muted-foreground mb-4 text-sm">
-          You can use the JSON to ask an AI to generate an image. Use a prompt
-          like:
+          Puedes usar el JSON para pedirle a una IA que genere una imagen. Usa
+          un prompt como:
         </p>
         <div className="bg-background group relative rounded-md border p-4 font-mono text-sm">
-          "Generate a photorealistic food photography image for a recipe with
-          this title: [Title] and description: [Description]. Top-down view,
-          high quality."
+          "Genera una imagen de fotografía gastronómica fotorrealista para una
+          receta con este título: [Título] y descripción: [Descripción]. Vista
+          desde arriba, alta calidad."
           <Button
             variant="ghost"
             size="icon"
             className="absolute top-2 right-2 opacity-0 transition-opacity group-hover:opacity-100"
-            aria-label="Copy image generation prompt"
+            aria-label="Copiar prompt de generación de imagen"
             onClick={() => {
               navigator.clipboard.writeText(
-                "Generate a photorealistic food photography image for a recipe with this title: [Title] and description: [Description]. Top-down view, high quality.",
+                "Genera una imagen de fotografía gastronómica fotorrealista para una receta con este título: [Título] y descripción: [Descripción]. Vista desde arriba, alta calidad.",
               );
-              toast.success("Image prompt copied");
+              toast.success("Prompt de imagen copiado");
             }}
           >
             <Copy className="h-4 w-4" />

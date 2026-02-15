@@ -9,18 +9,26 @@ interface RecipeFiltersProps {
   availableIngredients: string[];
 }
 
-const difficulties = ["Easy", "Medium", "Hard"];
-const cookTimeOptions = [
-  { label: "Under 15 min", value: 15 },
-  { label: "Under 30 min", value: 30 },
-  { label: "Under 1 hour", value: 60 },
-  { label: "Any time", value: null },
+const difficulties = [
+  { label: "Fácil", value: "Easy" },
+  { label: "Media", value: "Medium" },
+  { label: "Difícil", value: "Hard" },
 ];
-const dietaryOptions = ["Vegetarian", "Vegan", "Gluten-Free"];
+const cookTimeOptions = [
+  { label: "Menos de 15 min", value: 15 },
+  { label: "Menos de 30 min", value: 30 },
+  { label: "Menos de 1 hora", value: 60 },
+  { label: "Cualquier tiempo", value: null },
+];
+const dietaryOptions = [
+  { label: "Vegetariana", value: "Vegetarian" },
+  { label: "Vegana", value: "Vegan" },
+  { label: "Sin Gluten", value: "Gluten-Free" },
+];
 const cookingStatusOptions: { label: string; value: CookingStatus }[] = [
-  { label: "All Recipes", value: "all" },
-  { label: "Already Cooked", value: "cooked" },
-  { label: "Want to Try", value: "wantToTry" },
+  { label: "Todas las Recetas", value: "all" },
+  { label: "Ya Cocinadas", value: "cooked" },
+  { label: "Pendientes", value: "wantToTry" },
 ];
 
 export function RecipeFilters({
@@ -87,11 +95,10 @@ export function RecipeFilters({
 
   return (
     <div className="space-y-6">
-      {/* Cooking Status Filter */}
       <div className="space-y-3">
         <div className="text-foreground flex items-center gap-2 text-sm font-medium">
           <Bookmark className="text-primary h-4 w-4" aria-hidden="true" />
-          <span>Cooking Status</span>
+          <span>Estado de Cocción</span>
         </div>
         <div className="flex flex-wrap gap-2">
           {cookingStatusOptions.map((option) => (
@@ -105,29 +112,27 @@ export function RecipeFilters({
         </div>
       </div>
 
-      {/* Difficulty Filter */}
       <div className="space-y-3">
         <div className="text-foreground flex items-center gap-2 text-sm font-medium">
           <ChefHat className="text-primary h-4 w-4" aria-hidden="true" />
-          <span>Difficulty</span>
+          <span>Dificultad</span>
         </div>
         <div className="flex flex-wrap gap-2">
           {difficulties.map((difficulty) => (
             <FilterChip
-              key={difficulty}
-              label={difficulty}
-              isActive={filters.difficulty.includes(difficulty)}
-              onClick={() => toggleDifficulty(difficulty)}
+              key={difficulty.value}
+              label={difficulty.label}
+              isActive={filters.difficulty.includes(difficulty.value)}
+              onClick={() => toggleDifficulty(difficulty.value)}
             />
           ))}
         </div>
       </div>
 
-      {/* Cuisine Filter */}
       <div className="space-y-3">
         <div className="text-foreground flex items-center gap-2 text-sm font-medium">
           <Globe className="text-primary h-4 w-4" aria-hidden="true" />
-          <span>Cuisine</span>
+          <span>Cocina</span>
         </div>
         <div className="flex flex-wrap gap-2">
           {availableCuisines.map((cuisine) => (
@@ -141,11 +146,10 @@ export function RecipeFilters({
         </div>
       </div>
 
-      {/* Cook Time Filter */}
       <div className="space-y-3">
         <div className="text-foreground flex items-center gap-2 text-sm font-medium">
           <Clock className="text-primary h-4 w-4" aria-hidden="true" />
-          <span>Cook Time</span>
+          <span>Tiempo de Cocción</span>
         </div>
         <div className="flex flex-wrap gap-2">
           {cookTimeOptions.map((option) => (
@@ -159,29 +163,27 @@ export function RecipeFilters({
         </div>
       </div>
 
-      {/* Dietary Restrictions Filter */}
       <div className="space-y-3">
         <div className="text-foreground flex items-center gap-2 text-sm font-medium">
           <Heart className="text-primary h-4 w-4" aria-hidden="true" />
-          <span>Dietary</span>
+          <span>Dieta</span>
         </div>
         <div className="flex flex-wrap gap-2">
           {dietaryOptions.map((restriction) => (
             <FilterChip
-              key={restriction}
-              label={restriction}
-              isActive={filters.dietaryRestrictions.includes(restriction)}
-              onClick={() => toggleDietaryRestriction(restriction)}
+              key={restriction.value}
+              label={restriction.label}
+              isActive={filters.dietaryRestrictions.includes(restriction.value)}
+              onClick={() => toggleDietaryRestriction(restriction.value)}
             />
           ))}
         </div>
       </div>
 
-      {/* Ingredient Filter */}
       <div className="space-y-3">
         <div className="text-foreground flex items-center gap-2 text-sm font-medium">
           <Leaf className="text-primary h-4 w-4" aria-hidden="true" />
-          <span>Key Ingredients</span>
+          <span>Ingredientes Clave</span>
         </div>
         <div className="flex flex-wrap gap-2">
           {availableIngredients.slice(0, 12).map((ingredient) => (
@@ -195,14 +197,13 @@ export function RecipeFilters({
         </div>
       </div>
 
-      {/* Clear Filters */}
       {hasActiveFilters && (
         <button
           type="button"
           onClick={clearFilters}
-          className="text-primary hover:text-primary/80 text-sm underline underline-offset-2 transition-colors"
+          className="text-primary hover:text-primary/80 cursor-pointer text-sm underline underline-offset-2 transition-colors"
         >
-          Clear all filters
+          Borrar todos los filtros
         </button>
       )}
     </div>

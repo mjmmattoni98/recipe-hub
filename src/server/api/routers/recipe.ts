@@ -55,7 +55,7 @@ export const recipeRouter = createTRPCRouter({
         videoSource: z
           .object({
             platform: z.enum(["YouTube", "Instagram", "TikTok"]),
-            url: z.string().url(),
+            url: z.url(),
           })
           .optional(),
       }),
@@ -103,7 +103,7 @@ export const recipeRouter = createTRPCRouter({
         videoSource: z
           .object({
             platform: z.enum(["YouTube", "Instagram", "TikTok"]),
-            url: z.string().url(),
+            url: z.url(),
           })
           .optional(),
       }),
@@ -118,7 +118,7 @@ export const recipeRouter = createTRPCRouter({
       });
 
       if (!existingRecipe) {
-        throw new Error("Recipe not found");
+        throw new Error("Receta no encontrada");
       }
 
       return ctx.db.recipe.update({
