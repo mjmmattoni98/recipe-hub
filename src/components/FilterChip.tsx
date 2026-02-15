@@ -6,7 +6,11 @@ interface FilterChipProps {
   onClick: () => void;
 }
 
-export function FilterChip({ label, isActive, onClick }: FilterChipProps) {
+export function FilterChip({
+  label,
+  isActive,
+  onClick,
+}: Readonly<FilterChipProps>) {
   return (
     <button
       onClick={onClick}
