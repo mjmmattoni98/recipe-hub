@@ -13,7 +13,9 @@ export function FilterChip({
 }: Readonly<FilterChipProps>) {
   return (
     <button
+      type="button"
       onClick={onClick}
+      aria-pressed={isActive}
       className={cn("filter-chip", isActive && "active")}
     >
       {label}

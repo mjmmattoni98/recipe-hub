@@ -1,6 +1,6 @@
 export default function RecipeLoading() {
   return (
-    <div className="bg-background min-h-screen pb-16">
+    <main id="main-content" className="bg-background min-h-screen pb-16">
       <div className="relative aspect-video max-h-[55vh] w-full overflow-hidden">
         <div className="bg-muted h-full w-full animate-pulse" />
       </div>
@@ -42,7 +42,7 @@ export default function RecipeLoading() {
                   <div className="bg-muted h-6 w-6 shrink-0 animate-pulse rounded-full" />
                   <div
                     className="bg-muted h-5 animate-pulse rounded-lg"
-                    style={{ width: `${70 + Math.random() * 25}%` }}
+                    style={{ width: `${70 + (i % 5) * 5}%` }}
                   />
                 </div>
               ))}
@@ -71,6 +71,6 @@ export default function RecipeLoading() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

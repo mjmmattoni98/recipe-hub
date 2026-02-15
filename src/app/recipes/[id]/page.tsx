@@ -1,7 +1,8 @@
 import { PlatformIcon } from "@/components/PlatformIcon";
 import { Button } from "@/components/ui/button";
-import { auth } from "@/lib/auth";
+import { absoluteUrl } from "@/lib/seo";
 import { cn } from "@/lib/utils";
+import { getServerSession } from "@/server/auth/session";
 import { api } from "@/trpc/server";
 import {
   ArrowLeft,
@@ -11,26 +12,76 @@ import {
   Flame,
   Users,
 } from "lucide-react";
-import { headers } from "next/headers";
+import { type Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
+import { cache } from "react";
+
+type RecipePageProps = {
+  params: Promise<{ id: string }>;
+};
+
+const getRecipe = cache(async (id: string) => {
+  return api.recipe.getById({ id });
+});
+
+export async function generateMetadata({
+  params,
+}: Readonly<RecipePageProps>): Promise<Metadata> {
+  const { id } = await params;
+  const recipe = await getRecipe(id);
+
+  if (!recipe) {
+    return {
+      title: "Recipe Not Found",
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
+
+  return {
+    title: recipe.title,
+    description: recipe.description,
+    alternates: {
+      canonical: `/recipes/${recipe.id}`,
+    },
+    openGraph: {
+      type: "article",
+      url: absoluteUrl(`/recipes/${recipe.id}`),
+      title: `${recipe.title} | Recipe Hub`,
+      description: recipe.description,
+      images: [
+        {
+          url: recipe.image,
+          alt: recipe.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${recipe.title} | Recipe Hub`,
+      description: recipe.description,
+      images: [recipe.image],
+    },
+  };
+}
 
 export default async function RecipePage({
   params,
-}: Readonly<{
-  params: Promise<{ id: string }>;
-}>) {
+}: Readonly<RecipePageProps>) {
+  await connection();
   const { id } = await params;
-  const recipe = await api.recipe.getById({ id });
+  const recipe = await getRecipe(id);
 
   if (!recipe) {
     notFound();
   }
 
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const session = await getServerSession();
 
   const difficultyClass = {
     Easy: "badge-easy",
@@ -46,9 +97,35 @@ export default async function RecipePage({
       }[recipe.videoSource.platform]
     : null;
 
+  const recipeJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Recipe",
+    name: recipe.title,
+    description: recipe.description,
+    image: [recipe.image],
+    url: absoluteUrl(`/recipes/${recipe.id}`),
+    recipeCuisine: recipe.cuisine,
+    recipeCategory: recipe.difficulty,
+    prepTime: `PT${recipe.prepTime}M`,
+    cookTime: `PT${recipe.cookTime}M`,
+    totalTime: `PT${recipe.prepTime + recipe.cookTime}M`,
+    recipeYield: `${recipe.servings} servings`,
+    recipeIngredient: recipe.ingredients,
+    recipeInstructions: recipe.instructions.map((instruction, index) => ({
+      "@type": "HowToStep",
+      name: `Step ${index + 1}`,
+      text: instruction,
+    })),
+    keywords: recipe.tags.join(", "),
+  };
+
   return (
-    <div className="bg-background min-h-screen pb-16">
-      {/* Header Image */}
+    <main id="main-content" className="bg-background min-h-screen pb-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(recipeJsonLd) }}
+      />
+
       <div className="relative aspect-video max-h-[55vh] w-full overflow-hidden">
         <Image
           src={recipe.image}
@@ -56,6 +133,7 @@ export default async function RecipePage({
           fill
           className="object-cover"
           priority
+          sizes="100vw"
         />
         <div className="from-background via-background/40 absolute inset-0 bg-linear-to-t to-transparent" />
 
@@ -65,30 +143,31 @@ export default async function RecipePage({
               variant="secondary"
               size="icon"
               className="bg-background/80 hover:bg-background h-11 w-11 rounded-full shadow-lg backdrop-blur-md transition-transform duration-200 hover:scale-105"
+              aria-label="Back to recipes"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-5 w-5" aria-hidden="true" />
             </Button>
           </Link>
-          {session?.user && (
+          {session?.user ? (
             <Link href={`/recipes/${id}/edit`}>
               <Button
                 variant="secondary"
                 size="icon"
                 className="bg-background/80 hover:bg-background h-11 w-11 rounded-full shadow-lg backdrop-blur-md transition-transform duration-200 hover:scale-105"
+                aria-label="Edit recipe"
               >
-                <Edit className="h-5 w-5" />
+                <Edit className="h-5 w-5" aria-hidden="true" />
               </Button>
             </Link>
-          )}
+          ) : null}
         </div>
       </div>
 
       <div className="relative z-10 container mx-auto -mt-24 max-w-4xl px-4">
-        <div
+        <article
           className="bg-card rounded-2xl border p-7 md:p-10"
           style={{ boxShadow: "var(--shadow-elevated)" }}
         >
-          {/* Badges */}
           <div className="mb-4 flex flex-wrap items-center gap-2">
             <span className="bg-secondary text-secondary-foreground rounded-full px-3 py-1 text-xs font-semibold">
               {recipe.cuisine}
@@ -106,11 +185,10 @@ export default async function RecipePage({
             {recipe.description}
           </p>
 
-          {/* Meta Info */}
           <div className="border-border mt-8 grid grid-cols-2 gap-4 border-y py-6 sm:grid-cols-3">
             <div className="flex items-center gap-3">
               <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-xl">
-                <Clock className="text-primary h-5 w-5" />
+                <Clock className="text-primary h-5 w-5" aria-hidden="true" />
               </div>
               <div>
                 <p className="text-muted-foreground text-xs font-medium">
@@ -123,7 +201,7 @@ export default async function RecipePage({
             </div>
             <div className="flex items-center gap-3">
               <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-xl">
-                <Flame className="text-primary h-5 w-5" />
+                <Flame className="text-primary h-5 w-5" aria-hidden="true" />
               </div>
               <div>
                 <p className="text-muted-foreground text-xs font-medium">
@@ -136,7 +214,7 @@ export default async function RecipePage({
             </div>
             <div className="flex items-center gap-3">
               <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-xl">
-                <Users className="text-primary h-5 w-5" />
+                <Users className="text-primary h-5 w-5" aria-hidden="true" />
               </div>
               <div>
                 <p className="text-muted-foreground text-xs font-medium">
@@ -149,7 +227,7 @@ export default async function RecipePage({
             </div>
           </div>
 
-          {recipe.videoSource && (
+          {recipe.videoSource ? (
             <a
               href={recipe.videoSource.url}
               target="_blank"
@@ -161,12 +239,12 @@ export default async function RecipePage({
             >
               <PlatformIcon platform={recipe.videoSource.platform} />
               <span>Watch on {recipe.videoSource.platform}</span>
-              <ExternalLink className="h-3.5 w-3.5" />
+              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
             </a>
-          )}
+          ) : null}
 
           <div className="mt-10 grid gap-10 md:grid-cols-2">
-            <div>
+            <section>
               <h2 className="font-display text-foreground mb-5 text-2xl font-semibold">
                 Ingredients
               </h2>
@@ -183,9 +261,9 @@ export default async function RecipePage({
                   </li>
                 ))}
               </ul>
-            </div>
+            </section>
 
-            <div>
+            <section>
               <h2 className="font-display text-foreground mb-5 text-2xl font-semibold">
                 Instructions
               </h2>
@@ -201,11 +279,11 @@ export default async function RecipePage({
                   </li>
                 ))}
               </ol>
-            </div>
+            </section>
           </div>
 
-          {recipe.tags.length > 0 && (
-            <div className="border-border mt-10 border-t pt-6">
+          {recipe.tags.length > 0 ? (
+            <section className="border-border mt-10 border-t pt-6">
               <h3 className="text-muted-foreground font-body mb-3 text-xs font-semibold tracking-wider uppercase">
                 Tags
               </h3>
@@ -219,10 +297,10 @@ export default async function RecipePage({
                   </span>
                 ))}
               </div>
-            </div>
-          )}
-        </div>
+            </section>
+          ) : null}
+        </article>
       </div>
-    </div>
+    </main>
   );
 }

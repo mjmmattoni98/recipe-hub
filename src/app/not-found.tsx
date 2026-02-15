@@ -4,7 +4,10 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div className="bg-background relative flex min-h-screen items-center justify-center p-4">
+    <main
+      id="main-content"
+      className="bg-background relative flex min-h-screen items-center justify-center p-4"
+    >
       <div className="from-primary/5 via-secondary/30 to-background absolute inset-0 bg-linear-to-br" />
 
       <div className="relative text-center">
@@ -24,6 +27,6 @@ export default function NotFound() {
           </Button>
         </Link>
       </div>
-    </div>
+    </main>
   );
 }

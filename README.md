@@ -55,7 +55,10 @@ Recipe Hub is a modern recipe management application built with the [T3 Stack](h
    cp .env.example .env
    ```
 
-   Update the `DATABASE_URL` and other variables in `.env`.
+   Update these required variables in `.env`:
+   - `DATABASE_URL`
+   - `BETTER_AUTH_SECRET`
+   - `BETTER_AUTH_URL` (for local development, use `http://localhost:3000`)
 
 ### Database Setup
 

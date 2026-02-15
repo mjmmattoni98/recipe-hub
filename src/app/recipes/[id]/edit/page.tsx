@@ -1,60 +1,63 @@
-"use client";
+import { EditRecipeClient } from "@/components/recipes/EditRecipeClient";
+import { type RecipeFormValues } from "@/components/RecipeForm";
+import { absoluteUrl } from "@/lib/seo";
+import { requireServerSession } from "@/server/auth/require-session";
+import { api } from "@/trpc/server";
+import { type Metadata } from "next";
+import { notFound } from "next/navigation";
+import { connection } from "next/server";
+import { cache } from "react";
 
-import { RecipeForm, type RecipeFormValues } from "@/components/RecipeForm";
-import { Button } from "@/components/ui/button";
-import { api } from "@/trpc/react";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
-import { notFound, useRouter } from "next/navigation";
-import { use } from "react";
-import { toast } from "sonner";
-
-export default function EditRecipePage({
-  params,
-}: {
+type EditRecipePageProps = {
   params: Promise<{ id: string }>;
-}) {
-  const { id } = use(params);
-  const router = useRouter();
-  const utils = api.useUtils();
+};
 
-  const { data: recipe, isLoading } = api.recipe.getById.useQuery({ id });
+const getRecipe = cache(async (id: string) => {
+  return api.recipe.getById({ id });
+});
 
-  const updateRecipe = api.recipe.update.useMutation({
-    onSuccess: () => {
-      toast.success("Recipe updated successfully");
-      router.push(`/recipes/${id}`);
-      router.refresh();
-      void utils.recipe.getById.invalidate({ id });
+export async function generateMetadata({
+  params,
+}: Readonly<EditRecipePageProps>): Promise<Metadata> {
+  const { id } = await params;
+  const recipe = await getRecipe(id);
+
+  const title = recipe ? `Edit ${recipe.title}` : "Edit Recipe";
+  const description = recipe
+    ? `Update details for ${recipe.title}.`
+    : "Update recipe details.";
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `/recipes/${id}/edit`,
     },
-    onError: (error) => {
-      toast.error(error.message);
+    robots: {
+      index: false,
+      follow: false,
     },
-  });
+    openGraph: {
+      type: "website",
+      url: absoluteUrl(`/recipes/${id}/edit`),
+      title: `${title} | Recipe Hub`,
+      description,
+    },
+  };
+}
 
-  if (isLoading) {
-    return (
-      <div className="bg-background flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="bg-muted mx-auto mb-4 h-10 w-10 animate-pulse rounded-full" />
-          <p className="font-body text-muted-foreground text-sm">
-            Loading recipe...
-          </p>
-        </div>
-      </div>
-    );
-  }
+export default async function EditRecipePage({
+  params,
+}: Readonly<EditRecipePageProps>) {
+  await connection();
+  const { id } = await params;
 
+  await requireServerSession(`/recipes/${id}/edit`);
+
+  const recipe = await getRecipe(id);
   if (!recipe) {
     notFound();
   }
-
-  const handleSubmit = async (values: RecipeFormValues) => {
-    updateRecipe.mutate({
-      id,
-      ...values,
-    });
-  };
 
   const defaultValues: RecipeFormValues = {
     title: recipe.title,
@@ -76,35 +79,5 @@ export default function EditRecipePage({
       : undefined,
   };
 
-  return (
-    <div className="bg-background min-h-screen">
-      <div className="border-border/60 bg-background/80 sticky top-0 z-50 border-b backdrop-blur-xl">
-        <div className="container mx-auto flex h-16 items-center gap-4 px-4">
-          <Link href={`/recipes/${id}`}>
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <h1 className="font-display text-foreground text-xl font-bold">
-            Edit Recipe
-          </h1>
-        </div>
-      </div>
-
-      <div className="container mx-auto max-w-3xl px-4 py-10">
-        <div className="mb-8">
-          <p className="font-body text-muted-foreground">
-            Update the details for your recipe.
-          </p>
-        </div>
-
-        <RecipeForm
-          defaultValues={defaultValues}
-          onSubmit={handleSubmit}
-          isSubmitting={updateRecipe.isPending}
-          submitLabel="Update Recipe"
-        />
-      </div>
-    </div>
-  );
+  return <EditRecipeClient recipeId={id} defaultValues={defaultValues} />;
 }

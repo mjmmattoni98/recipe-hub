@@ -11,7 +11,7 @@ import { toast } from "sonner";
 interface RecipeCardProps {
   recipe: RecipeWithVideoSource;
   index: number;
-  isLoggedIn?: boolean;
+  isLoggedIn: boolean;
 }
 
 export function RecipeCard({
@@ -66,12 +66,14 @@ export function RecipeCard({
             fill
             className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
             loading="lazy"
+            sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 
           {/* Cooked Badge */}
           <button
             onClick={handleToggleCooked}
+            type="button"
             disabled={!isLoggedIn}
             className={cn(
               "absolute top-3 left-3 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold shadow-lg backdrop-blur-md transition-all duration-300",
@@ -86,6 +88,7 @@ export function RecipeCard({
                 "h-3.5 w-3.5",
                 recipe.cooked ? "text-white" : "text-white/70",
               )}
+              aria-hidden="true"
             />
             <span>{recipe.cooked ? "Cooked" : "Want to try"}</span>
           </button>
@@ -130,14 +133,14 @@ export function RecipeCard({
           {/* Meta */}
           <div className="text-muted-foreground border-border/50 mt-4 flex items-center gap-4 border-t pt-4 text-sm">
             <div className="flex items-center gap-1.5">
-              <Clock className="text-primary/60 h-4 w-4" />
+              <Clock className="text-primary/60 h-4 w-4" aria-hidden="true" />
               <span className="font-body font-medium">
                 {recipe.cookTime + recipe.prepTime} min
               </span>
             </div>
             <div className="bg-border h-3.5 w-px" />
             <div className="flex items-center gap-1.5">
-              <Users className="text-primary/60 h-4 w-4" />
+              <Users className="text-primary/60 h-4 w-4" aria-hidden="true" />
               <span className="font-body font-medium">
                 {recipe.servings} servings
               </span>
