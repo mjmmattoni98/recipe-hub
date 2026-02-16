@@ -302,11 +302,14 @@ export function HomePageClient({
                     ) : null}
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="bg-card w-80">
+                <SheetContent
+                  side="left"
+                  className="bg-card w-80 overflow-y-auto"
+                >
                   <SheetHeader>
                     <SheetTitle className="font-display">Filtros</SheetTitle>
                   </SheetHeader>
-                  <div className="mt-6">
+                  <div className="mt-6 pb-6">
                     <RecipeFilters
                       filters={filters}
                       onFilterChange={setFilters}
