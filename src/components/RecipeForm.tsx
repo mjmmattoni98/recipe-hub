@@ -23,6 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "@tanstack/react-form";
 import { upload } from "@vercel/blob/client";
 import { Copy, Plus, Trash2, Wand2, X } from "lucide-react";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -658,9 +659,12 @@ Recibirás:
               {imagePreviewUrl ? (
                 <div className="space-y-2">
                   <p className="text-muted-foreground text-xs">Vista previa</p>
-                  <img
+                  <Image
                     src={imagePreviewUrl}
                     alt="Vista previa de la imagen de la receta"
+                    width={896}
+                    height={224}
+                    unoptimized
                     className="h-56 w-full rounded-md border object-cover"
                   />
                 </div>

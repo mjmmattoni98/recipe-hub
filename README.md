@@ -91,7 +91,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to see the a
 - `pnpm dev` - Start the development server.
 - `pnpm build` - Build the application for production.
 - `pnpm start` - Start the production server.
-- `pnpm lint` - Run ESLint to check for code quality issues.
+- `pnpm lint` - Run Oxlint to check for code quality issues.
 - `pnpm typecheck` - Run TypeScript type checking.
 - `pnpm db:studio` - Open Prisma Studio to view/edit database records.
 
