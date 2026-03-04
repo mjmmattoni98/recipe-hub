@@ -1,7 +1,7 @@
 import "server-only";
 
 import { env } from "@/env";
-import { list } from "@vercel/blob";
+import { del, list } from "@vercel/blob";
 
 type BlobIndex = {
   byPath: Map<string, string>;
@@ -74,6 +74,16 @@ const getBlobListOptions = (cursor?: string) => {
   return { cursor };
 };
 
+const getBlobDeleteOptions = () => {
+  const token = env.BLOB_READ_WRITE_TOKEN;
+
+  if (token) {
+    return { token };
+  }
+
+  return undefined;
+};
+
 async function getBlobIndex() {
   const now = Date.now();
   const isFresh =
@@ -130,7 +140,9 @@ export async function resolveRecipeImageUrl(image: string): Promise<string> {
       return value;
     }
 
-    throw new Error("La URL de la imagen debe provenir del almacenamiento Vercel Blob.");
+    throw new Error(
+      "La URL de la imagen debe provenir del almacenamiento Vercel Blob.",
+    );
   }
 
   const keys = getLookupKeys(value);
@@ -150,4 +162,17 @@ export async function resolveRecipeImageUrl(image: string): Promise<string> {
   }
 
   throw new Error("Imagen no encontrada en el almacenamiento Vercel Blob.");
+}
+
+export async function deleteRecipeImage(image: string): Promise<void> {
+  const value = image.trim();
+
+  if (!value || !isVercelBlobUrl(value)) {
+    return;
+  }
+
+  await del(value, getBlobDeleteOptions());
+
+  cachedBlobIndex = null;
+  blobIndexFetchedAt = 0;
 }

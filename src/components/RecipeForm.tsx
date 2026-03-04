@@ -23,7 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "@tanstack/react-form";
 import { upload } from "@vercel/blob/client";
 import { Copy, Plus, Trash2, Wand2, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import * as z from "zod";
 
@@ -35,6 +35,47 @@ const toSafeFilename = (value: string) =>
     .replaceAll(/[^a-z0-9.-]+/g, "-")
     .replaceAll(/-+/g, "-")
     .replaceAll(/^-|-$/g, "");
+
+const getFormErrorMessage = (error: unknown): string | null => {
+  if (typeof error === "string") {
+    return error;
+  }
+
+  if (
+    error &&
+    typeof error === "object" &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
+    return error.message;
+  }
+
+  return null;
+};
+
+const formatFieldErrors = (errors: unknown[] | undefined): string | null => {
+  if (!errors?.length) {
+    return null;
+  }
+
+  const messages = errors.map(getFormErrorMessage).filter(Boolean);
+
+  if (!messages.length) {
+    return null;
+  }
+
+  return [...new Set(messages)].join(", ");
+};
+
+const renderFieldErrors = (errors: unknown[] | undefined) => {
+  const errorMessage = formatFieldErrors(errors);
+
+  if (!errorMessage) {
+    return null;
+  }
+
+  return <p className="text-destructive text-sm">{errorMessage}</p>;
+};
 
 export const recipeFormSchema = z.object({
   title: z.string().min(5, "El título debe tener al menos 5 caracteres"),
@@ -79,6 +120,25 @@ export function RecipeForm({
 }: Readonly<RecipeFormProps>) {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(
+    defaultValues?.image ?? null,
+  );
+
+  useEffect(() => {
+    if (!imageFile) {
+      setImagePreviewUrl(defaultValues?.image ?? null);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(imageFile);
+    setImagePreviewUrl(objectUrl);
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [defaultValues?.image, imageFile]);
+
   const form = useForm({
     defaultValues:
       defaultValues ??
@@ -293,11 +353,7 @@ Recibirás:
                 onChange={(e) => field.handleChange(e.target.value)}
                 placeholder="Título de la receta"
               />
-              {field.state.meta.errors ? (
-                <p className="text-destructive text-sm">
-                  {field.state.meta.errors.join(", ")}
-                </p>
-              ) : null}
+              {renderFieldErrors(field.state.meta.errors)}
             </div>
           )}
         </form.Field>
@@ -314,11 +370,7 @@ Recibirás:
                 onChange={(e) => field.handleChange(e.target.value)}
                 placeholder="Descripción de la receta..."
               />
-              {field.state.meta.errors ? (
-                <p className="text-destructive text-sm">
-                  {field.state.meta.errors.join(", ")}
-                </p>
-              ) : null}
+              {renderFieldErrors(field.state.meta.errors)}
             </div>
           )}
         </form.Field>
@@ -336,11 +388,7 @@ Recibirás:
                   onChange={(e) => field.handleChange(e.target.value)}
                   placeholder="ej. Italiana"
                 />
-                {field.state.meta.errors ? (
-                  <p className="text-destructive text-sm">
-                    {field.state.meta.errors.join(", ")}
-                  </p>
-                ) : null}
+                {renderFieldErrors(field.state.meta.errors)}
               </div>
             )}
           </form.Field>
@@ -364,11 +412,7 @@ Recibirás:
                     <SelectItem value="Hard">Difícil</SelectItem>
                   </SelectContent>
                 </Select>
-                {field.state.meta.errors ? (
-                  <p className="text-destructive text-sm">
-                    {field.state.meta.errors.join(", ")}
-                  </p>
-                ) : null}
+                {renderFieldErrors(field.state.meta.errors)}
               </div>
             )}
           </form.Field>
@@ -388,11 +432,7 @@ Recibirás:
                   onChange={(e) => field.handleChange(Number(e.target.value))}
                   min={0}
                 />
-                {field.state.meta.errors ? (
-                  <p className="text-destructive text-sm">
-                    {field.state.meta.errors.join(", ")}
-                  </p>
-                ) : null}
+                {renderFieldErrors(field.state.meta.errors)}
               </div>
             )}
           </form.Field>
@@ -409,11 +449,7 @@ Recibirás:
                   onChange={(e) => field.handleChange(Number(e.target.value))}
                   min={0}
                 />
-                {field.state.meta.errors ? (
-                  <p className="text-destructive text-sm">
-                    {field.state.meta.errors.join(", ")}
-                  </p>
-                ) : null}
+                {renderFieldErrors(field.state.meta.errors)}
               </div>
             )}
           </form.Field>
@@ -430,11 +466,7 @@ Recibirás:
                   onChange={(e) => field.handleChange(Number(e.target.value))}
                   min={1}
                 />
-                {field.state.meta.errors ? (
-                  <p className="text-destructive text-sm">
-                    {field.state.meta.errors.join(", ")}
-                  </p>
-                ) : null}
+                {renderFieldErrors(field.state.meta.errors)}
               </div>
             )}
           </form.Field>
@@ -478,11 +510,7 @@ Recibirás:
                   </Button>
                 </div>
               ))}
-              {field.state.meta.errors ? (
-                <p className="text-destructive text-sm">
-                  {field.state.meta.errors.join(", ")}
-                </p>
-              ) : null}
+              {renderFieldErrors(field.state.meta.errors)}
             </div>
           )}
         </form.Field>
@@ -529,11 +557,7 @@ Recibirás:
                   </Button>
                 </div>
               ))}
-              {field.state.meta.errors ? (
-                <p className="text-destructive text-sm">
-                  {field.state.meta.errors.join(", ")}
-                </p>
-              ) : null}
+              {renderFieldErrors(field.state.meta.errors)}
             </div>
           )}
         </form.Field>
@@ -584,11 +608,7 @@ Recibirás:
                   </div>
                 ))}
               </div>
-              {field.state.meta.errors ? (
-                <p className="text-destructive text-sm">
-                  {field.state.meta.errors.join(", ")}
-                </p>
-              ) : null}
+              {renderFieldErrors(field.state.meta.errors)}
             </div>
           )}
         </form.Field>
@@ -602,6 +622,7 @@ Recibirás:
                 name="recipe-image-upload"
                 type="file"
                 accept="image/*"
+                ref={imageInputRef}
                 onBlur={field.handleBlur}
                 onChange={(e) => {
                   const selectedFile = e.target.files?.[0] ?? null;
@@ -618,6 +639,32 @@ Recibirás:
               <p className="text-muted-foreground text-xs">
                 La imagen se comprime automáticamente después de subirse.
               </p>
+              {imageFile ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setImageFile(null);
+                    if (imageInputRef.current) {
+                      imageInputRef.current.value = "";
+                    }
+                    field.handleChange(defaultValues?.image ?? "");
+                  }}
+                >
+                  Quitar imagen seleccionada
+                </Button>
+              ) : null}
+              {imagePreviewUrl ? (
+                <div className="space-y-2">
+                  <p className="text-muted-foreground text-xs">Vista previa</p>
+                  <img
+                    src={imagePreviewUrl}
+                    alt="Vista previa de la imagen de la receta"
+                    className="h-56 w-full rounded-md border object-cover"
+                  />
+                </div>
+              ) : null}
               {field.state.value ? (
                 <p className="text-muted-foreground text-xs">
                   {imageFile
@@ -625,11 +672,7 @@ Recibirás:
                     : "La imagen actual ya está guardada para esta receta."}
                 </p>
               ) : null}
-              {field.state.meta.errors ? (
-                <p className="text-destructive text-sm">
-                  {field.state.meta.errors.join(", ")}
-                </p>
-              ) : null}
+              {renderFieldErrors(field.state.meta.errors)}
             </div>
           )}
         </form.Field>
@@ -694,13 +737,21 @@ Recibirás:
         </div>
 
         <div className="flex justify-end pt-4">
-          <Button
-            type="submit"
-            size="lg"
-            disabled={isSubmitting || isUploadingImage}
-          >
-            {submitButtonLabel}
-          </Button>
+          <form.Subscribe selector={(state) => state.values}>
+            {(values) => {
+              const hasFormErrors = !recipeFormSchema.safeParse(values).success;
+
+              return (
+                <Button
+                  type="submit"
+                  size="lg"
+                  disabled={hasFormErrors || isSubmitting || isUploadingImage}
+                >
+                  {submitButtonLabel}
+                </Button>
+              );
+            }}
+          </form.Subscribe>
         </div>
       </form>
 
