@@ -21,12 +21,20 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "@tanstack/react-form";
+import { upload } from "@vercel/blob/client";
 import { Copy, Plus, Trash2, Wand2, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import * as z from "zod";
 
 type VideoPlatform = "YouTube" | "Instagram" | "TikTok";
+
+const toSafeFilename = (value: string) =>
+  value
+    .toLowerCase()
+    .replaceAll(/[^a-z0-9.-]+/g, "-")
+    .replaceAll(/-+/g, "-")
+    .replaceAll(/^-|-$/g, "");
 
 export const recipeFormSchema = z.object({
   title: z.string().min(5, "El título debe tener al menos 5 caracteres"),
@@ -91,31 +99,27 @@ export function RecipeForm({
       onSubmit: recipeFormSchema,
     },
     onSubmit: async ({ value }) => {
-      const uploadImageToBlob = async (file: File) => {
-        const formData = new FormData();
-        formData.append("file", file);
+      const buildBlobPathFromFile = (file: File) => {
+        const extension = file.name.split(".").pop()?.toLowerCase() ?? "png";
+        const baseName = file.name.replace(/\.[^/.]+$/, "") || "recipe-image";
+        const safeName = toSafeFilename(baseName) || "recipe-image";
+        return `recipes/${safeName}-${Date.now()}.${extension}`;
+      };
 
-        const response = await fetch("/api/blob/upload", {
-          method: "POST",
-          body: formData,
+      const uploadImageToBlob = async (file: File) => {
+        const blob = await upload(buildBlobPathFromFile(file), file, {
+          access: "public",
+          handleUploadUrl: "/api/blob/upload",
+          multipart: file.size >= 5 * 1024 * 1024,
         });
 
-        if (!response.ok) {
-          const payload = (await response.json().catch(() => null)) as {
-            error?: string;
-          } | null;
-          throw new Error(payload?.error ?? "Error al subir la imagen");
-        }
-
-        const payload = (await response.json()) as { url?: string };
-
-        if (!payload.url) {
+        if (!blob.url) {
           throw new Error(
             "La respuesta de subida no incluyó la URL de la imagen",
           );
         }
 
-        return payload.url;
+        return blob.url;
       };
 
       const cleanedValue = {
@@ -612,7 +616,7 @@ Recibirás:
                 }}
               />
               <p className="text-muted-foreground text-xs">
-                Sube una imagen y se guardará en Vercel Blob automáticamente.
+                La imagen se comprime automáticamente después de subirse.
               </p>
               {field.state.value ? (
                 <p className="text-muted-foreground text-xs">
