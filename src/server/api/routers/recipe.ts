@@ -3,7 +3,10 @@ import {
   protectedProcedure,
   publicProcedure,
 } from "@/server/api/trpc";
-import { resolveRecipeImageUrl } from "@/server/recipe-image";
+import {
+  deleteRecipeImage,
+  resolveRecipeImageUrl,
+} from "@/server/recipe-image";
 import { z } from "zod";
 
 export const recipeRouter = createTRPCRouter({
@@ -121,7 +124,7 @@ export const recipeRouter = createTRPCRouter({
         throw new Error("Receta no encontrada");
       }
 
-      return ctx.db.recipe.update({
+      const updatedRecipe = await ctx.db.recipe.update({
         where: { id: input.id },
         data: {
           title: input.title,
@@ -149,5 +152,24 @@ export const recipeRouter = createTRPCRouter({
               : undefined,
         },
       });
+
+      if (existingRecipe.image !== resolvedImage) {
+        const usagesOfPreviousImage = await ctx.db.recipe.count({
+          where: {
+            image: existingRecipe.image,
+            NOT: {
+              id: input.id,
+            },
+          },
+        });
+
+        if (usagesOfPreviousImage === 0) {
+          await deleteRecipeImage(existingRecipe.image).catch((error) => {
+            console.error("Failed to delete previous recipe image", error);
+          });
+        }
+      }
+
+      return updatedRecipe;
     }),
 });
