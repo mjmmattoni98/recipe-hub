@@ -172,4 +172,36 @@ export const recipeRouter = createTRPCRouter({
 
       return updatedRecipe;
     }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const existingRecipe = await ctx.db.recipe.findUnique({
+        where: { id: input.id },
+      });
+
+      if (!existingRecipe) {
+        throw new Error("Receta no encontrada");
+      }
+
+      await ctx.db.recipe.delete({
+        where: { id: input.id },
+      });
+
+      const usagesOfDeletedImage = await ctx.db.recipe.count({
+        where: {
+          image: existingRecipe.image,
+        },
+      });
+
+      if (usagesOfDeletedImage === 0) {
+        await deleteRecipeImage(existingRecipe.image).catch((error) => {
+          console.error("Failed to delete recipe image", error);
+        });
+      }
+
+      return {
+        success: true,
+      };
+    }),
 });
