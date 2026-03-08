@@ -1,17 +1,11 @@
 import { PlatformIcon } from "@/components/PlatformIcon";
+import { RecipePageActions } from "@/components/recipes/RecipePageActions";
 import { Button } from "@/components/ui/button";
 import { absoluteUrl } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 import { getServerSession } from "@/server/auth/session";
 import { api } from "@/trpc/server";
-import {
-  ArrowLeft,
-  Clock,
-  Edit,
-  ExternalLink,
-  Flame,
-  Users,
-} from "lucide-react";
+import { ArrowLeft, Clock, ExternalLink, Flame, Users } from "lucide-react";
 import { type Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -154,18 +148,7 @@ export default async function RecipePage({
               <ArrowLeft className="h-5 w-5" aria-hidden="true" />
             </Button>
           </Link>
-          {session?.user ? (
-            <Link href={`/recipes/${id}/edit`}>
-              <Button
-                variant="secondary"
-                size="icon"
-                className="bg-background/80 hover:bg-background h-11 w-11 cursor-pointer rounded-full shadow-lg backdrop-blur-md transition-transform duration-200 hover:scale-105"
-                aria-label="Editar receta"
-              >
-                <Edit className="h-5 w-5" aria-hidden="true" />
-              </Button>
-            </Link>
-          ) : null}
+          {session?.user ? <RecipePageActions recipeId={id} /> : null}
         </div>
       </div>
 

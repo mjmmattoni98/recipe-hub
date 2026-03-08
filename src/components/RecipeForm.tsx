@@ -298,6 +298,14 @@ Recibirás:
     toast.success("Prompt copiado al portapapeles");
   };
 
+  const imageGenerationPrompt =
+    "Genera una imagen de fotografía gastronómica fotorrealista para una receta con este título: [Título] y descripción: [Descripción]. Vista desde arriba, alta calidad.";
+
+  const copyImagePrompt = () => {
+    navigator.clipboard.writeText(imageGenerationPrompt);
+    toast.success("Prompt de imagen copiado");
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
@@ -768,25 +776,20 @@ Recibirás:
           Puedes usar el JSON para pedirle a una IA que genere una imagen. Usa
           un prompt como:
         </p>
-        <div className="bg-background group relative rounded-md border p-4 font-mono text-sm">
-          "Genera una imagen de fotografía gastronómica fotorrealista para una
-          receta con este título: [Título] y descripción: [Descripción]. Vista
-          desde arriba, alta calidad."
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute top-2 right-2 opacity-0 transition-opacity group-hover:opacity-100"
-            aria-label="Copiar prompt de generación de imagen"
-            onClick={() => {
-              navigator.clipboard.writeText(
-                "Genera una imagen de fotografía gastronómica fotorrealista para una receta con este título: [Título] y descripción: [Descripción]. Vista desde arriba, alta calidad.",
-              );
-              toast.success("Prompt de imagen copiado");
-            }}
-          >
+        <button
+          type="button"
+          className="bg-background group hover:bg-muted/40 focus-visible:ring-ring relative block w-full cursor-pointer rounded-md border p-4 text-left font-mono text-sm transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+          aria-label="Copiar prompt de generación de imagen"
+          onClick={copyImagePrompt}
+        >
+          "{imageGenerationPrompt}"
+          <span className="sr-only">
+            Haz clic en cualquier parte para copiar el prompt.
+          </span>
+          <span className="pointer-events-none absolute top-2 right-2 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
             <Copy className="h-4 w-4" />
-          </Button>
-        </div>
+          </span>
+        </button>
       </div>
     </div>
   );
