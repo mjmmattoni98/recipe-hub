@@ -26,10 +26,12 @@ model Recipe {
   instructions String[]
   image        String
   tags         String[]
-  cooked       Boolean          @default(false)
-  videoSource  VideoSource?
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+  cooked        Boolean          @default(false)
+  videoSource   VideoSource?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  comments      Comment[]
+  menuSchedules MenuSchedule[]
 }
 
 model VideoSource {
@@ -62,6 +64,9 @@ model User {
   updatedAt     DateTime
   sessions      Session[]
   accounts      Account[]
+  families      FamilyMember[]
+  comments      Comment[]
+  menuSchedules MenuSchedule[]
 
   @@map("user")
 }
@@ -108,4 +113,61 @@ model Verification {
   updatedAt  DateTime?
 
   @@map("verification")
+}
+
+enum FamilyRole {
+  ADMIN
+  MEMBER
+}
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+}
+
+model Family {
+  id        String         @id @default(uuid())
+  name      String
+  createdAt DateTime       @default(now())
+  members   FamilyMember[]
+  schedules MenuSchedule[]
+}
+
+model FamilyMember {
+  id        String     @id @default(uuid())
+  familyId  String
+  userId    String
+  role      FamilyRole @default(MEMBER)
+  createdAt DateTime   @default(now())
+  family    Family     @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([familyId, userId])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  recipeId  String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MenuSchedule {
+  id        String   @id @default(uuid())
+  date      DateTime @db.Date
+  familyId  String
+  recipeId  String
+  mealType  MealType
+  userId    String?
+  createdAt DateTime @default(now())
+
+  family    Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 }
