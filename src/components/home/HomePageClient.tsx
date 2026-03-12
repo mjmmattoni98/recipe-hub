@@ -21,6 +21,8 @@ import {
   SlidersHorizontal,
   UtensilsCrossed,
   X,
+  UsersRound,
+  CalendarDays,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -46,6 +48,18 @@ function AuthenticatedActions({
 }: Readonly<{ onSignOut: () => Promise<void> }>) {
   return (
     <>
+      <Link href="/menu">
+        <Button variant="outline" size="sm" className="cursor-pointer gap-2 rounded-full">
+          <CalendarDays className="h-4 w-4" aria-hidden="true" />
+          <span className="hidden sm:inline">Menú</span>
+        </Button>
+      </Link>
+      <Link href="/family">
+        <Button variant="outline" size="sm" className="cursor-pointer gap-2 rounded-full">
+          <UsersRound className="h-4 w-4" aria-hidden="true" />
+          <span className="hidden sm:inline">Familia</span>
+        </Button>
+      </Link>
       <Link href="/new-recipe">
         <Button size="sm" className="cursor-pointer gap-2 rounded-full">
           <Plus className="h-4 w-4" aria-hidden="true" />

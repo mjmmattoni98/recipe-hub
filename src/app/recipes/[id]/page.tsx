@@ -1,4 +1,5 @@
 import { PlatformIcon } from "@/components/PlatformIcon";
+import { CommentsSection } from "@/components/recipes/CommentsSection";
 import { RecipePageActions } from "@/components/recipes/RecipePageActions";
 import { Button } from "@/components/ui/button";
 import { absoluteUrl } from "@/lib/seo";
@@ -288,6 +289,8 @@ export default async function RecipePage({
               </div>
             </section>
           ) : null}
+
+          <CommentsSection recipeId={recipe.id} isLoggedIn={Boolean(session?.user)} />
         </article>
       </div>
     </main>
