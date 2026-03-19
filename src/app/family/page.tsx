@@ -2,9 +2,7 @@ import { getServerSession } from "@/server/auth/session";
 import { redirect } from "next/navigation";
 import { FamilyPageClient } from "./FamilyPageClient";
 import { type Metadata } from "next";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { BackButton } from "@/components/BackButton";
 
 export const metadata: Metadata = {
   title: "Gestión de Familia - Recipe Hub",
@@ -22,16 +20,7 @@ export default async function FamilyPage() {
     <div className="bg-background min-h-screen">
       <div className="border-border/60 bg-background/80 sticky top-0 z-50 border-b backdrop-blur-xl">
         <div className="container mx-auto flex h-16 items-center gap-4 px-4">
-          <Link href="/">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-full"
-              aria-label="Volver al inicio"
-            >
-              <ArrowLeft className="h-5 w-5" aria-hidden="true" />
-            </Button>
-          </Link>
+          <BackButton className="bg-background/80 hover:bg-background" />
           <h1 className="font-display text-foreground text-xl font-bold">
             Gestión de Familia
           </h1>

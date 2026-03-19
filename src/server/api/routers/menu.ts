@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { subDays, startOfDay, endOfDay } from "date-fns";
+import { subDays, addDays } from "date-fns";
 import { TRPCError } from "@trpc/server";
 
 export const menuRouter = createTRPCRouter({
@@ -52,8 +52,8 @@ export const menuRouter = createTRPCRouter({
         where: {
           familyId: input.familyId,
           date: {
-            gte: startOfDay(input.startDate),
-            lte: endOfDay(input.endDate),
+            gte: subDays(input.startDate, 2),
+            lte: addDays(input.endDate, 2),
           },
         },
         include: {
@@ -102,7 +102,7 @@ export const menuRouter = createTRPCRouter({
         data: {
           familyId: input.familyId,
           recipeId: input.recipeId,
-          date: startOfDay(input.date),
+          date: input.date,
           mealType: input.mealType,
           userId: ctx.session.user.id,
         },

@@ -1,12 +1,19 @@
 import { PlatformIcon } from "@/components/PlatformIcon";
 import { CommentsSection } from "@/components/recipes/CommentsSection";
 import { RecipePageActions } from "@/components/recipes/RecipePageActions";
+import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/ui/button";
 import { absoluteUrl } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 import { getServerSession } from "@/server/auth/session";
 import { api } from "@/trpc/server";
-import { ArrowLeft, Clock, ExternalLink, Flame, Users } from "lucide-react";
+import {
+  Clock,
+  Edit,
+  ExternalLink,
+  Flame,
+  Users,
+} from "lucide-react";
 import { type Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -139,16 +146,10 @@ export default async function RecipePage({
         <div className="from-background via-background/40 absolute inset-0 bg-linear-to-t to-transparent" />
 
         <div className="absolute top-4 right-4 left-4 z-10 flex justify-between">
-          <Link href="/">
-            <Button
-              variant="secondary"
-              size="icon"
-              className="bg-background/80 hover:bg-background h-11 w-11 cursor-pointer rounded-full shadow-lg backdrop-blur-md transition-transform duration-200 hover:scale-105"
-              aria-label="Volver a las recetas"
-            >
-              <ArrowLeft className="h-5 w-5" aria-hidden="true" />
-            </Button>
-          </Link>
+          <BackButton 
+            variant="secondary" 
+            className="bg-background/80 hover:bg-background h-11 w-11 rounded-full shadow-lg backdrop-blur-md transition-transform duration-200 hover:scale-105"
+          />
           {session?.user ? <RecipePageActions recipeId={id} /> : null}
         </div>
       </div>
