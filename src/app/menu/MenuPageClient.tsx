@@ -7,7 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { addDays, format, startOfWeek, subDays, isSameDay } from "date-fns";
 import { es } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Trash2, Check, ChevronsUpDown } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 
 type MealType = "BREAKFAST" | "LUNCH" | "DINNER" | "SNACK";
 const MEAL_TYPES: { id: MealType; label: string }[] = [
@@ -16,6 +21,97 @@ const MEAL_TYPES: { id: MealType; label: string }[] = [
   { id: "DINNER", label: "Cena" },
   { id: "SNACK", label: "Snack" },
 ];
+
+function RecipeCombobox({ 
+  recipes, 
+  disabled, 
+  onAdd 
+}: { 
+  recipes: any[];
+  disabled: boolean;
+  onAdd: (recipeId: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState("");
+
+  const selectedRecipe = recipes?.find((r) => r.id === value);
+
+  return (
+    <div className="flex gap-2">
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className="w-full justify-between h-auto py-2 px-3 hover:bg-muted font-normal"
+            disabled={disabled}
+          >
+            <div className="flex items-center gap-2 overflow-hidden">
+              {selectedRecipe ? (
+                <>
+                  <div className="relative h-6 w-6 rounded-md overflow-hidden shrink-0 border border-border/50">
+                    <Image src={selectedRecipe.image} alt={selectedRecipe.title} fill className="object-cover" sizes="24px" />
+                  </div>
+                  <span className="truncate">{selectedRecipe.title}</span>
+                </>
+              ) : (
+                <span className="text-muted-foreground">Elegir receta...</span>
+              )}
+            </div>
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[300px] p-0" align="start">
+          <Command>
+            <CommandInput placeholder="Buscar receta..." />
+            <CommandList>
+              <CommandEmpty>No se encontraron recetas.</CommandEmpty>
+              <CommandGroup>
+                {recipes?.map((r) => (
+                  <CommandItem
+                    key={r.id}
+                    value={r.id}
+                    onSelect={(currentValue) => {
+                      setValue(currentValue === value ? "" : currentValue);
+                      setOpen(false);
+                    }}
+                    keywords={[r.title]}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4 shrink-0",
+                        value === r.id ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    <div className="relative h-8 w-8 rounded-md overflow-hidden shrink-0 mr-3 border border-border/50">
+                      <Image src={r.image} alt={r.title} fill className="object-cover" sizes="32px" />
+                    </div>
+                    <span className="truncate pr-2">{r.title}</span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+      <Button
+        size="icon"
+        variant="secondary"
+        className="shrink-0 h-[42px] w-[42px]"
+        disabled={disabled || !value}
+        onClick={() => {
+          if (value) {
+            onAdd(value);
+            setValue("");
+          }
+        }}
+      >
+        <Plus className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
 
 export function MenuPageClient() {
   const [currentWeekStart, setCurrentWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
@@ -149,22 +245,34 @@ export function MenuPageClient() {
                             </span>
                             <div className="flex flex-col gap-1 mt-1">
                               {mealSchedules.map((s) => (
-                                <div key={s.id} className="flex items-center gap-2 bg-muted p-2 rounded-md">
-                                  <div className="flex-1 truncate">
-                                    {s.recipe.title}
+                                <Link href={`/recipes/${s.recipeId}`} key={s.id} className="block group">
+                                  <div className="flex items-center gap-3 bg-muted hover:bg-muted/80 p-2 rounded-lg border transition-colors cursor-pointer">
+                                    <div className="relative h-12 w-12 overflow-hidden rounded-md border border-border/50 shrink-0">
+                                      <Image src={s.recipe.image} alt={s.recipe.title} fill className="object-cover" sizes="48px" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="font-medium text-sm truncate pr-2 text-foreground">{s.recipe.title}</p>
+                                      <div className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
+                                        <span>{s.recipe.difficulty}</span>
+                                        <span>•</span>
+                                        <span>{(s.recipe as any).prepTime + (s.recipe as any).cookTime} min</span>
+                                      </div>
+                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        removeSchedule.mutate({ id: s.id });
+                                      }}
+                                      className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8 rounded-md transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100 shrink-0"
+                                      disabled={removeSchedule.isPending}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
                                   </div>
-                                  <span className="text-xs opacity-50 px-2 border-r">{s.recipe.difficulty}</span>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      removeSchedule.mutate({ id: s.id });
-                                    }}
-                                    className="text-destructive hover:bg-destructive/10 p-1 rounded-md transition-colors"
-                                    disabled={removeSchedule.isPending}
-                                  >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                  </button>
-                                </div>
+                                </Link>
                               ))}
                             </div>
                           </div>
@@ -197,39 +305,24 @@ export function MenuPageClient() {
                 {MEAL_TYPES.map((meal) => (
                   <div key={meal.id} className="space-y-2 pb-4 border-b last:border-0 last:pb-0">
                     <p className="font-medium text-sm">{meal.label}</p>
-                    <div className="flex gap-2">
-                      <select
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-ellipsis overflow-hidden"
-                        id={`recipe-select-${meal.id}`}
-                        defaultValue=""
-                      >
-                        <option value="" disabled>Elegir receta...</option>
-                        {recipes?.map((r) => (
-                          <option key={r.id} value={r.id}>
-                            {r.title}
-                          </option>
-                        ))}
-                      </select>
-                      <Button
-                        size="icon"
-                        variant="secondary"
-                        disabled={scheduleRecipe.isPending}
-                        onClick={() => {
-                          const select = document.getElementById(`recipe-select-${meal.id}`) as HTMLSelectElement;
-                          if (!select.value || !activeFamilyId) return;
-                          
-                          scheduleRecipe.mutate({
-                            familyId: activeFamilyId,
-                            date: selectedDate,
-                            mealType: meal.id,
-                            recipeId: select.value,
-                          });
-                          select.value = "";
-                        }}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <RecipeCombobox 
+                      recipes={recipes || []} 
+                      disabled={scheduleRecipe.isPending || !activeFamilyId}
+                      onAdd={(recipeId) => {
+                        if (!activeFamilyId) return;
+                        
+                        // Set hours to 12 PM to avoid timezone offsets causing the date to shift to the previous day in UTC
+                        const safeDate = new Date(selectedDate);
+                        safeDate.setHours(12, 0, 0, 0);
+                        
+                        scheduleRecipe.mutate({
+                          familyId: activeFamilyId,
+                          date: safeDate,
+                          mealType: meal.id,
+                          recipeId: recipeId,
+                        });
+                      }} 
+                    />
                   </div>
                 ))}
               </div>
