@@ -2,6 +2,9 @@ import { getServerSession } from "@/server/auth/session";
 import { redirect } from "next/navigation";
 import { FamilyPageClient } from "./FamilyPageClient";
 import { type Metadata } from "next";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
   title: "Gestión de Familia - Recipe Hub",
@@ -16,15 +19,34 @@ export default async function FamilyPage() {
   }
 
   return (
-    <main className="container mx-auto py-8 px-4 sm:px-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Gestión de Familia</h1>
-        <p className="text-muted-foreground mt-2">
-          Administra las configuraciones y los miembros de tus grupos familiares.
-        </p>
+    <div className="bg-background min-h-screen">
+      <div className="border-border/60 bg-background/80 sticky top-0 z-50 border-b backdrop-blur-xl">
+        <div className="container mx-auto flex h-16 items-center gap-4 px-4">
+          <Link href="/">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full"
+              aria-label="Volver al inicio"
+            >
+              <ArrowLeft className="h-5 w-5" aria-hidden="true" />
+            </Button>
+          </Link>
+          <h1 className="font-display text-foreground text-xl font-bold">
+            Gestión de Familia
+          </h1>
+        </div>
       </div>
-      
-      <FamilyPageClient currentUserId={session.user.id} />
-    </main>
+
+      <main className="container mx-auto py-8 px-4 sm:px-6">
+        <div className="mb-8">
+          <p className="text-muted-foreground mt-2">
+            Administra las configuraciones y los miembros de tus grupos familiares.
+          </p>
+        </div>
+        
+        <FamilyPageClient currentUserId={session.user.id} />
+      </main>
+    </div>
   );
 }
