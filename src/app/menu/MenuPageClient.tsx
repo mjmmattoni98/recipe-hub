@@ -143,6 +143,36 @@ function RecipeCombobox({
   );
 }
 
+function EditPanelForm({ selectedDate, recipes, activeFamilyId, scheduleRecipe }: any) {
+  return (
+    <div className="space-y-4">
+      {MEAL_TYPES.map((meal) => (
+        <div key={meal.id} className="space-y-2 pb-4 border-b last:border-0 last:pb-0">
+          <p className="font-medium text-sm">{meal.label}</p>
+          <RecipeCombobox 
+            recipes={recipes || []} 
+            disabled={scheduleRecipe.isPending || !activeFamilyId}
+            onAdd={(recipeId) => {
+              if (!activeFamilyId) return;
+              
+              // Set hours to 12 PM to avoid timezone offsets causing the date to shift to the previous day in UTC
+              const safeDate = new Date(selectedDate);
+              safeDate.setHours(12, 0, 0, 0);
+              
+              scheduleRecipe.mutate({
+                familyId: activeFamilyId,
+                date: safeDate,
+                mealType: meal.id,
+                recipeId: recipeId,
+              });
+            }} 
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function MenuPageClient() {
   const [currentWeekStart, setCurrentWeekStart] = useState(() =>
     startOfWeek(new Date(), { weekStartsOn: 1 }),
@@ -260,12 +290,12 @@ export function MenuPageClient() {
                 onClick={() => setSelectedDate(day)}
               >
                 <CardHeader className="py-4">
-                  <CardTitle className="flex justify-between items-center text-lg">
-                    <span className="capitalize">
+                  <CardTitle className="flex justify-between items-center text-lg gap-2">
+                    <span className="capitalize truncate min-w-0">
                       {format(day, "EEEE, dd 'de' MMMM", { locale: es })}
                     </span>
                     {daySchedules.length > 0 && (
-                      <span className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded-full">
+                      <span className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded-full shrink-0">
                         {daySchedules.length} comidas
                       </span>
                     )}
@@ -337,6 +367,17 @@ export function MenuPageClient() {
                         );
                       })}
                     </div>
+                  </CardContent>
+                )}
+                {isSelected && (
+                  <CardContent className="pt-4 pb-6 mt-2 border-t bg-muted/20 block lg:hidden">
+                    <p className="text-sm text-primary font-medium mb-4">Añadir comida para este día:</p>
+                    <EditPanelForm 
+                      selectedDate={selectedDate} 
+                      recipes={recipes} 
+                      activeFamilyId={activeFamilyId} 
+                      scheduleRecipe={scheduleRecipe} 
+                    />
                   </CardContent>
                 )}
               </Card>
