@@ -1,12 +1,10 @@
 "use client";
 
 import { RecipeForm, type RecipeFormValues } from "@/components/RecipeForm";
-import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { BackButton } from "@/components/BackButton";
 
 export function NewRecipeClient() {
   const router = useRouter();
@@ -32,16 +30,7 @@ export function NewRecipeClient() {
     <div className="bg-background min-h-screen">
       <div className="border-border/60 bg-background/80 sticky top-0 z-50 border-b backdrop-blur-xl">
         <div className="container mx-auto flex h-16 items-center gap-4 px-4">
-          <Link href="/">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-full"
-              aria-label="Volver a las recetas"
-            >
-              <ArrowLeft className="h-5 w-5" aria-hidden="true" />
-            </Button>
-          </Link>
+          <BackButton className="bg-background/80 hover:bg-background" />
           <h1 className="font-display text-foreground text-xl font-bold">
             Crear Nueva Receta
           </h1>
