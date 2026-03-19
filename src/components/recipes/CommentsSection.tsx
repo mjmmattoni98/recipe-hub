@@ -67,6 +67,7 @@ export function CommentsSection({
             <Button
               type="submit"
               disabled={addComment.isPending || !newComment.trim()}
+              className="cursor-pointer"
             >
               {addComment.isPending ? "Publicando..." : "Publicar Comentario"}
             </Button>
