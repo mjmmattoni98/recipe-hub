@@ -62,7 +62,7 @@ function RecipeCombobox({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-full justify-between h-auto py-2 px-3 hover:bg-muted font-normal cursor-pointer"
+            className="flex-1 justify-between h-auto py-2 px-3 hover:bg-muted font-normal cursor-pointer min-w-0"
             disabled={disabled}
           >
             <div className="flex items-center gap-2 overflow-hidden">
@@ -80,7 +80,7 @@ function RecipeCombobox({
                   <span className="truncate">{selectedRecipe.title}</span>
                 </>
               ) : (
-                <span className="text-muted-foreground">Elegir receta...</span>
+                <span className="text-muted-foreground truncate">Elegir receta...</span>
               )}
             </div>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
