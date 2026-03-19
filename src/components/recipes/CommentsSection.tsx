@@ -9,6 +9,8 @@ import { MessageSquare, User } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function CommentsSection({
   recipeId,
@@ -81,25 +83,42 @@ export function CommentsSection({
 
       <div className="space-y-4">
         {isLoading ? (
-          <div className="py-8 text-center text-muted-foreground">
-            Cargando comentarios...
+          <div className="space-y-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Card key={`skeleton-${i}`} className="overflow-hidden">
+                <CardContent className="p-5">
+                  <div className="flex items-start gap-4">
+                    <Skeleton className="h-10 w-10 min-w-10 rounded-full" />
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-3 w-20" />
+                      </div>
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-4/5" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         ) : comments && comments.length > 0 ? (
           comments.map((comment) => (
             <Card key={comment.id} className="overflow-hidden">
               <CardContent className="p-5">
                 <div className="flex items-start gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground border">
+                  <Avatar className="h-10 w-10 border border-border">
                     {comment.user.image ? (
-                      <img
-                        src={comment.user.image}
-                        alt={comment.user.name ?? "User avatar"}
-                        className="h-full w-full rounded-full object-cover"
+                      <AvatarImage 
+                        src={comment.user.image} 
+                        alt={comment.user.name ?? "User avatar"} 
+                        className="object-cover" 
                       />
-                    ) : (
+                    ) : null}
+                    <AvatarFallback className="bg-secondary text-secondary-foreground">
                       <User className="h-5 w-5" />
-                    )}
-                  </div>
+                    </AvatarFallback>
+                  </Avatar>
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center justify-between">
                       <p className="font-semibold text-sm">

@@ -15,6 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { addDays, format, isSameDay, startOfWeek, subDays } from "date-fns";
@@ -29,7 +30,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
 
 type MealType = "BREAKFAST" | "LUNCH" | "DINNER" | "SNACK";
@@ -52,7 +53,7 @@ function RecipeCombobox({
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
 
-  const selectedRecipe = recipes?.find((r) => r.id === value);
+  const selectedRecipe = useMemo(() => recipes?.find((r) => r.id === value), [recipes, value]);
 
   return (
     <div className="flex gap-2">
@@ -201,6 +202,17 @@ export function MenuPageClient() {
 
   const { data: recipes } = api.recipe.getAll.useQuery();
 
+  const schedulesByDay = useMemo(() => {
+    if (!mSchedules) return {};
+    const grouped: Record<string, typeof mSchedules> = {};
+    mSchedules.forEach((s) => {
+      const dateKey = format(new Date(s.date), "yyyy-MM-dd");
+      grouped[dateKey] ??= [];
+      grouped[dateKey].push(s);
+    });
+    return grouped;
+  }, [mSchedules]);
+
   const scheduleRecipe = api.menu.scheduleRecipe.useMutation({
     onSuccess: () => {
       toast.success("Receta añadida al menú");
@@ -223,7 +235,22 @@ export function MenuPageClient() {
   );
 
   if (loadingFamilies) {
-    return <div>Cargando menú...</div>;
+    return (
+      <div className="space-y-8">
+        <Skeleton className="h-10 w-[200px]" />
+        <Skeleton className="h-14 w-full rounded-lg" />
+        <div className="grid gap-6 lg:grid-cols-[1fr_350px]">
+          <div className="space-y-4">
+            {Array.from({ length: 7 }).map((_, i) => (
+              <Skeleton key={`skeleton-${i}`} className="h-20 w-full rounded-xl" />
+            ))}
+          </div>
+          <div className="hidden lg:block">
+            <Skeleton className="h-[400px] w-full rounded-xl" />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!families || families.length === 0) {
@@ -280,8 +307,8 @@ export function MenuPageClient() {
           {days.map((day) => {
             const isToday = isSameDay(day, new Date());
             const isSelected = isSameDay(day, selectedDate);
-            const daySchedules =
-              mSchedules?.filter((s) => isSameDay(new Date(s.date), day)) || [];
+            const dateKey = format(day, "yyyy-MM-dd");
+            const daySchedules = schedulesByDay[dateKey] || [];
 
             return (
               <Card
@@ -384,8 +411,16 @@ export function MenuPageClient() {
             );
           })}
           {loadingMenu && (
-            <div className="py-8 text-center text-muted-foreground animate-pulse">
-              Cargando el menú de esta semana...
+            <div className="space-y-4">
+              {Array.from({ length: 7 }).map((_, i) => (
+                <Card key={`skeleton-card-${i}`} className="block">
+                  <CardHeader className="py-4">
+                    <CardTitle className="flex justify-between items-center gap-2">
+                      <Skeleton className="h-6 w-48" />
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+              ))}
             </div>
           )}
         </div>
