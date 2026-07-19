@@ -22,13 +22,20 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "@tanstack/react-form";
 import { upload } from "@vercel/blob/client";
-import { Copy, Plus, Trash2, Wand2, X } from "lucide-react";
+import { Copy, Plus, Wand2, X } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import * as z from "zod";
+import { IngredientsField } from "@/components/recipe-form/IngredientsField";
+import { InstructionsField } from "@/components/recipe-form/InstructionsField";
+import { VideoSourceField } from "@/components/recipe-form/VideoSourceField";
+import {
+  recipeFormSchema,
+  renderFieldErrors,
+  type RecipeFormValues,
+} from "@/components/recipe-form/form-utils";
 
-type VideoPlatform = "YouTube" | "Instagram" | "TikTok";
+export { recipeFormSchema, type RecipeFormValues };
 
 const toSafeFilename = (value: string) =>
   value
@@ -36,75 +43,6 @@ const toSafeFilename = (value: string) =>
     .replaceAll(/[^a-z0-9.-]+/g, "-")
     .replaceAll(/-+/g, "-")
     .replaceAll(/^-|-$/g, "");
-
-const getFormErrorMessage = (error: unknown): string | null => {
-  if (typeof error === "string") {
-    return error;
-  }
-
-  if (
-    error &&
-    typeof error === "object" &&
-    "message" in error &&
-    typeof error.message === "string"
-  ) {
-    return error.message;
-  }
-
-  return null;
-};
-
-const formatFieldErrors = (errors: unknown[] | undefined): string | null => {
-  if (!errors?.length) {
-    return null;
-  }
-
-  const messages = errors.map(getFormErrorMessage).filter(Boolean);
-
-  if (!messages.length) {
-    return null;
-  }
-
-  return [...new Set(messages)].join(", ");
-};
-
-const renderFieldErrors = (errors: unknown[] | undefined) => {
-  const errorMessage = formatFieldErrors(errors);
-
-  if (!errorMessage) {
-    return null;
-  }
-
-  return <p className="text-destructive text-sm">{errorMessage}</p>;
-};
-
-export const recipeFormSchema = z.object({
-  title: z.string().min(5, "El título debe tener al menos 5 caracteres"),
-  description: z
-    .string()
-    .min(10, "La descripción debe tener al menos 10 caracteres"),
-  cuisine: z.string().min(1, "El tipo de cocina es obligatorio"),
-  difficulty: z.enum(["Easy", "Medium", "Hard"]),
-  cookTime: z.number().min(0),
-  prepTime: z.number().min(0),
-  servings: z.number().min(1),
-  ingredients: z
-    .array(z.string())
-    .min(1, "Se requiere al menos un ingrediente"),
-  instructions: z
-    .array(z.string())
-    .min(1, "Se requiere al menos una instrucción"),
-  image: z.string().min(1, "La imagen es obligatoria"),
-  tags: z.array(z.string()),
-  videoSource: z
-    .object({
-      platform: z.enum(["YouTube", "Instagram", "TikTok"]),
-      url: z.url("Debe ser una URL válida"),
-    })
-    .optional(),
-});
-
-export type RecipeFormValues = z.infer<typeof recipeFormSchema>;
 
 interface RecipeFormProps {
   defaultValues?: RecipeFormValues;
@@ -481,95 +419,9 @@ Recibirás:
           </form.Field>
         </div>
 
-        <form.Field name="ingredients" mode="array">
-          {(field) => (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label className="text-base">Ingredientes</Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => field.pushValue("")}
-                >
-                  <Plus className="mr-2 h-4 w-4" /> Añadir Ingrediente
-                </Button>
-              </div>
-              {field.state.value.map((_, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <form.Field name={`ingredients[${index}]`}>
-                    {(subField) => (
-                      <Input
-                        value={subField.state.value}
-                        onBlur={subField.handleBlur}
-                        onChange={(e) => subField.handleChange(e.target.value)}
-                        placeholder={`Ingrediente ${index + 1}`}
-                      />
-                    )}
-                  </form.Field>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => field.removeValue(index)}
-                    disabled={field.state.value.length === 1}
-                    aria-label={`Eliminar ingrediente ${index + 1}`}
-                  >
-                    <Trash2 className="text-muted-foreground hover:text-destructive h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-              {renderFieldErrors(field.state.meta.errors)}
-            </div>
-          )}
-        </form.Field>
+        <IngredientsField form={form} />
 
-        <form.Field name="instructions" mode="array">
-          {(field) => (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label className="text-base">Instrucciones</Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => field.pushValue("")}
-                >
-                  <Plus className="mr-2 h-4 w-4" /> Añadir Paso
-                </Button>
-              </div>
-              {field.state.value.map((_, index) => (
-                <div key={index} className="flex items-start gap-2">
-                  <span className="text-muted-foreground mt-2 w-6 text-sm font-medium">
-                    {index + 1}.
-                  </span>
-                  <form.Field name={`instructions[${index}]`}>
-                    {(subField) => (
-                      <Textarea
-                        value={subField.state.value}
-                        onBlur={subField.handleBlur}
-                        onChange={(e) => subField.handleChange(e.target.value)}
-                        placeholder={`Paso ${index + 1}`}
-                        className="min-h-20"
-                      />
-                    )}
-                  </form.Field>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => field.removeValue(index)}
-                    disabled={field.state.value.length === 1}
-                    aria-label={`Eliminar paso ${index + 1}`}
-                  >
-                    <Trash2 className="text-muted-foreground hover:text-destructive h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-              {renderFieldErrors(field.state.meta.errors)}
-            </div>
-          )}
-        </form.Field>
+        <InstructionsField form={form} />
 
         <form.Field name="tags" mode="array">
           {(field) => (
@@ -689,64 +541,7 @@ Recibirás:
           )}
         </form.Field>
 
-        {/* Video Source */}
-        <div className="space-y-4 rounded-lg border p-4">
-          <h3 className="font-medium">Origen del Vídeo (Opcional)</h3>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <form.Field name="videoSource.platform">
-              {(field) => (
-                <div className="space-y-2">
-                  <Label>Plataforma</Label>
-                  <Select
-                    value={field.state.value}
-                    onValueChange={(val: VideoPlatform) => {
-                      field.handleChange(val);
-                      // If platform is selected, ensure we initialize the object if it was undefined
-                      if (!form.getFieldValue("videoSource")) {
-                        form.setFieldValue("videoSource", {
-                          platform: val,
-                          url: "",
-                        });
-                      }
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona plataforma" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="YouTube">YouTube</SelectItem>
-                      <SelectItem value="Instagram">Instagram</SelectItem>
-                      <SelectItem value="TikTok">TikTok</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </form.Field>
-            <form.Field name="videoSource.url">
-              {(field) => (
-                <div className="space-y-2 md:col-span-2">
-                  <Label>URL</Label>
-                  <Input
-                    value={field.state.value || ""}
-                    onChange={(e) => {
-                      field.handleChange(e.target.value);
-                      const currentPlatform = form.getFieldValue(
-                        "videoSource.platform",
-                      );
-                      if (!form.getFieldValue("videoSource")) {
-                        form.setFieldValue("videoSource", {
-                          platform: currentPlatform || "Instagram",
-                          url: e.target.value,
-                        });
-                      }
-                    }}
-                    placeholder="https://..."
-                  />
-                </div>
-              )}
-            </form.Field>
-          </div>
-        </div>
+        <VideoSourceField form={form} />
 
         <div className="flex justify-end pt-4">
           <form.Subscribe selector={(state) => state.values}>
