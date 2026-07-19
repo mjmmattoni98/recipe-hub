@@ -82,6 +82,7 @@ model Session {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@map("session")
 }
 
@@ -101,6 +102,7 @@ model Account {
   createdAt             DateTime
   updatedAt             DateTime
 
+  @@index([userId])
   @@map("account")
 }
 
@@ -145,6 +147,7 @@ model FamilyMember {
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([familyId, userId])
+  @@index([userId])
 }
 
 model Comment {
@@ -156,6 +159,8 @@ model Comment {
   updatedAt DateTime @updatedAt
   recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([recipeId])
 }
 
 model MenuSchedule {
@@ -170,4 +175,6 @@ model MenuSchedule {
   family    Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
   recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
   user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([familyId, date])
 }

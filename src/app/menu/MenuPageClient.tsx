@@ -150,23 +150,19 @@ function EditPanelForm({ selectedDate, recipes, activeFamilyId, scheduleRecipe }
       {MEAL_TYPES.map((meal) => (
         <div key={meal.id} className="space-y-2 pb-4 border-b last:border-0 last:pb-0">
           <p className="font-medium text-sm">{meal.label}</p>
-          <RecipeCombobox 
-            recipes={recipes || []} 
+          <RecipeCombobox
+            recipes={recipes || []}
             disabled={scheduleRecipe.isPending || !activeFamilyId}
             onAdd={(recipeId) => {
               if (!activeFamilyId) return;
-              
-              // Set hours to 12 PM to avoid timezone offsets causing the date to shift to the previous day in UTC
-              const safeDate = new Date(selectedDate);
-              safeDate.setHours(12, 0, 0, 0);
-              
+
               scheduleRecipe.mutate({
                 familyId: activeFamilyId,
-                date: safeDate,
+                date: format(selectedDate, "yyyy-MM-dd"),
                 mealType: meal.id,
                 recipeId: recipeId,
               });
-            }} 
+            }}
           />
         </div>
       ))}
@@ -194,8 +190,8 @@ export function MenuPageClient() {
     api.menu.getWeeklyMenu.useQuery(
       {
         familyId: activeFamilyId!,
-        startDate: currentWeekStart,
-        endDate: weekEnd, // We'll load 7 days at a time
+        startDate: format(currentWeekStart, "yyyy-MM-dd"),
+        endDate: format(weekEnd, "yyyy-MM-dd"), // We'll load 7 days at a time
       },
       { enabled: !!activeFamilyId },
     );
@@ -206,7 +202,10 @@ export function MenuPageClient() {
     if (!mSchedules) return {};
     const grouped: Record<string, typeof mSchedules> = {};
     mSchedules.forEach((s) => {
-      const dateKey = format(new Date(s.date), "yyyy-MM-dd");
+      // `s.date` is a UTC-midnight instant for the stored calendar day;
+      // use UTC components so the grouping key doesn't shift across the
+      // local timezone's day boundary.
+      const dateKey = new Date(s.date).toISOString().slice(0, 10);
       grouped[dateKey] ??= [];
       grouped[dateKey].push(s);
     });
@@ -452,13 +451,9 @@ export function MenuPageClient() {
                       onAdd={(recipeId) => {
                         if (!activeFamilyId) return;
 
-                        // Set hours to 12 PM to avoid timezone offsets causing the date to shift to the previous day in UTC
-                        const safeDate = new Date(selectedDate);
-                        safeDate.setHours(12, 0, 0, 0);
-
                         scheduleRecipe.mutate({
                           familyId: activeFamilyId,
-                          date: safeDate,
+                          date: format(selectedDate, "yyyy-MM-dd"),
                           mealType: meal.id,
                           recipeId: recipeId,
                         });

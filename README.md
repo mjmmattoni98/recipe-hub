@@ -62,19 +62,22 @@ Recipe Hub is a modern recipe management application built with the [T3 Stack](h
 
 ### Database Setup
 
-1. **Generate Prisma Client:**
+1. **Apply migrations and generate the Prisma Client:**
 
    ```bash
+   pnpm db:migrate
    pnpm db:generate
    ```
 
-2. **Push schema to the database:**
+   `pnpm db:migrate` (`prisma migrate deploy`) applies every migration in `prisma/migrations/` in order, so a fresh database ends up with the full schema. Avoid `pnpm db:push` outside of quick local experiments — it writes schema changes straight to the database without a migration file, so the history in `prisma/migrations/` (and every other environment relying on it) silently falls out of sync.
 
-   ```bash
-   pnpm db:push
-   ```
+### Creating Users
 
-   _Note: For production database changes, use `pnpm db:migrate`._
+Recipe Hub is invite-only — public sign-up is disabled. Create accounts with the admin script:
+
+```bash
+pnpm tsx scripts/create-user.ts "Full Name" "email@example.com" "password"
+```
 
 ### Running the Application
 
