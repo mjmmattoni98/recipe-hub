@@ -9,6 +9,19 @@ import {
 } from "@/server/recipe-image";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import type { Prisma } from "../../../../generated/prisma/client";
+
+const recipeFilterInput = z.object({
+  cursor: z.string().nullish(),
+  limit: z.number().int().min(1).max(50).default(12),
+  searchQuery: z.string().optional(),
+  cuisine: z.array(z.string()).optional(),
+  difficulty: z.array(z.enum(["Easy", "Medium", "Hard"])).optional(),
+  ingredients: z.array(z.string()).optional(),
+  maxCookTime: z.number().int().optional(),
+  dietaryRestrictions: z.array(z.string()).optional(),
+  cookingStatus: z.enum(["all", "cooked", "wantToTry"]).optional(),
+});
 
 const recipeInputSchema = z.object({
   title: z.string().min(1),
@@ -31,15 +44,111 @@ const recipeInputSchema = z.object({
 });
 
 export const recipeRouter = createTRPCRouter({
-  getAll: publicProcedure.query(async ({ ctx }) => {
-    return ctx.db.recipe.findMany({
-      include: {
-        videoSource: true,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
+  getAll: publicProcedure
+    .input(recipeFilterInput)
+    .query(async ({ ctx, input: filters }) => {
+      const limit = filters.limit;
+
+      // Substring matching against a String[] column (tags) has no native
+      // Prisma operator, so resolve it to a set of ids via one raw query
+      // and fold that into the main (fully typed) filtered/paginated query.
+      let dietaryMatchIds: string[] | undefined;
+      if (filters.dietaryRestrictions && filters.dietaryRestrictions.length > 0) {
+        const rows = await ctx.db.$queryRaw<{ id: string }[]>`
+          SELECT r."id" FROM "Recipe" r
+          WHERE (
+            SELECT bool_and(
+              EXISTS (
+                SELECT 1 FROM unnest(r."tags") AS tag
+                WHERE tag ILIKE '%' || restriction || '%'
+              )
+            )
+            FROM unnest(${filters.dietaryRestrictions}::text[]) AS restriction
+          )
+        `;
+        dietaryMatchIds = rows.map((row) => row.id);
+      }
+
+      const currentUserId = ctx.session?.user.id;
+
+      const where: Prisma.RecipeWhereInput = {
+        ...(filters.searchQuery
+          ? { title: { contains: filters.searchQuery, mode: "insensitive" } }
+          : {}),
+        ...(filters.cuisine?.length ? { cuisine: { in: filters.cuisine } } : {}),
+        ...(filters.difficulty?.length
+          ? { difficulty: { in: filters.difficulty } }
+          : {}),
+        ...(filters.ingredients?.length
+          ? { ingredients: { hasEvery: filters.ingredients } }
+          : {}),
+        ...(filters.maxCookTime != null
+          ? { cookTime: { lte: filters.maxCookTime } }
+          : {}),
+        ...(dietaryMatchIds ? { id: { in: dietaryMatchIds } } : {}),
+        ...(filters.cookingStatus === "cooked" && currentUserId
+          ? { cookedBy: { some: { userId: currentUserId } } }
+          : {}),
+        ...(filters.cookingStatus === "wantToTry" && currentUserId
+          ? { cookedBy: { none: { userId: currentUserId } } }
+          : {}),
+      };
+
+      const recipes = await ctx.db.recipe.findMany({
+        where,
+        take: limit + 1,
+        ...(filters.cursor
+          ? { cursor: { id: filters.cursor }, skip: 1 }
+          : {}),
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        include: {
+          videoSource: true,
+          cookedBy: {
+            where: { userId: currentUserId ?? "" },
+            select: { id: true },
+          },
+        },
+      });
+
+      let nextCursor: string | undefined;
+      if (recipes.length > limit) {
+        const nextItem = recipes.pop();
+        nextCursor = nextItem?.id;
+      }
+
+      return {
+        items: recipes.map(({ cookedBy, ...recipe }) => ({
+          ...recipe,
+          cookedByMe: cookedBy.length > 0,
+        })),
+        nextCursor,
+      };
+    }),
+
+  getFilterFacets: publicProcedure.query(async ({ ctx }) => {
+    const recipes = await ctx.db.recipe.findMany({
+      select: { cuisine: true, ingredients: true },
     });
+
+    const cuisines = [...new Set(recipes.map((recipe) => recipe.cuisine))].sort(
+      (a, b) => a.localeCompare(b),
+    );
+
+    const ingredientCounts = new Map<string, number>();
+    for (const recipe of recipes) {
+      for (const ingredient of recipe.ingredients) {
+        ingredientCounts.set(
+          ingredient,
+          (ingredientCounts.get(ingredient) ?? 0) + 1,
+        );
+      }
+    }
+
+    const ingredients = [...ingredientCounts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([ingredient]) => ingredient);
+
+    return { cuisines, ingredients };
   }),
 
   getById: publicProcedure
@@ -53,13 +162,27 @@ export const recipeRouter = createTRPCRouter({
       });
     }),
 
-  toggleCooked: protectedProcedure
+  toggleCookedByMe: protectedProcedure
     .input(z.object({ id: z.string(), cooked: z.boolean() }))
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.recipe.update({
-        where: { id: input.id },
-        data: { cooked: input.cooked },
-      });
+      if (input.cooked) {
+        await ctx.db.recipeCook.upsert({
+          where: {
+            recipeId_userId: {
+              recipeId: input.id,
+              userId: ctx.session.user.id,
+            },
+          },
+          create: { recipeId: input.id, userId: ctx.session.user.id },
+          update: {},
+        });
+      } else {
+        await ctx.db.recipeCook.deleteMany({
+          where: { recipeId: input.id, userId: ctx.session.user.id },
+        });
+      }
+
+      return { success: true };
     }),
 
   create: protectedProcedure

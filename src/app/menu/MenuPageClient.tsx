@@ -196,7 +196,8 @@ export function MenuPageClient() {
       { enabled: !!activeFamilyId },
     );
 
-  const { data: recipes } = api.recipe.getAll.useQuery();
+  const { data: recipesData } = api.recipe.getAll.useQuery({ limit: 100 });
+  const recipes = recipesData?.items;
 
   const schedulesByDay = useMemo(() => {
     if (!mSchedules) return {};

@@ -5,6 +5,7 @@ import { RecipeFilters } from "@/components/RecipeFilters";
 import { SearchBar } from "@/components/SearchBar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Sheet,
   SheetContent,
@@ -13,7 +14,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { authClient } from "@/lib/auth-client";
-import type { FilterCriteria, RecipeWithVideoSource } from "@/lib/recipe-types";
+import type { FilterCriteria } from "@/lib/recipe-types";
+import { api } from "@/trpc/react";
 import {
   ChefHat,
   Filter,
@@ -26,12 +28,14 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type HomePageClientProps = {
-  initialRecipes: RecipeWithVideoSource[];
   isLoggedIn: boolean;
 };
+
+const PAGE_SIZE = 12;
+const SEARCH_DEBOUNCE_MS = 400;
 
 const createInitialFilters = (): FilterCriteria => ({
   cuisine: [],
@@ -93,100 +97,57 @@ function GuestActions() {
 }
 
 export function HomePageClient({
-  initialRecipes,
   isLoggedIn,
 }: Readonly<HomePageClientProps>) {
   const router = useRouter();
   const [filters, setFilters] = useState<FilterCriteria>(createInitialFilters);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
 
-  const availableCuisines = useMemo(
-    () =>
-      [...new Set(initialRecipes.map((recipe) => recipe.cuisine))].sort(
-        (a, b) => a.localeCompare(b),
-      ),
-    [initialRecipes],
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setDebouncedSearchQuery(filters.searchQuery.trim());
+    }, SEARCH_DEBOUNCE_MS);
+
+    return () => clearTimeout(handle);
+  }, [filters.searchQuery]);
+
+  const queryInput = useMemo(
+    () => ({
+      limit: PAGE_SIZE,
+      searchQuery: debouncedSearchQuery || undefined,
+      cuisine: filters.cuisine.length ? filters.cuisine : undefined,
+      difficulty: filters.difficulty.length
+        ? (filters.difficulty as ("Easy" | "Medium" | "Hard")[])
+        : undefined,
+      ingredients: filters.ingredients.length ? filters.ingredients : undefined,
+      maxCookTime: filters.maxCookTime ?? undefined,
+      dietaryRestrictions: filters.dietaryRestrictions.length
+        ? filters.dietaryRestrictions
+        : undefined,
+      cookingStatus: filters.cookingStatus,
+    }),
+    [filters, debouncedSearchQuery],
   );
 
-  const availableIngredients = useMemo(() => {
-    const counts = new Map<string, number>();
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = api.recipe.getAll.useInfiniteQuery(queryInput, {
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+  });
 
-    for (const recipe of initialRecipes) {
-      for (const ingredient of recipe.ingredients) {
-        counts.set(ingredient, (counts.get(ingredient) ?? 0) + 1);
-      }
-    }
+  const { data: facets } = api.recipe.getFilterFacets.useQuery();
+  const availableCuisines = facets?.cuisines ?? [];
+  const availableIngredients = facets?.ingredients ?? [];
 
-    return [...counts.entries()]
-      .sort((a, b) => b[1] - a[1])
-      .map(([ingredient]) => ingredient);
-  }, [initialRecipes]);
-
-  const filteredRecipes = useMemo(() => {
-    const searchQuery = filters.searchQuery.trim().toLowerCase();
-
-    return initialRecipes.filter((recipe) => {
-      if (searchQuery && !recipe.title.toLowerCase().includes(searchQuery)) {
-        return false;
-      }
-
-      if (
-        filters.cuisine.length > 0 &&
-        !filters.cuisine.includes(recipe.cuisine)
-      ) {
-        return false;
-      }
-
-      if (
-        filters.difficulty.length > 0 &&
-        !filters.difficulty.includes(recipe.difficulty)
-      ) {
-        return false;
-      }
-
-      if (filters.ingredients.length > 0) {
-        const hasAllIngredients = filters.ingredients.every((ingredient) =>
-          recipe.ingredients.some((recipeIngredient) =>
-            recipeIngredient.toLowerCase().includes(ingredient.toLowerCase()),
-          ),
-        );
-
-        if (!hasAllIngredients) {
-          return false;
-        }
-      }
-
-      if (
-        filters.maxCookTime !== null &&
-        recipe.cookTime > filters.maxCookTime
-      ) {
-        return false;
-      }
-
-      if (filters.dietaryRestrictions.length > 0) {
-        const hasAllRestrictions = filters.dietaryRestrictions.every(
-          (restriction) =>
-            recipe.tags.some((tag) =>
-              tag.toLowerCase().includes(restriction.toLowerCase()),
-            ),
-        );
-
-        if (!hasAllRestrictions) {
-          return false;
-        }
-      }
-
-      if (filters.cookingStatus === "cooked" && !recipe.cooked) {
-        return false;
-      }
-
-      if (filters.cookingStatus === "wantToTry" && recipe.cooked) {
-        return false;
-      }
-
-      return true;
-    });
-  }, [filters, initialRecipes]);
+  const recipes = useMemo(
+    () => data?.pages.flatMap((page) => page.items) ?? [],
+    [data],
+  );
 
   const activeFilterCount =
     filters.cuisine.length +
@@ -339,9 +300,9 @@ export function HomePageClient({
               <p className="font-body text-muted-foreground text-sm">
                 Mostrando{" "}
                 <span className="text-foreground font-semibold">
-                  {filteredRecipes.length}
+                  {recipes.length}
                 </span>{" "}
-                {filteredRecipes.length === 1 ? "receta" : "recetas"}
+                {recipes.length === 1 ? "receta" : "recetas"}
               </p>
 
               {activeFilterCount > 0 ? (
@@ -405,17 +366,43 @@ export function HomePageClient({
               ) : null}
             </div>
 
-            {filteredRecipes.length > 0 ? (
+            {isLoading ? (
               <div className="grid grid-cols-1 gap-7 sm:grid-cols-2 xl:grid-cols-3">
-                {filteredRecipes.map((recipe, index) => (
-                  <RecipeCard
-                    key={recipe.id}
-                    recipe={recipe}
-                    index={index}
-                    isLoggedIn={isLoggedIn}
-                  />
+                {Array.from({ length: PAGE_SIZE }).map((_, i) => (
+                  <div key={`recipe-skeleton-${i}`} className="space-y-3">
+                    <Skeleton className="aspect-4/3 w-full rounded-2xl" />
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-4 w-full" />
+                  </div>
                 ))}
               </div>
+            ) : recipes.length > 0 ? (
+              <>
+                <div className="grid grid-cols-1 gap-7 sm:grid-cols-2 xl:grid-cols-3">
+                  {recipes.map((recipe, index) => (
+                    <RecipeCard
+                      key={recipe.id}
+                      recipe={recipe}
+                      index={index}
+                      isLoggedIn={isLoggedIn}
+                    />
+                  ))}
+                </div>
+
+                {hasNextPage ? (
+                  <div className="mt-10 flex justify-center">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="cursor-pointer rounded-full"
+                      onClick={() => fetchNextPage()}
+                      disabled={isFetchingNextPage}
+                    >
+                      {isFetchingNextPage ? "Cargando…" : "Cargar más"}
+                    </Button>
+                  </div>
+                ) : null}
+              </>
             ) : (
               <div className="py-24 text-center">
                 <div className="bg-muted mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl">

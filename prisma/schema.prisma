@@ -26,12 +26,12 @@ model Recipe {
   instructions String[]
   image        String
   tags         String[]
-  cooked        Boolean          @default(false)
   videoSource   VideoSource?
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
   comments      Comment[]
   menuSchedules MenuSchedule[]
+  cookedBy      RecipeCook[]
 }
 
 model VideoSource {
@@ -67,6 +67,7 @@ model User {
   families      FamilyMember[]
   comments      Comment[]
   menuSchedules MenuSchedule[]
+  cookedRecipes RecipeCook[]
 
   @@map("user")
 }
@@ -177,4 +178,17 @@ model MenuSchedule {
   user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([familyId, date])
+}
+
+model RecipeCook {
+  id       String   @id @default(uuid())
+  recipeId String
+  userId   String
+  cookedAt DateTime @default(now())
+
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([recipeId, userId])
+  @@index([userId])
 }

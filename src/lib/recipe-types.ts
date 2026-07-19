@@ -4,9 +4,10 @@ import type {
   VideoPlatform,
 } from "../../generated/prisma/client";
 
-// Recipe with VideoSource relation included
+// Recipe with VideoSource relation included and the viewer's own cooked status
 export type RecipeWithVideoSource = Recipe & {
   videoSource: VideoSource | null;
+  cookedByMe: boolean;
 };
 
 // Re-export the VideoPlatform enum type
