@@ -291,7 +291,11 @@ export default async function RecipePage({
             </section>
           ) : null}
 
-          <CommentsSection recipeId={recipe.id} isLoggedIn={Boolean(session?.user)} />
+          <CommentsSection
+            recipeId={recipe.id}
+            isLoggedIn={Boolean(session?.user)}
+            currentUserId={session?.user.id}
+          />
         </article>
       </div>
     </main>

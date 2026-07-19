@@ -3,21 +3,213 @@
 import { useState } from "react";
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { MessageSquare, User } from "lucide-react";
+import { MessageSquare, Pencil, Trash2, User } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { RouterOutputs } from "@/trpc/react";
+
+type Comment = RouterOutputs["comment"]["getCommentsByRecipeId"][number];
+
+function CommentCard({
+  comment,
+  isOwnComment,
+  recipeId,
+}: Readonly<{
+  comment: Comment;
+  isOwnComment: boolean;
+  recipeId: string;
+}>) {
+  const utils = api.useUtils();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(comment.content);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  const updateComment = api.comment.updateComment.useMutation({
+    onSuccess: () => {
+      toast.success("Comentario actualizado");
+      setIsEditing(false);
+      utils.comment.getCommentsByRecipeId.invalidate({ recipeId });
+    },
+    onError: (err) => {
+      toast.error(err.message);
+    },
+  });
+
+  const deleteComment = api.comment.deleteComment.useMutation({
+    onSuccess: () => {
+      toast.success("Comentario eliminado");
+      setIsDeleteDialogOpen(false);
+      utils.comment.getCommentsByRecipeId.invalidate({ recipeId });
+    },
+    onError: (err) => {
+      toast.error(err.message);
+    },
+  });
+
+  return (
+    <Card className="overflow-hidden">
+      <CardContent className="p-5">
+        <div className="flex items-start gap-4">
+          <Avatar className="h-10 w-10 border border-border">
+            {comment.user.image ? (
+              <AvatarImage
+                src={comment.user.image}
+                alt={comment.user.name ?? "User avatar"}
+                className="object-cover"
+              />
+            ) : null}
+            <AvatarFallback className="bg-secondary text-secondary-foreground">
+              <User className="h-5 w-5" />
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 space-y-1">
+            <div className="flex items-center justify-between gap-2">
+              <p className="font-semibold text-sm">
+                {comment.user.name ?? "Usuario anónimo"}
+              </p>
+              <div className="flex items-center gap-3">
+                <time
+                  dateTime={comment.createdAt.toISOString()}
+                  className="text-xs text-muted-foreground"
+                >
+                  {formatDistanceToNow(comment.createdAt, {
+                    addSuffix: true,
+                    locale: es,
+                  })}
+                </time>
+                {isOwnComment && !isEditing ? (
+                  <div className="flex items-center gap-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 cursor-pointer text-muted-foreground hover:text-foreground"
+                      aria-label="Editar comentario"
+                      onClick={() => {
+                        setEditContent(comment.content);
+                        setIsEditing(true);
+                      }}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <AlertDialog
+                      open={isDeleteDialogOpen}
+                      onOpenChange={setIsDeleteDialogOpen}
+                    >
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 cursor-pointer text-muted-foreground hover:text-destructive"
+                          aria-label="Eliminar comentario"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            Eliminar comentario
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Esta acción eliminará el comentario de forma
+                            permanente. No se puede deshacer.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel disabled={deleteComment.isPending}>
+                            Cancelar
+                          </AlertDialogCancel>
+                          <Button
+                            variant="destructive"
+                            onClick={() =>
+                              deleteComment.mutate({ id: comment.id })
+                            }
+                            disabled={deleteComment.isPending}
+                          >
+                            {deleteComment.isPending
+                              ? "Eliminando…"
+                              : "Eliminar"}
+                          </Button>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+
+            {isEditing ? (
+              <div className="space-y-2 pt-1">
+                <Textarea
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
+                  disabled={updateComment.isPending}
+                  className="min-h-[80px] resize-y"
+                />
+                <div className="flex justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="cursor-pointer"
+                    onClick={() => setIsEditing(false)}
+                    disabled={updateComment.isPending}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="cursor-pointer"
+                    disabled={updateComment.isPending || !editContent.trim()}
+                    onClick={() =>
+                      updateComment.mutate({
+                        id: comment.id,
+                        content: editContent.trim(),
+                      })
+                    }
+                  >
+                    {updateComment.isPending ? "Guardando…" : "Guardar"}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+                {comment.content}
+              </p>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export function CommentsSection({
   recipeId,
   isLoggedIn,
+  currentUserId,
 }: {
   recipeId: string;
   isLoggedIn: boolean;
+  currentUserId?: string;
 }) {
   const [newComment, setNewComment] = useState("");
   const utils = api.useUtils();
@@ -104,43 +296,12 @@ export function CommentsSection({
           </div>
         ) : comments && comments.length > 0 ? (
           comments.map((comment) => (
-            <Card key={comment.id} className="overflow-hidden">
-              <CardContent className="p-5">
-                <div className="flex items-start gap-4">
-                  <Avatar className="h-10 w-10 border border-border">
-                    {comment.user.image ? (
-                      <AvatarImage 
-                        src={comment.user.image} 
-                        alt={comment.user.name ?? "User avatar"} 
-                        className="object-cover" 
-                      />
-                    ) : null}
-                    <AvatarFallback className="bg-secondary text-secondary-foreground">
-                      <User className="h-5 w-5" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <p className="font-semibold text-sm">
-                        {comment.user.name ?? "Usuario anónimo"}
-                      </p>
-                      <time
-                        dateTime={comment.createdAt.toISOString()}
-                        className="text-xs text-muted-foreground"
-                      >
-                        {formatDistanceToNow(comment.createdAt, {
-                          addSuffix: true,
-                          locale: es,
-                        })}
-                      </time>
-                    </div>
-                    <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
-                      {comment.content}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <CommentCard
+              key={comment.id}
+              comment={comment}
+              isOwnComment={comment.userId === currentUserId}
+              recipeId={recipeId}
+            />
           ))
         ) : (
           <div className="py-12 text-center text-muted-foreground border border-dashed rounded-lg bg-card/50">

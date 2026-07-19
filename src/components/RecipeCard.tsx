@@ -21,7 +21,7 @@ export function RecipeCard({
 }: Readonly<RecipeCardProps>) {
   const router = useRouter();
   const utils = api.useUtils();
-  const toggleCooked = api.recipe.toggleCooked.useMutation({
+  const toggleCooked = api.recipe.toggleCookedByMe.useMutation({
     onSuccess: () => {
       router.refresh();
       utils.recipe.getAll.invalidate();
@@ -51,7 +51,7 @@ export function RecipeCard({
 
     toggleCooked.mutate({
       id: recipe.id,
-      cooked: !recipe.cooked,
+      cooked: !recipe.cookedByMe,
     });
   };
 
@@ -83,7 +83,7 @@ export function RecipeCard({
             disabled={!isLoggedIn}
             className={cn(
               "absolute top-3 left-3 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold shadow-lg backdrop-blur-md transition-all duration-300",
-              recipe.cooked
+              recipe.cookedByMe
                 ? "border border-emerald-400/30 bg-emerald-500/90 text-white"
                 : "border border-white/20 bg-white/20 text-white",
               isLoggedIn ? "cursor-pointer hover:scale-105" : "cursor-default",
@@ -92,11 +92,11 @@ export function RecipeCard({
             <CheckCircle
               className={cn(
                 "h-3.5 w-3.5",
-                recipe.cooked ? "text-white" : "text-white/70",
+                recipe.cookedByMe ? "text-white" : "text-white/70",
               )}
               aria-hidden="true"
             />
-            <span>{recipe.cooked ? "Cocinada" : "Pendiente"}</span>
+            <span>{recipe.cookedByMe ? "Cocinada" : "Pendiente"}</span>
           </button>
 
           <span
