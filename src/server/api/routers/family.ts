@@ -70,7 +70,7 @@ export const familyRouter = createTRPCRouter({
 
       if (!userMembership || userMembership.role !== "ADMIN") {
         throw new TRPCError({
-          code: "UNAUTHORIZED",
+          code: "FORBIDDEN",
           message: "You must be a family admin to add members.",
         });
       }

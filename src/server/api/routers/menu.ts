@@ -1,36 +1,23 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { subDays, addDays } from "date-fns";
 import { TRPCError } from "@trpc/server";
+
+// Parses a "yyyy-MM-dd" string as UTC midnight, matching how Postgres
+// stores `@db.Date` columns (no timezone component). This must only be
+// called with strings already validated by z.iso.date().
+const parseDateOnly = (dateString: string) => new Date(`${dateString}T00:00:00.000Z`);
 
 export const menuRouter = createTRPCRouter({
   getWeeklyMenu: protectedProcedure
     .input(
       z.object({
         familyId: z.string(),
-        startDate: z.date(),
-        endDate: z.date(),
+        startDate: z.iso.date(),
+        endDate: z.iso.date(),
       })
     )
     .query(async ({ ctx, input }) => {
-      // Lazy Deletion Strategy
-      // 1. Delete all records older than 30 days ago
-      const thirtyDaysAgo = subDays(new Date(), 30);
-      
-      try {
-        await ctx.db.menuSchedule.deleteMany({
-          where: {
-            date: {
-              lt: thirtyDaysAgo,
-            },
-          },
-        });
-      } catch (err) {
-        // Silently fail deletion if there is an issue, we still want to fetch
-        console.error("Cleanup menu schedules failed:", err);
-      }
-
-      // 2. Verify current user belongs to the family
+      // Verify current user belongs to the family
       const membership = await ctx.db.familyMember.findUnique({
         where: {
           familyId_userId: {
@@ -42,18 +29,17 @@ export const menuRouter = createTRPCRouter({
 
       if (!membership) {
         throw new TRPCError({
-          code: "UNAUTHORIZED",
+          code: "FORBIDDEN",
           message: "You do not belong to this family.",
         });
       }
 
-      // 3. Fetch the requested range
       return ctx.db.menuSchedule.findMany({
         where: {
           familyId: input.familyId,
           date: {
-            gte: subDays(input.startDate, 2),
-            lte: addDays(input.endDate, 2),
+            gte: parseDateOnly(input.startDate),
+            lte: parseDateOnly(input.endDate),
           },
         },
         include: {
@@ -79,7 +65,7 @@ export const menuRouter = createTRPCRouter({
       z.object({
         familyId: z.string(),
         recipeId: z.string(),
-        date: z.date(),
+        date: z.iso.date(),
         mealType: z.enum(["BREAKFAST", "LUNCH", "DINNER", "SNACK"]),
       })
     )
@@ -95,14 +81,14 @@ export const menuRouter = createTRPCRouter({
       });
 
       if (!membership) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
+        throw new TRPCError({ code: "FORBIDDEN" });
       }
 
       return ctx.db.menuSchedule.create({
         data: {
           familyId: input.familyId,
           recipeId: input.recipeId,
-          date: input.date,
+          date: parseDateOnly(input.date),
           mealType: input.mealType,
           userId: ctx.session.user.id,
         },
@@ -131,7 +117,7 @@ export const menuRouter = createTRPCRouter({
       });
 
       if (!membership) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
+        throw new TRPCError({ code: "FORBIDDEN" });
       }
 
       return ctx.db.menuSchedule.delete({

@@ -7,7 +7,28 @@ import {
   deleteRecipeImage,
   resolveRecipeImageUrl,
 } from "@/server/recipe-image";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+
+const recipeInputSchema = z.object({
+  title: z.string().min(1),
+  description: z.string(),
+  cuisine: z.string(),
+  difficulty: z.enum(["Easy", "Medium", "Hard"]),
+  cookTime: z.number().int().min(0),
+  prepTime: z.number().int().min(0),
+  servings: z.number().int().min(1),
+  ingredients: z.array(z.string()),
+  instructions: z.array(z.string()),
+  image: z.string(),
+  tags: z.array(z.string()),
+  videoSource: z
+    .object({
+      platform: z.enum(["YouTube", "Instagram", "TikTok"]),
+      url: z.url(),
+    })
+    .optional(),
+});
 
 export const recipeRouter = createTRPCRouter({
   getAll: publicProcedure.query(async ({ ctx }) => {
@@ -42,27 +63,7 @@ export const recipeRouter = createTRPCRouter({
     }),
 
   create: protectedProcedure
-    .input(
-      z.object({
-        title: z.string().min(1),
-        description: z.string(),
-        cuisine: z.string(),
-        difficulty: z.enum(["Easy", "Medium", "Hard"]),
-        cookTime: z.number().int().min(0),
-        prepTime: z.number().int().min(0),
-        servings: z.number().int().min(1),
-        ingredients: z.array(z.string()),
-        instructions: z.array(z.string()),
-        image: z.string(),
-        tags: z.array(z.string()),
-        videoSource: z
-          .object({
-            platform: z.enum(["YouTube", "Instagram", "TikTok"]),
-            url: z.url(),
-          })
-          .optional(),
-      }),
-    )
+    .input(recipeInputSchema)
     .mutation(async ({ ctx, input }) => {
       const resolvedImage = await resolveRecipeImageUrl(input.image);
 
@@ -89,28 +90,7 @@ export const recipeRouter = createTRPCRouter({
     }),
 
   update: protectedProcedure
-    .input(
-      z.object({
-        id: z.string(),
-        title: z.string().min(1),
-        description: z.string(),
-        cuisine: z.string(),
-        difficulty: z.enum(["Easy", "Medium", "Hard"]),
-        cookTime: z.number().int().min(0),
-        prepTime: z.number().int().min(0),
-        servings: z.number().int().min(1),
-        ingredients: z.array(z.string()),
-        instructions: z.array(z.string()),
-        image: z.string(),
-        tags: z.array(z.string()),
-        videoSource: z
-          .object({
-            platform: z.enum(["YouTube", "Instagram", "TikTok"]),
-            url: z.url(),
-          })
-          .optional(),
-      }),
-    )
+    .input(recipeInputSchema.extend({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const resolvedImage = await resolveRecipeImageUrl(input.image);
 
@@ -121,7 +101,10 @@ export const recipeRouter = createTRPCRouter({
       });
 
       if (!existingRecipe) {
-        throw new Error("Receta no encontrada");
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Receta no encontrada",
+        });
       }
 
       const updatedRecipe = await ctx.db.recipe.update({
@@ -181,7 +164,10 @@ export const recipeRouter = createTRPCRouter({
       });
 
       if (!existingRecipe) {
-        throw new Error("Receta no encontrada");
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Receta no encontrada",
+        });
       }
 
       await ctx.db.recipe.delete({
