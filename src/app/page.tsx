@@ -1,4 +1,5 @@
 import { HomePageClient } from "@/components/home/HomePageClient";
+import { isAppAdmin, roleFromUnknown } from "@/lib/admin-role";
 import { absoluteUrl, websiteJsonLd } from "@/lib/seo";
 import { getServerSession } from "@/server/auth/session";
 import { api, HydrateClient } from "@/trpc/server";
@@ -33,7 +34,10 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd()) }}
       />
-      <HomePageClient isLoggedIn={Boolean(session?.user)} />
+      <HomePageClient
+        isLoggedIn={Boolean(session?.user)}
+        isAdmin={isAppAdmin(roleFromUnknown(session?.user))}
+      />
     </HydrateClient>
   );
 }

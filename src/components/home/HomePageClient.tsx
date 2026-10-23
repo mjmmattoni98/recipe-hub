@@ -20,6 +20,7 @@ import {
   ChefHat,
   Filter,
   Plus,
+  Shield,
   SlidersHorizontal,
   UtensilsCrossed,
   X,
@@ -32,6 +33,7 @@ import { useEffect, useMemo, useState } from "react";
 
 type HomePageClientProps = {
   isLoggedIn: boolean;
+  isAdmin: boolean;
 };
 
 const PAGE_SIZE = 12;
@@ -48,22 +50,43 @@ const createInitialFilters = (): FilterCriteria => ({
 });
 
 function AuthenticatedActions({
+  isAdmin,
   onSignOut,
-}: Readonly<{ onSignOut: () => Promise<void> }>) {
+}: Readonly<{ isAdmin: boolean; onSignOut: () => Promise<void> }>) {
   return (
     <>
       <Link href="/menu">
-        <Button variant="outline" size="sm" className="cursor-pointer gap-2 rounded-full">
+        <Button
+          variant="outline"
+          size="sm"
+          className="cursor-pointer gap-2 rounded-full"
+        >
           <CalendarDays className="h-4 w-4" aria-hidden="true" />
           <span className="hidden sm:inline">Menú</span>
         </Button>
       </Link>
       <Link href="/family">
-        <Button variant="outline" size="sm" className="cursor-pointer gap-2 rounded-full">
+        <Button
+          variant="outline"
+          size="sm"
+          className="cursor-pointer gap-2 rounded-full"
+        >
           <UsersRound className="h-4 w-4" aria-hidden="true" />
           <span className="hidden sm:inline">Familia</span>
         </Button>
       </Link>
+      {isAdmin ? (
+        <Link href="/admin">
+          <Button
+            variant="outline"
+            size="sm"
+            className="cursor-pointer gap-2 rounded-full"
+          >
+            <Shield className="h-4 w-4" aria-hidden="true" />
+            <span className="hidden sm:inline">Cuentas</span>
+          </Button>
+        </Link>
+      ) : null}
       <Link href="/new-recipe">
         <Button size="sm" className="cursor-pointer gap-2 rounded-full">
           <Plus className="h-4 w-4" aria-hidden="true" />
@@ -98,6 +121,7 @@ function GuestActions() {
 
 export function HomePageClient({
   isLoggedIn,
+  isAdmin,
 }: Readonly<HomePageClientProps>) {
   const router = useRouter();
   const [filters, setFilters] = useState<FilterCriteria>(createInitialFilters);
@@ -130,15 +154,10 @@ export function HomePageClient({
     [filters, debouncedSearchQuery],
   );
 
-  const {
-    data,
-    isLoading,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = api.recipe.getAll.useInfiniteQuery(queryInput, {
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
-  });
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    api.recipe.getAll.useInfiniteQuery(queryInput, {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    });
 
   const { data: facets } = api.recipe.getFilterFacets.useQuery();
   const availableCuisines = facets?.cuisines ?? [];
@@ -184,7 +203,10 @@ export function HomePageClient({
           <div className="flex items-center gap-3">
             <ThemeToggle />
             {isLoggedIn ? (
-              <AuthenticatedActions onSignOut={handleSignOut} />
+              <AuthenticatedActions
+                isAdmin={isAdmin}
+                onSignOut={handleSignOut}
+              />
             ) : (
               <GuestActions />
             )}
