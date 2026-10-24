@@ -24,6 +24,7 @@ Recipe Hub is a modern recipe management application built with the [T3 Stack](h
   - YouTube
   - Instagram
   - TikTok
+- **Link import:** Signed-in users can paste a YouTube, TikTok, or Instagram link. The public caption or description fills the recipe form. Instagram often hides that text, so the caption can be pasted instead.
 
 ## 🛠️ Getting Started
 

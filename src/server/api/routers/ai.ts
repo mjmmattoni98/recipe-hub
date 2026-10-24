@@ -1,6 +1,10 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
+import {
+  importSocialRecipe as importSocialRecipeFromUrl,
+  SocialImportError,
+} from "@/server/ai/import-social-recipe";
 import { assertOpenRouterConfigured } from "@/server/ai/openrouter";
 import { RecipeDraftParseError } from "@/server/ai/parse-recipe-draft";
 import { AiRateLimitError, consumeAiRateLimit } from "@/server/ai/rate-limit";
@@ -91,5 +95,41 @@ export const aiRouter = createTRPCRouter({
 
       const answer = await answerRecipeQuestion(recipe, input.question);
       return { answer };
+    }),
+
+  importSocialRecipe: protectedProcedure
+    .input(
+      z.object({
+        url: z.string().trim().min(8).max(2_000),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      consumeUserAiQuota(ctx.session.user.id);
+
+      try {
+        return await importSocialRecipeFromUrl(input.url);
+      } catch (error) {
+        if (
+          error instanceof SocialImportError ||
+          (error instanceof Error && error.name === "SocialImportError")
+        ) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: error.message,
+          });
+        }
+
+        if (
+          error instanceof RecipeDraftParseError ||
+          (error instanceof Error && error.name === "RecipeDraftParseError")
+        ) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: error.message,
+          });
+        }
+
+        throw error;
+      }
     }),
 });

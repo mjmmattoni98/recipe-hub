@@ -27,6 +27,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AiDraftDialog } from "@/components/recipe-form/AiDraftDialog";
+import { ImportLinkDialog } from "@/components/recipe-form/ImportLinkDialog";
 import { IngredientsField } from "@/components/recipe-form/IngredientsField";
 import { InstructionsField } from "@/components/recipe-form/InstructionsField";
 import { VideoSourceField } from "@/components/recipe-form/VideoSourceField";
@@ -64,10 +65,13 @@ export function RecipeForm({
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(
     defaultValues?.image ?? null,
   );
+  const [savedImageUrl, setSavedImageUrl] = useState<string | null>(
+    defaultValues?.image ?? null,
+  );
 
   useEffect(() => {
     if (!imageFile) {
-      setImagePreviewUrl(defaultValues?.image ?? null);
+      setImagePreviewUrl(savedImageUrl);
       return;
     }
 
@@ -77,7 +81,7 @@ export function RecipeForm({
     return () => {
       URL.revokeObjectURL(objectUrl);
     };
-  }, [defaultValues?.image, imageFile]);
+  }, [imageFile, savedImageUrl]);
 
   const form = useForm({
     defaultValues:
@@ -228,6 +232,29 @@ export function RecipeForm({
               form.setFieldValue("ingredients", draft.ingredients);
               form.setFieldValue("instructions", draft.instructions);
               form.setFieldValue("tags", draft.tags);
+            }}
+          />
+          <ImportLinkDialog
+            onApply={(recipe) => {
+              form.setFieldValue("title", recipe.title);
+              form.setFieldValue("description", recipe.description);
+              form.setFieldValue("cuisine", recipe.cuisine);
+              form.setFieldValue("difficulty", recipe.difficulty);
+              form.setFieldValue("cookTime", recipe.cookTime);
+              form.setFieldValue("prepTime", recipe.prepTime);
+              form.setFieldValue("servings", recipe.servings);
+              form.setFieldValue("ingredients", recipe.ingredients);
+              form.setFieldValue("instructions", recipe.instructions);
+              form.setFieldValue("tags", recipe.tags);
+              form.setFieldValue("videoSource", recipe.videoSource);
+              if (recipe.image) {
+                setImageFile(null);
+                if (imageInputRef.current) {
+                  imageInputRef.current.value = "";
+                }
+                setSavedImageUrl(recipe.image);
+                form.setFieldValue("image", recipe.image);
+              }
             }}
           />
           <Dialog open={isJsonDialogOpen} onOpenChange={setIsJsonDialogOpen}>
@@ -488,7 +515,9 @@ export function RecipeForm({
                     if (imageInputRef.current) {
                       imageInputRef.current.value = "";
                     }
-                    field.handleChange(defaultValues?.image ?? "");
+                    const restoredImage = defaultValues?.image ?? "";
+                    setSavedImageUrl(restoredImage || null);
+                    field.handleChange(restoredImage);
                   }}
                 >
                   Quitar imagen seleccionada
