@@ -59,6 +59,7 @@ Recipe Hub is a modern recipe management application built with the [T3 Stack](h
    - `DATABASE_URL`
    - `BETTER_AUTH_SECRET`
    - `BETTER_AUTH_URL` (for local development, use `http://localhost:3000`)
+   - `OPENROUTER_API_KEY` (optional; signed-in AI drafting and recipe questions)
 
 ### Database Setup
 
