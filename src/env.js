@@ -15,6 +15,7 @@ export const env = createEnv({
     BETTER_AUTH_URL: z.url().optional(),
     BLOB_READ_WRITE_TOKEN: z.string().optional(),
     CRON_SECRET: z.string(),
+    OPENROUTER_API_KEY: z.string().min(1).optional(),
   },
 
   /**
@@ -37,6 +38,7 @@ export const env = createEnv({
     BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
     BLOB_READ_WRITE_TOKEN: process.env.BLOB_READ_WRITE_TOKEN,
     CRON_SECRET: process.env.CRON_SECRET,
+    OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**

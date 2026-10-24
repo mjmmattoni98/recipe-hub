@@ -26,6 +26,7 @@ import { Copy, Plus, Wand2, X } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { AiDraftDialog } from "@/components/recipe-form/AiDraftDialog";
 import { IngredientsField } from "@/components/recipe-form/IngredientsField";
 import { InstructionsField } from "@/components/recipe-form/InstructionsField";
 import { VideoSourceField } from "@/components/recipe-form/VideoSourceField";
@@ -203,39 +204,6 @@ export function RecipeForm({
     }
   };
 
-  const copyPrompt = () => {
-    const prompt = `Eres un asistente experto en extracción de datos. Tu tarea es transformar el texto sin formato de una receta (normalmente de subtítulos de redes sociales como Instagram o TikTok) en un objeto JSON estructurado.
-
-**Datos de Entrada:**
-Recibirás:
-
-1. La Plataforma y URL del vídeo.
-2. La descripción del texto sin formato de la receta (ingredientes, pasos, etc.).
-
-**Reglas de Salida:**
-
-1. **Formato:** Devuelve **solo** el objeto JSON sin procesar. No lo envuelvas en bloques de código markdown si es posible, y no añadas texto conversacional.
-2. **Idioma:**
-* **Claves JSON:** Inglés.
-* **Valores de contenido** (Título, Descripción, Ingredientes, Instrucciones, Cocina): **Español**.
-* **Etiquetas y Dificultad:** **Inglés** (Easy, Medium, Hard).
-
-
-3. **Detalles del Campo:**
-*
-*
-*
-*
-
-
-**Plantilla de Estructura JSON:**
-
-
-`;
-    navigator.clipboard.writeText(prompt);
-    toast.success("Prompt copiado al portapapeles");
-  };
-
   const imageGenerationPrompt =
     "Genera una imagen de fotografía gastronómica fotorrealista para una receta con este título: [Título] y descripción: [Descripción]. Vista desde arriba, alta calidad.";
 
@@ -247,11 +215,21 @@ Recibirás:
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={copyPrompt}>
-            <Copy className="mr-2 h-4 w-4" />
-            Copiar Prompt de IA
-          </Button>
+        <div className="flex flex-wrap gap-2">
+          <AiDraftDialog
+            onApply={(draft) => {
+              form.setFieldValue("title", draft.title);
+              form.setFieldValue("description", draft.description);
+              form.setFieldValue("cuisine", draft.cuisine);
+              form.setFieldValue("difficulty", draft.difficulty);
+              form.setFieldValue("cookTime", draft.cookTime);
+              form.setFieldValue("prepTime", draft.prepTime);
+              form.setFieldValue("servings", draft.servings);
+              form.setFieldValue("ingredients", draft.ingredients);
+              form.setFieldValue("instructions", draft.instructions);
+              form.setFieldValue("tags", draft.tags);
+            }}
+          />
           <Dialog open={isJsonDialogOpen} onOpenChange={setIsJsonDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline">
@@ -263,7 +241,7 @@ Recibirás:
               <DialogHeader>
                 <DialogTitle>Importar JSON de Receta</DialogTitle>
                 <DialogDescription>
-                  Pega el JSON generado por el asistente de IA a continuación.
+                  Pega un JSON de receta si ya lo tienes de otro asistente.
                 </DialogDescription>
               </DialogHeader>
               <Textarea

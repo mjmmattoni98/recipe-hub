@@ -1,3 +1,4 @@
+import { aiRouter } from "@/server/api/routers/ai";
 import { commentRouter } from "@/server/api/routers/comment";
 import { familyRouter } from "@/server/api/routers/family";
 import { menuRouter } from "@/server/api/routers/menu";
@@ -14,6 +15,7 @@ export const appRouter = createTRPCRouter({
   family: familyRouter,
   comment: commentRouter,
   menu: menuRouter,
+  ai: aiRouter,
 });
 
 // export type definition of API
