@@ -44,16 +44,16 @@ export function EditRecipeClient({
     <div className="bg-background min-h-screen">
       <div className="border-border/60 bg-background/80 sticky top-0 z-50 border-b backdrop-blur-xl">
         <div className="container mx-auto flex h-16 items-center gap-4 px-4">
-          <Link href={`/recipes/${recipeId}`}>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="cursor-pointer rounded-full"
-              aria-label="Volver a la receta"
-            >
+          <Button
+            asChild
+            variant="ghost"
+            size="icon"
+            className="cursor-pointer rounded-full"
+          >
+            <Link href={`/recipes/${recipeId}`} aria-label="Volver a la receta">
               <ArrowLeft className="h-5 w-5" aria-hidden="true" />
-            </Button>
-          </Link>
+            </Link>
+          </Button>
           <h1 className="font-display text-foreground text-xl font-bold">
             Editar Receta
           </h1>

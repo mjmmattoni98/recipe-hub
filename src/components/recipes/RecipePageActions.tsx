@@ -45,16 +45,16 @@ export function RecipePageActions({
 
   return (
     <div className="flex items-center gap-3">
-      <Link href={`/recipes/${recipeId}/edit`}>
-        <Button
-          variant="secondary"
-          size="icon"
-          className="bg-background/80 hover:bg-background h-11 w-11 cursor-pointer rounded-full shadow-lg backdrop-blur-md transition-transform duration-200 hover:scale-105"
-          aria-label="Editar receta"
-        >
+      <Button
+        asChild
+        variant="secondary"
+        size="icon"
+        className="bg-background/80 hover:bg-background h-11 w-11 cursor-pointer rounded-full shadow-lg backdrop-blur-md transition-transform duration-200 hover:scale-105"
+      >
+        <Link href={`/recipes/${recipeId}/edit`} aria-label="Editar receta">
           <Edit className="h-5 w-5" aria-hidden="true" />
-        </Button>
-      </Link>
+        </Link>
+      </Button>
 
       <AlertDialog
         open={isDeleteDialogOpen}

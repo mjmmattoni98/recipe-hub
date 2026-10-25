@@ -5,6 +5,14 @@ import { RecipeFilters } from "@/components/RecipeFilters";
 import { SearchBar } from "@/components/SearchBar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Sheet,
@@ -14,150 +22,406 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { authClient } from "@/lib/auth-client";
-import type { FilterCriteria } from "@/lib/recipe-types";
-import { api } from "@/trpc/react";
 import {
+  COOKING_STATUS_OPTIONS,
+  countActiveFilters,
+  DIETARY_OPTIONS,
+  EMPTY_FILTERS,
+  parseRecipeFilters,
+  RECIPE_PAGE_SIZE,
+  recipeFiltersToSearchParams,
+  recipeListInput,
+  totalTimeLabel,
+} from "@/lib/recipe-filters";
+import { DIFFICULTY_LABELS, type FilterCriteria } from "@/lib/recipe-types";
+import { cn } from "@/lib/utils";
+import { api } from "@/trpc/react";
+import { keepPreviousData } from "@tanstack/react-query";
+import {
+  CalendarDays,
   ChefHat,
+  CircleUser,
   Filter,
+  LogOut,
+  Moon,
   Plus,
   Shield,
   SlidersHorizontal,
+  Sun,
+  UsersRound,
   UtensilsCrossed,
   X,
-  UsersRound,
-  CalendarDays,
+  type LucideIcon,
 } from "lucide-react";
+import { useTheme } from "next-themes";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 type HomePageClientProps = {
   isLoggedIn: boolean;
   isAdmin: boolean;
+  userName: string | null;
 };
 
-const PAGE_SIZE = 12;
 const SEARCH_DEBOUNCE_MS = 400;
+// Matches the xl:grid-cols-3 grid: the first row is above the fold
+const EAGER_IMAGE_COUNT = 3;
 
-const createInitialFilters = (): FilterCriteria => ({
-  cuisine: [],
-  difficulty: [],
-  ingredients: [],
-  searchQuery: "",
-  maxCookTime: null,
-  dietaryRestrictions: [],
-  cookingStatus: "all",
-});
+// Filters live in the URL so they survive opening a recipe and coming back,
+// and so a filtered view can be shared. replaceState (rather than
+// router.replace) keeps useSearchParams in sync without a server round trip,
+// and keeps filter tweaks out of the back-button history.
+function useUrlRecipeFilters(isLoggedIn: boolean) {
+  const searchParams = useSearchParams();
+  const filters = useMemo(
+    () => parseRecipeFilters(searchParams, isLoggedIn),
+    [searchParams, isLoggedIn],
+  );
+
+  const setFilters = useCallback((next: FilterCriteria) => {
+    const query = recipeFiltersToSearchParams(next).toString();
+    window.history.replaceState(
+      null,
+      "",
+      query ? `?${query}` : window.location.pathname,
+    );
+  }, []);
+
+  return [filters, setFilters] as const;
+}
+
+function NavLink({
+  href,
+  label,
+  icon: Icon,
+  primary = false,
+}: Readonly<{
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  primary?: boolean;
+}>) {
+  return (
+    <Button
+      asChild
+      size="sm"
+      variant={primary ? "default" : "outline"}
+      className="gap-2 rounded-full"
+    >
+      <Link href={href}>
+        <Icon className="h-4 w-4" aria-hidden="true" />
+        {/* Icon-only on phones, but the link keeps its accessible name */}
+        <span className="sr-only sm:not-sr-only">{label}</span>
+      </Link>
+    </Button>
+  );
+}
+
+function AccountMenu({
+  isAdmin,
+  userName,
+  onSignOut,
+}: Readonly<{
+  isAdmin: boolean;
+  userName: string | null;
+  onSignOut: () => Promise<void>;
+}>) {
+  const { resolvedTheme, setTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-muted-foreground hover:text-foreground cursor-pointer rounded-full"
+          aria-label="Cuenta"
+        >
+          <CircleUser className="h-5 w-5" aria-hidden="true" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        {userName ? (
+          <>
+            <DropdownMenuLabel className="truncate">
+              {userName}
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+          </>
+        ) : null}
+        {isAdmin ? (
+          <DropdownMenuItem asChild>
+            <Link href="/admin">
+              <Shield aria-hidden="true" />
+              Cuentas
+            </Link>
+          </DropdownMenuItem>
+        ) : null}
+        <DropdownMenuItem onSelect={() => setTheme(isDark ? "light" : "dark")}>
+          {isDark ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
+          {isDark ? "Modo claro" : "Modo oscuro"}
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={() => void onSignOut()}>
+          <LogOut aria-hidden="true" />
+          Cerrar Sesión
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
 function AuthenticatedActions({
   isAdmin,
+  userName,
   onSignOut,
-}: Readonly<{ isAdmin: boolean; onSignOut: () => Promise<void> }>) {
+}: Readonly<{
+  isAdmin: boolean;
+  userName: string | null;
+  onSignOut: () => Promise<void>;
+}>) {
   return (
     <>
-      <Link href="/menu">
-        <Button
-          variant="outline"
-          size="sm"
-          className="cursor-pointer gap-2 rounded-full"
-        >
-          <CalendarDays className="h-4 w-4" aria-hidden="true" />
-          <span className="hidden sm:inline">Menú</span>
-        </Button>
-      </Link>
-      <Link href="/family">
-        <Button
-          variant="outline"
-          size="sm"
-          className="cursor-pointer gap-2 rounded-full"
-        >
-          <UsersRound className="h-4 w-4" aria-hidden="true" />
-          <span className="hidden sm:inline">Familia</span>
-        </Button>
-      </Link>
-      {isAdmin ? (
-        <Link href="/admin">
-          <Button
-            variant="outline"
-            size="sm"
-            className="cursor-pointer gap-2 rounded-full"
-          >
-            <Shield className="h-4 w-4" aria-hidden="true" />
-            <span className="hidden sm:inline">Cuentas</span>
-          </Button>
-        </Link>
-      ) : null}
-      <Link href="/new-recipe">
-        <Button size="sm" className="cursor-pointer gap-2 rounded-full">
-          <Plus className="h-4 w-4" aria-hidden="true" />
-          <span className="hidden sm:inline">Nueva Receta</span>
-        </Button>
-      </Link>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="text-muted-foreground cursor-pointer rounded-full"
-        onClick={onSignOut}
-      >
-        Cerrar Sesión
-      </Button>
+      <NavLink href="/menu" label="Menú" icon={CalendarDays} />
+      <NavLink href="/family" label="Familia" icon={UsersRound} />
+      <NavLink href="/new-recipe" label="Nueva Receta" icon={Plus} primary />
+      <AccountMenu
+        isAdmin={isAdmin}
+        userName={userName}
+        onSignOut={onSignOut}
+      />
     </>
   );
 }
 
 function GuestActions() {
   return (
-    <Link href="/sign-in">
+    <>
+      <ThemeToggle />
       <Button
+        asChild
         size="sm"
         variant="outline"
         className="cursor-pointer rounded-full"
       >
-        Iniciar Sesión
+        <Link href="/sign-in">Iniciar Sesión</Link>
       </Button>
-    </Link>
+    </>
+  );
+}
+
+function Hero({
+  isLoggedIn,
+  searchValue,
+  onSearchChange,
+}: Readonly<{
+  isLoggedIn: boolean;
+  searchValue: string;
+  onSearchChange: (value: string) => void;
+}>) {
+  const searchBar = <SearchBar value={searchValue} onChange={onSearchChange} />;
+
+  // Signed-in users come back to find a recipe, not to read the pitch, so
+  // they get a compact header that keeps the grid near the top.
+  if (isLoggedIn) {
+    return (
+      <header className="relative overflow-hidden">
+        <div className="from-primary/6 via-secondary/50 to-background absolute inset-0 bg-linear-to-b" />
+        <div className="relative container mx-auto px-4 pt-10 pb-4 md:pt-14 md:pb-6">
+          <div className="mx-auto max-w-3xl space-y-6 text-center">
+            <h1 className="font-display text-foreground text-3xl leading-tight font-bold tracking-tight text-balance md:text-5xl">
+              ¿Qué cocinamos <span className="text-primary italic">hoy</span>?
+            </h1>
+            <div className="flex justify-center">{searchBar}</div>
+          </div>
+        </div>
+      </header>
+    );
+  }
+
+  return (
+    <header className="relative overflow-hidden">
+      <div className="from-primary/6 via-secondary/50 to-background absolute inset-0 bg-linear-to-b" />
+      <div className="from-primary/4 to-accent/3 absolute inset-0 bg-linear-to-r" />
+
+      <div className="bg-primary/10 absolute -top-24 -right-24 h-96 w-96 rounded-full blur-3xl" />
+      <div className="bg-accent/10 absolute -bottom-32 -left-32 h-80 w-80 rounded-full blur-3xl" />
+
+      <div className="relative container mx-auto px-4 pt-16 pb-20 md:pt-24 md:pb-28">
+        <div className="mx-auto max-w-3xl space-y-8 text-center">
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <span className="font-body bg-primary/10 text-primary border-primary/20 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium">
+              <UtensilsCrossed className="h-3.5 w-3.5" aria-hidden="true" />
+              Tu Colección de Recetas
+            </span>
+          </div>
+
+          <h1 className="font-display text-foreground animate-in fade-in slide-in-from-bottom-6 text-5xl leading-[1.1] font-bold tracking-tight text-balance delay-100 duration-700 md:text-7xl">
+            Descubre Recetas{" "}
+            <span className="text-primary italic">Deliciosas</span>
+          </h1>
+
+          <p className="font-body text-muted-foreground animate-in fade-in slide-in-from-bottom-6 mx-auto max-w-xl text-lg leading-relaxed delay-200 duration-700">
+            Explora una colección seleccionada de recetas de todo el mundo.
+            Filtra por tipo de cocina, dificultad o ingredientes para encontrar
+            tu próxima aventura culinaria.
+          </p>
+
+          <div className="animate-in fade-in slide-in-from-bottom-8 flex justify-center pt-4 delay-300 duration-700">
+            {searchBar}
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function ActiveFilterPills({
+  filters,
+  onFilterChange,
+}: Readonly<{
+  filters: FilterCriteria;
+  onFilterChange: (filters: FilterCriteria) => void;
+}>) {
+  const without = <T,>(values: T[], value: T) =>
+    values.filter((item) => item !== value);
+
+  const pills: { key: string; label: string; next: FilterCriteria }[] = [];
+
+  if (filters.cookingStatus !== "all") {
+    pills.push({
+      key: "status",
+      label:
+        COOKING_STATUS_OPTIONS.find(
+          (option) => option.value === filters.cookingStatus,
+        )?.label ?? filters.cookingStatus,
+      next: { ...filters, cookingStatus: "all" },
+    });
+  }
+  for (const difficulty of filters.difficulty) {
+    pills.push({
+      key: `difficulty-${difficulty}`,
+      label: DIFFICULTY_LABELS[difficulty],
+      next: { ...filters, difficulty: without(filters.difficulty, difficulty) },
+    });
+  }
+  for (const cuisine of filters.cuisine) {
+    pills.push({
+      key: `cuisine-${cuisine}`,
+      label: cuisine,
+      next: { ...filters, cuisine: without(filters.cuisine, cuisine) },
+    });
+  }
+  if (filters.maxTotalTime !== null) {
+    pills.push({
+      key: "time",
+      label: totalTimeLabel(filters.maxTotalTime),
+      next: { ...filters, maxTotalTime: null },
+    });
+  }
+  for (const diet of filters.dietaryRestrictions) {
+    pills.push({
+      key: `diet-${diet}`,
+      label:
+        DIETARY_OPTIONS.find((option) => option.value === diet)?.label ?? diet,
+      next: {
+        ...filters,
+        dietaryRestrictions: without(filters.dietaryRestrictions, diet),
+      },
+    });
+  }
+  for (const ingredient of filters.ingredients) {
+    pills.push({
+      key: `ingredient-${ingredient}`,
+      label: ingredient,
+      next: {
+        ...filters,
+        ingredients: without(filters.ingredients, ingredient),
+      },
+    });
+  }
+
+  if (pills.length === 0) return null;
+
+  return (
+    <ul
+      className="mb-8 flex flex-wrap items-center gap-2"
+      aria-label="Filtros activos"
+    >
+      {pills.map((pill) => (
+        <li
+          key={pill.key}
+          className="bg-primary/10 text-primary inline-flex items-center gap-1 rounded-full py-1 pr-1 pl-3 text-xs font-medium"
+        >
+          {pill.label}
+          <button
+            type="button"
+            onClick={() => onFilterChange(pill.next)}
+            aria-label={`Quitar filtro ${pill.label}`}
+            className="hover:bg-primary/20 cursor-pointer rounded-full p-1 transition-colors"
+          >
+            <X className="h-3 w-3" aria-hidden="true" />
+          </button>
+        </li>
+      ))}
+      <li>
+        <button
+          type="button"
+          onClick={() =>
+            onFilterChange({
+              ...EMPTY_FILTERS,
+              searchQuery: filters.searchQuery,
+            })
+          }
+          className="text-muted-foreground hover:text-foreground ml-1 cursor-pointer text-xs underline underline-offset-2 transition-colors"
+        >
+          Borrar filtros
+        </button>
+      </li>
+    </ul>
   );
 }
 
 export function HomePageClient({
   isLoggedIn,
   isAdmin,
+  userName,
 }: Readonly<HomePageClientProps>) {
   const router = useRouter();
-  const [filters, setFilters] = useState<FilterCriteria>(createInitialFilters);
+  const [filters, setFilters] = useUrlRecipeFilters(isLoggedIn);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  // The input updates on every keystroke; the URL (and so the query) only
+  // follows once typing pauses.
+  const [searchInput, setSearchInput] = useState(filters.searchQuery);
 
   useEffect(() => {
+    const searchQuery = searchInput.trim();
+    if (searchQuery === filters.searchQuery) return;
+
     const handle = setTimeout(() => {
-      setDebouncedSearchQuery(filters.searchQuery.trim());
+      setFilters({ ...filters, searchQuery });
     }, SEARCH_DEBOUNCE_MS);
 
     return () => clearTimeout(handle);
-  }, [filters.searchQuery]);
+  }, [searchInput, filters, setFilters]);
 
-  const queryInput = useMemo(
-    () => ({
-      limit: PAGE_SIZE,
-      searchQuery: debouncedSearchQuery || undefined,
-      cuisine: filters.cuisine.length ? filters.cuisine : undefined,
-      difficulty: filters.difficulty.length
-        ? (filters.difficulty as ("Easy" | "Medium" | "Hard")[])
-        : undefined,
-      ingredients: filters.ingredients.length ? filters.ingredients : undefined,
-      maxCookTime: filters.maxCookTime ?? undefined,
-      dietaryRestrictions: filters.dietaryRestrictions.length
-        ? filters.dietaryRestrictions
-        : undefined,
-      cookingStatus: filters.cookingStatus,
-    }),
-    [filters, debouncedSearchQuery],
-  );
+  const queryInput = useMemo(() => recipeListInput(filters), [filters]);
 
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    api.recipe.getAll.useInfiniteQuery(queryInput, {
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-    });
+  const {
+    data,
+    isLoading,
+    isPlaceholderData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = api.recipe.getAll.useInfiniteQuery(queryInput, {
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    // Keep showing the previous results while a new filter loads instead
+    // of swapping the whole grid for skeletons.
+    placeholderData: keepPreviousData,
+  });
 
   const { data: facets } = api.recipe.getFilterFacets.useQuery();
   const availableCuisines = facets?.cuisines ?? [];
@@ -167,16 +431,13 @@ export function HomePageClient({
     () => data?.pages.flatMap((page) => page.items) ?? [],
     [data],
   );
+  const total = data?.pages[0]?.total;
 
-  const activeFilterCount =
-    filters.cuisine.length +
-    filters.difficulty.length +
-    filters.ingredients.length +
-    (filters.maxCookTime === null ? 0 : 1) +
-    filters.dietaryRestrictions.length;
+  const activeFilterCount = countActiveFilters(filters);
 
-  const clearAllFilters = () => {
-    setFilters(createInitialFilters());
+  const clearEverything = () => {
+    setSearchInput("");
+    setFilters(EMPTY_FILTERS);
   };
 
   const handleSignOut = async () => {
@@ -187,8 +448,8 @@ export function HomePageClient({
   return (
     <div className="bg-background min-h-screen">
       <nav className="border-border/60 bg-background/80 sticky top-0 z-50 border-b backdrop-blur-xl">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link href="/" className="flex items-center gap-2.5">
+        <div className="container mx-auto flex h-16 items-center justify-between gap-2 px-4">
+          <Link href="/" className="flex shrink-0 items-center gap-2.5">
             <div className="bg-primary flex h-9 w-9 items-center justify-center rounded-xl">
               <ChefHat
                 className="text-primary-foreground h-5 w-5"
@@ -200,11 +461,11 @@ export function HomePageClient({
             </span>
           </Link>
 
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
+          <div className="flex items-center gap-2 sm:gap-3">
             {isLoggedIn ? (
               <AuthenticatedActions
                 isAdmin={isAdmin}
+                userName={userName}
                 onSignOut={handleSignOut}
               />
             ) : (
@@ -214,51 +475,20 @@ export function HomePageClient({
         </div>
       </nav>
 
-      <header className="relative overflow-hidden">
-        <div className="from-primary/6 via-secondary/50 to-background absolute inset-0 bg-linear-to-b" />
-        <div className="from-primary/4 to-accent/3 absolute inset-0 bg-linear-to-r" />
-
-        <div className="bg-primary/10 absolute -top-24 -right-24 h-96 w-96 rounded-full blur-3xl" />
-        <div className="bg-accent/10 absolute -bottom-32 -left-32 h-80 w-80 rounded-full blur-3xl" />
-
-        <div className="relative container mx-auto px-4 pt-16 pb-20 md:pt-24 md:pb-28">
-          <div className="mx-auto max-w-3xl space-y-8 text-center">
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <span className="font-body bg-primary/10 text-primary border-primary/20 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium">
-                <UtensilsCrossed className="h-3.5 w-3.5" aria-hidden="true" />
-                Tu Colección de Recetas
-              </span>
-            </div>
-
-            <h1 className="font-display text-foreground animate-in fade-in slide-in-from-bottom-6 text-5xl leading-[1.1] font-bold tracking-tight text-balance delay-100 duration-700 md:text-7xl">
-              Descubre Recetas{" "}
-              <span className="text-primary italic">Deliciosas</span>
-            </h1>
-
-            <p className="font-body text-muted-foreground animate-in fade-in slide-in-from-bottom-6 mx-auto max-w-xl text-lg leading-relaxed delay-200 duration-700">
-              Explora una colección seleccionada de recetas de todo el mundo.
-              Filtra por tipo de cocina, dificultad o ingredientes para
-              encontrar tu próxima aventura culinaria.
-            </p>
-
-            <div className="animate-in fade-in slide-in-from-bottom-8 flex justify-center pt-4 delay-300 duration-700">
-              <SearchBar
-                value={filters.searchQuery}
-                onChange={(value) =>
-                  setFilters((current) => ({ ...current, searchQuery: value }))
-                }
-              />
-            </div>
-          </div>
-        </div>
-      </header>
+      <Hero
+        isLoggedIn={isLoggedIn}
+        searchValue={searchInput}
+        onSearchChange={setSearchInput}
+      />
 
       <main id="main-content" className="container mx-auto px-4 py-10 md:py-14">
         <div className="flex flex-col gap-10 lg:flex-row">
           <aside className="hidden w-72 shrink-0 lg:block">
             <div className="sticky top-24">
+              {/* The panel is taller than most viewports; scrolling it on its
+                  own keeps the lower filters reachable while it's pinned */}
               <div
-                className="bg-card rounded-2xl border p-6"
+                className="bg-card max-h-[calc(100dvh-7rem)] overflow-y-auto overscroll-contain rounded-2xl border p-6"
                 style={{ boxShadow: "var(--shadow-card)" }}
               >
                 <div className="mb-6 flex items-center justify-between">
@@ -280,12 +510,13 @@ export function HomePageClient({
                   onFilterChange={setFilters}
                   availableCuisines={availableCuisines}
                   availableIngredients={availableIngredients}
+                  isLoggedIn={isLoggedIn}
                 />
               </div>
             </div>
           </aside>
 
-          <div className="flex-1">
+          <div className="min-w-0 flex-1">
             <div className="mb-6 lg:hidden">
               <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
                 <SheetTrigger asChild>
@@ -312,85 +543,40 @@ export function HomePageClient({
                       onFilterChange={setFilters}
                       availableCuisines={availableCuisines}
                       availableIngredients={availableIngredients}
+                      isLoggedIn={isLoggedIn}
                     />
                   </div>
                 </SheetContent>
               </Sheet>
             </div>
 
-            <div className="mb-8 flex items-center justify-between gap-4">
-              <p className="font-body text-muted-foreground text-sm">
-                Mostrando{" "}
-                <span className="text-foreground font-semibold">
-                  {recipes.length}
-                </span>{" "}
-                {recipes.length === 1 ? "receta" : "recetas"}
-              </p>
+            <p
+              className="font-body text-muted-foreground mb-4 min-h-5 text-sm"
+              aria-live="polite"
+            >
+              {total === undefined ? null : recipes.length < total ? (
+                <>
+                  Mostrando{" "}
+                  <span className="text-foreground font-semibold">
+                    {recipes.length}
+                  </span>{" "}
+                  de{" "}
+                  <span className="text-foreground font-semibold">{total}</span>{" "}
+                  recetas
+                </>
+              ) : (
+                <>
+                  <span className="text-foreground font-semibold">{total}</span>{" "}
+                  {total === 1 ? "receta" : "recetas"}
+                </>
+              )}
+            </p>
 
-              {activeFilterCount > 0 ? (
-                <div className="hidden items-center gap-2 md:flex">
-                  {filters.cuisine.map((cuisine) => (
-                    <span
-                      key={cuisine}
-                      className="bg-primary/10 text-primary inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium"
-                    >
-                      {cuisine}
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setFilters((current) => ({
-                            ...current,
-                            cuisine: current.cuisine.filter(
-                              (item) => item !== cuisine,
-                            ),
-                          }))
-                        }
-                        aria-label={`Eliminar filtro ${cuisine}`}
-                        className="hover:bg-primary/20 -mr-1 cursor-pointer rounded-full p-0.5 transition-colors"
-                      >
-                        <X className="h-3 w-3" aria-hidden="true" />
-                      </button>
-                    </span>
-                  ))}
-
-                  {filters.difficulty.map((difficulty) => (
-                    <span
-                      key={difficulty}
-                      className="bg-accent text-accent-foreground inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium"
-                    >
-                      {difficulty}
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setFilters((current) => ({
-                            ...current,
-                            difficulty: current.difficulty.filter(
-                              (item) => item !== difficulty,
-                            ),
-                          }))
-                        }
-                        aria-label={`Eliminar filtro ${difficulty}`}
-                        className="hover:bg-accent/80 -mr-1 cursor-pointer rounded-full p-0.5 transition-colors"
-                      >
-                        <X className="h-3 w-3" aria-hidden="true" />
-                      </button>
-                    </span>
-                  ))}
-
-                  <button
-                    type="button"
-                    onClick={clearAllFilters}
-                    className="text-muted-foreground hover:text-foreground ml-1 cursor-pointer text-xs underline underline-offset-2 transition-colors"
-                  >
-                    Borrar todo
-                  </button>
-                </div>
-              ) : null}
-            </div>
+            <ActiveFilterPills filters={filters} onFilterChange={setFilters} />
 
             {isLoading ? (
               <div className="grid grid-cols-1 gap-7 sm:grid-cols-2 xl:grid-cols-3">
-                {Array.from({ length: PAGE_SIZE }).map((_, i) => (
+                {Array.from({ length: RECIPE_PAGE_SIZE }).map((_, i) => (
                   <div key={`recipe-skeleton-${i}`} className="space-y-3">
                     <Skeleton className="aspect-4/3 w-full rounded-2xl" />
                     <Skeleton className="h-5 w-3/4" />
@@ -400,18 +586,24 @@ export function HomePageClient({
               </div>
             ) : recipes.length > 0 ? (
               <>
-                <div className="grid grid-cols-1 gap-7 sm:grid-cols-2 xl:grid-cols-3">
+                <div
+                  className={cn(
+                    "grid grid-cols-1 gap-7 transition-opacity duration-200 sm:grid-cols-2 xl:grid-cols-3",
+                    isPlaceholderData && "opacity-60",
+                  )}
+                  aria-busy={isPlaceholderData}
+                >
                   {recipes.map((recipe, index) => (
                     <RecipeCard
                       key={recipe.id}
                       recipe={recipe}
-                      index={index}
                       isLoggedIn={isLoggedIn}
+                      eager={index < EAGER_IMAGE_COUNT}
                     />
                   ))}
                 </div>
 
-                {hasNextPage ? (
+                {hasNextPage && !isPlaceholderData ? (
                   <div className="mt-10 flex justify-center">
                     <Button
                       type="button"
@@ -444,9 +636,9 @@ export function HomePageClient({
                   type="button"
                   variant="outline"
                   className="cursor-pointer rounded-full"
-                  onClick={clearAllFilters}
+                  onClick={clearEverything}
                 >
-                  Borrar todos los filtros
+                  Borrar búsqueda y filtros
                 </Button>
               </div>
             )}

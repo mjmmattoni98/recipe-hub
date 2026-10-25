@@ -25,13 +25,21 @@ import { db } from "@/server/db";
  *
  * @see https://trpc.io/docs/server/context
  */
-export const createTRPCContext = async (opts: { headers: Headers }) => {
-  const session = await getSessionFromHeaders(opts.headers);
+export const createTRPCContext = async (opts: {
+  headers: Headers;
+  // Callers that already resolved the session (RSC renders) pass it in so the
+  // request doesn't look it up a second time.
+  session?: Awaited<ReturnType<typeof getSessionFromHeaders>>;
+}) => {
+  const session =
+    opts.session === undefined
+      ? await getSessionFromHeaders(opts.headers)
+      : opts.session;
 
   return {
     db,
-    session,
     ...opts,
+    session,
   };
 };
 

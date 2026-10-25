@@ -9,7 +9,10 @@ import {
 } from "@/server/recipe-image";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import type { Prisma } from "../../../../generated/prisma/client";
+import { Prisma } from "../../../../generated/prisma/client";
+
+// The filter panel only offers this many ingredient chips
+const FACET_INGREDIENT_LIMIT = 12;
 
 const recipeFilterInput = z.object({
   cursor: z.string().nullish(),
@@ -18,7 +21,7 @@ const recipeFilterInput = z.object({
   cuisine: z.array(z.string()).optional(),
   difficulty: z.array(z.enum(["Easy", "Medium", "Hard"])).optional(),
   ingredients: z.array(z.string()).optional(),
-  maxCookTime: z.number().int().optional(),
+  maxTotalTime: z.number().int().positive().optional(),
   dietaryRestrictions: z.array(z.string()).optional(),
   cookingStatus: z.enum(["all", "cooked", "wantToTry"]).optional(),
 });
@@ -49,24 +52,35 @@ export const recipeRouter = createTRPCRouter({
     .query(async ({ ctx, input: filters }) => {
       const limit = filters.limit;
 
-      // Substring matching against a String[] column (tags) has no native
-      // Prisma operator, so resolve it to a set of ids via one raw query
-      // and fold that into the main (fully typed) filtered/paginated query.
-      let dietaryMatchIds: string[] | undefined;
-      if (filters.dietaryRestrictions && filters.dietaryRestrictions.length > 0) {
+      // Two filters have no native Prisma operator: substring matching inside
+      // the tags array, and comparing against prepTime + cookTime. Resolve
+      // them to a set of ids with one raw query and fold that into the main
+      // (fully typed) filtered/paginated query.
+      const rawConditions: Prisma.Sql[] = [];
+      if (filters.dietaryRestrictions?.length) {
+        rawConditions.push(Prisma.sql`(
+          SELECT bool_and(
+            EXISTS (
+              SELECT 1 FROM unnest(r."tags") AS tag
+              WHERE tag ILIKE '%' || restriction || '%'
+            )
+          )
+          FROM unnest(${filters.dietaryRestrictions}::text[]) AS restriction
+        )`);
+      }
+      if (filters.maxTotalTime != null) {
+        rawConditions.push(
+          Prisma.sql`r."prepTime" + r."cookTime" <= ${filters.maxTotalTime}`,
+        );
+      }
+
+      let rawMatchIds: string[] | undefined;
+      if (rawConditions.length > 0) {
         const rows = await ctx.db.$queryRaw<{ id: string }[]>`
           SELECT r."id" FROM "Recipe" r
-          WHERE (
-            SELECT bool_and(
-              EXISTS (
-                SELECT 1 FROM unnest(r."tags") AS tag
-                WHERE tag ILIKE '%' || restriction || '%'
-              )
-            )
-            FROM unnest(${filters.dietaryRestrictions}::text[]) AS restriction
-          )
+          WHERE ${Prisma.join(rawConditions, " AND ")}
         `;
-        dietaryMatchIds = rows.map((row) => row.id);
+        rawMatchIds = rows.map((row) => row.id);
       }
 
       const currentUserId = ctx.session?.user.id;
@@ -75,17 +89,16 @@ export const recipeRouter = createTRPCRouter({
         ...(filters.searchQuery
           ? { title: { contains: filters.searchQuery, mode: "insensitive" } }
           : {}),
-        ...(filters.cuisine?.length ? { cuisine: { in: filters.cuisine } } : {}),
+        ...(filters.cuisine?.length
+          ? { cuisine: { in: filters.cuisine } }
+          : {}),
         ...(filters.difficulty?.length
           ? { difficulty: { in: filters.difficulty } }
           : {}),
         ...(filters.ingredients?.length
           ? { ingredients: { hasEvery: filters.ingredients } }
           : {}),
-        ...(filters.maxCookTime != null
-          ? { cookTime: { lte: filters.maxCookTime } }
-          : {}),
-        ...(dietaryMatchIds ? { id: { in: dietaryMatchIds } } : {}),
+        ...(rawMatchIds ? { id: { in: rawMatchIds } } : {}),
         ...(filters.cookingStatus === "cooked" && currentUserId
           ? { cookedBy: { some: { userId: currentUserId } } }
           : {}),
@@ -94,21 +107,26 @@ export const recipeRouter = createTRPCRouter({
           : {}),
       };
 
-      const recipes = await ctx.db.recipe.findMany({
-        where,
-        take: limit + 1,
-        ...(filters.cursor
-          ? { cursor: { id: filters.cursor }, skip: 1 }
-          : {}),
-        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-        include: {
-          videoSource: true,
-          cookedBy: {
-            where: { userId: currentUserId ?? "" },
-            select: { id: true },
+      // The total only changes with the filters, so count once on the first
+      // page instead of on every "load more".
+      const [recipes, total] = await Promise.all([
+        ctx.db.recipe.findMany({
+          where,
+          take: limit + 1,
+          ...(filters.cursor
+            ? { cursor: { id: filters.cursor }, skip: 1 }
+            : {}),
+          orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+          include: {
+            videoSource: true,
+            cookedBy: {
+              where: { userId: currentUserId ?? "" },
+              select: { id: true },
+            },
           },
-        },
-      });
+        }),
+        filters.cursor ? undefined : ctx.db.recipe.count({ where }),
+      ]);
 
       let nextCursor: string | undefined;
       if (recipes.length > limit) {
@@ -122,44 +140,59 @@ export const recipeRouter = createTRPCRouter({
           cookedByMe: cookedBy.length > 0,
         })),
         nextCursor,
+        total,
       };
     }),
 
   getFilterFacets: publicProcedure.query(async ({ ctx }) => {
-    const recipes = await ctx.db.recipe.findMany({
-      select: { cuisine: true, ingredients: true },
+    const [cuisineRows, ingredientRows] = await Promise.all([
+      ctx.db.recipe.findMany({
+        distinct: ["cuisine"],
+        select: { cuisine: true },
+      }),
+      ctx.db.$queryRaw<{ ingredient: string }[]>`
+        SELECT ingredient
+        FROM "Recipe" r, unnest(r."ingredients") AS ingredient
+        GROUP BY ingredient
+        ORDER BY COUNT(*) DESC, ingredient ASC
+        LIMIT ${FACET_INGREDIENT_LIMIT}
+      `,
+    ]);
+
+    return {
+      cuisines: cuisineRows
+        .map((row) => row.cuisine)
+        .sort((a, b) => a.localeCompare(b)),
+      ingredients: ingredientRows.map((row) => row.ingredient),
+    };
+  }),
+
+  // Just what the menu planner's recipe picker shows
+  getOptions: protectedProcedure.query(({ ctx }) => {
+    return ctx.db.recipe.findMany({
+      select: { id: true, title: true, image: true },
+      orderBy: { title: "asc" },
     });
-
-    const cuisines = [...new Set(recipes.map((recipe) => recipe.cuisine))].sort(
-      (a, b) => a.localeCompare(b),
-    );
-
-    const ingredientCounts = new Map<string, number>();
-    for (const recipe of recipes) {
-      for (const ingredient of recipe.ingredients) {
-        ingredientCounts.set(
-          ingredient,
-          (ingredientCounts.get(ingredient) ?? 0) + 1,
-        );
-      }
-    }
-
-    const ingredients = [...ingredientCounts.entries()]
-      .sort((a, b) => b[1] - a[1])
-      .map(([ingredient]) => ingredient);
-
-    return { cuisines, ingredients };
   }),
 
   getById: publicProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
-      return ctx.db.recipe.findUnique({
+      const recipe = await ctx.db.recipe.findUnique({
         where: { id: input.id },
         include: {
           videoSource: true,
+          cookedBy: {
+            where: { userId: ctx.session?.user.id ?? "" },
+            select: { id: true },
+          },
         },
       });
+
+      if (!recipe) return null;
+
+      const { cookedBy, ...rest } = recipe;
+      return { ...rest, cookedByMe: cookedBy.length > 0 };
     }),
 
   toggleCookedByMe: protectedProcedure

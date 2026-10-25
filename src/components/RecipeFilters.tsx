@@ -1,4 +1,16 @@
-import type { CookingStatus, FilterCriteria } from "@/lib/recipe-types";
+import {
+  COOKING_STATUS_OPTIONS,
+  countActiveFilters,
+  DIETARY_OPTIONS,
+  DIFFICULTY_OPTIONS,
+  EMPTY_FILTERS,
+  TOTAL_TIME_OPTIONS,
+} from "@/lib/recipe-filters";
+import type {
+  CookingStatus,
+  FilterCriteria,
+  RecipeDifficulty,
+} from "@/lib/recipe-types";
 import { Bookmark, ChefHat, Clock, Globe, Heart, Leaf } from "lucide-react";
 import { FilterChip } from "./FilterChip";
 
@@ -7,28 +19,12 @@ interface RecipeFiltersProps {
   onFilterChange: (filters: FilterCriteria) => void;
   availableCuisines: string[];
   availableIngredients: string[];
+  isLoggedIn: boolean;
 }
 
-const difficulties = [
-  { label: "Fácil", value: "Easy" },
-  { label: "Media", value: "Medium" },
-  { label: "Difícil", value: "Hard" },
-];
-const cookTimeOptions = [
-  { label: "Menos de 15 min", value: 15 },
-  { label: "Menos de 30 min", value: 30 },
-  { label: "Menos de 1 hora", value: 60 },
+const totalTimeOptions = [
+  ...TOTAL_TIME_OPTIONS,
   { label: "Cualquier tiempo", value: null },
-];
-const dietaryOptions = [
-  { label: "Vegetariana", value: "Vegetarian" },
-  { label: "Vegana", value: "Vegan" },
-  { label: "Sin Gluten", value: "Gluten-Free" },
-];
-const cookingStatusOptions: { label: string; value: CookingStatus }[] = [
-  { label: "Todas las Recetas", value: "all" },
-  { label: "Ya Cocinadas", value: "cooked" },
-  { label: "Pendientes", value: "wantToTry" },
 ];
 
 export function RecipeFilters({
@@ -36,6 +32,7 @@ export function RecipeFilters({
   onFilterChange,
   availableCuisines,
   availableIngredients,
+  isLoggedIn,
 }: Readonly<RecipeFiltersProps>) {
   const toggleCuisine = (cuisine: string) => {
     const newCuisines = filters.cuisine.includes(cuisine)
@@ -44,7 +41,7 @@ export function RecipeFilters({
     onFilterChange({ ...filters, cuisine: newCuisines });
   };
 
-  const toggleDifficulty = (difficulty: string) => {
+  const toggleDifficulty = (difficulty: RecipeDifficulty) => {
     const newDifficulties = filters.difficulty.includes(difficulty)
       ? filters.difficulty.filter((d) => d !== difficulty)
       : [...filters.difficulty, difficulty];
@@ -58,8 +55,8 @@ export function RecipeFilters({
     onFilterChange({ ...filters, ingredients: newIngredients });
   };
 
-  const setCookTime = (value: number | null) => {
-    onFilterChange({ ...filters, maxCookTime: value });
+  const setTotalTime = (value: number | null) => {
+    onFilterChange({ ...filters, maxTotalTime: value });
   };
 
   const toggleDietaryRestriction = (restriction: string) => {
@@ -73,44 +70,33 @@ export function RecipeFilters({
     onFilterChange({ ...filters, cookingStatus: status });
   };
 
-  const hasActiveFilters =
-    filters.cuisine.length > 0 ||
-    filters.difficulty.length > 0 ||
-    filters.ingredients.length > 0 ||
-    filters.maxCookTime !== null ||
-    filters.dietaryRestrictions.length > 0 ||
-    filters.cookingStatus !== "all";
+  const hasActiveFilters = countActiveFilters(filters) > 0;
 
+  // Keeps the search query; it has its own clear button
   const clearFilters = () => {
-    onFilterChange({
-      ...filters,
-      cuisine: [],
-      difficulty: [],
-      ingredients: [],
-      maxCookTime: null,
-      dietaryRestrictions: [],
-      cookingStatus: "all",
-    });
+    onFilterChange({ ...EMPTY_FILTERS, searchQuery: filters.searchQuery });
   };
 
   return (
     <div className="space-y-6">
-      <div className="space-y-3">
-        <div className="text-foreground flex items-center gap-2 text-sm font-medium">
-          <Bookmark className="text-primary h-4 w-4" aria-hidden="true" />
-          <span>Estado de Cocción</span>
+      {isLoggedIn ? (
+        <div className="space-y-3">
+          <div className="text-foreground flex items-center gap-2 text-sm font-medium">
+            <Bookmark className="text-primary h-4 w-4" aria-hidden="true" />
+            <span>Estado de Cocción</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {COOKING_STATUS_OPTIONS.map((option) => (
+              <FilterChip
+                key={option.value}
+                label={option.label}
+                isActive={filters.cookingStatus === option.value}
+                onClick={() => setCookingStatus(option.value)}
+              />
+            ))}
+          </div>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {cookingStatusOptions.map((option) => (
-            <FilterChip
-              key={option.value}
-              label={option.label}
-              isActive={filters.cookingStatus === option.value}
-              onClick={() => setCookingStatus(option.value)}
-            />
-          ))}
-        </div>
-      </div>
+      ) : null}
 
       <div className="space-y-3">
         <div className="text-foreground flex items-center gap-2 text-sm font-medium">
@@ -118,7 +104,7 @@ export function RecipeFilters({
           <span>Dificultad</span>
         </div>
         <div className="flex flex-wrap gap-2">
-          {difficulties.map((difficulty) => (
+          {DIFFICULTY_OPTIONS.map((difficulty) => (
             <FilterChip
               key={difficulty.value}
               label={difficulty.label}
@@ -149,15 +135,15 @@ export function RecipeFilters({
       <div className="space-y-3">
         <div className="text-foreground flex items-center gap-2 text-sm font-medium">
           <Clock className="text-primary h-4 w-4" aria-hidden="true" />
-          <span>Tiempo de Cocción</span>
+          <span>Tiempo Total</span>
         </div>
         <div className="flex flex-wrap gap-2">
-          {cookTimeOptions.map((option) => (
+          {totalTimeOptions.map((option) => (
             <FilterChip
               key={option.label}
               label={option.label}
-              isActive={filters.maxCookTime === option.value}
-              onClick={() => setCookTime(option.value)}
+              isActive={filters.maxTotalTime === option.value}
+              onClick={() => setTotalTime(option.value)}
             />
           ))}
         </div>
@@ -169,7 +155,7 @@ export function RecipeFilters({
           <span>Dieta</span>
         </div>
         <div className="flex flex-wrap gap-2">
-          {dietaryOptions.map((restriction) => (
+          {DIETARY_OPTIONS.map((restriction) => (
             <FilterChip
               key={restriction.value}
               label={restriction.label}
@@ -186,7 +172,7 @@ export function RecipeFilters({
           <span>Ingredientes Clave</span>
         </div>
         <div className="flex flex-wrap gap-2">
-          {availableIngredients.slice(0, 12).map((ingredient) => (
+          {availableIngredients.map((ingredient) => (
             <FilterChip
               key={ingredient}
               label={ingredient}

@@ -1,5 +1,10 @@
 import { HomePageClient } from "@/components/home/HomePageClient";
 import { isAppAdmin, roleFromUnknown } from "@/lib/admin-role";
+import {
+  parseRecipeFilters,
+  recipeListInput,
+  searchParamsFromRecord,
+} from "@/lib/recipe-filters";
 import { absoluteUrl, websiteJsonLd } from "@/lib/seo";
 import { getServerSession } from "@/server/auth/session";
 import { api, HydrateClient } from "@/trpc/server";
@@ -22,11 +27,31 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function HomePage() {
-  await connection();
-  const session = await getServerSession();
+type HomePageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
 
-  void api.recipe.getFilterFacets.prefetch();
+export default async function HomePage({
+  searchParams,
+}: Readonly<HomePageProps>) {
+  await connection();
+  const [session, params] = await Promise.all([
+    getServerSession(),
+    searchParams,
+  ]);
+  const isLoggedIn = Boolean(session?.user);
+
+  // Awaited (not fire-and-forget) so the first page of recipes is in the
+  // server-rendered HTML and the card images start loading with the page.
+  // The input must match what HomePageClient derives from the same URL.
+  const filters = parseRecipeFilters(
+    searchParamsFromRecord(params),
+    isLoggedIn,
+  );
+  await Promise.all([
+    api.recipe.getAll.prefetchInfinite(recipeListInput(filters)),
+    api.recipe.getFilterFacets.prefetch(),
+  ]);
 
   return (
     <HydrateClient>
@@ -35,8 +60,9 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd()) }}
       />
       <HomePageClient
-        isLoggedIn={Boolean(session?.user)}
+        isLoggedIn={isLoggedIn}
         isAdmin={isAppAdmin(roleFromUnknown(session?.user))}
+        userName={session?.user.name || null}
       />
     </HydrateClient>
   );

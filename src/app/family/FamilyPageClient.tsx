@@ -118,7 +118,7 @@ export function FamilyPageClient({ currentUserId }: { currentUserId: string }) {
                         <option value="" disabled>Seleccionar usuario...</option>
                         {availableUsers.map((u) => (
                           <option key={u.id} value={u.id}>
-                            {u.name || u.email}
+                            {u.name || "Usuario sin nombre"}
                           </option>
                         ))}
                       </select>
