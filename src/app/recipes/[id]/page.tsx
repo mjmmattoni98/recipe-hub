@@ -9,21 +9,16 @@ import { DIFFICULTY_LABELS } from "@/lib/recipe-types";
 import { absoluteUrl } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 import { getServerSession } from "@/server/auth/session";
-import { api } from "@/trpc/server";
 import { Clock, ExternalLink, Flame, Users } from "lucide-react";
 import { type Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import { getRecipe } from "./get-recipe";
 import { connection } from "next/server";
-import { cache } from "react";
 
 type RecipePageProps = {
   params: Promise<{ id: string }>;
 };
-
-const getRecipe = cache(async (id: string) => {
-  return api.recipe.getById({ id });
-});
 
 export async function generateMetadata({
   params,
