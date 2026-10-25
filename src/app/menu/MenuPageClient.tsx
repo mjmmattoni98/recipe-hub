@@ -16,8 +16,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DIFFICULTY_LABELS } from "@/lib/recipe-types";
 import { cn } from "@/lib/utils";
-import { api } from "@/trpc/react";
+import { api, type RouterOutputs } from "@/trpc/react";
 import { addDays, format, isSameDay, startOfWeek, subDays } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -34,6 +35,7 @@ import { useState, useMemo } from "react";
 import { toast } from "sonner";
 
 type MealType = "BREAKFAST" | "LUNCH" | "DINNER" | "SNACK";
+type RecipeOption = RouterOutputs["recipe"]["getOptions"][number];
 const MEAL_TYPES: { id: MealType; label: string }[] = [
   { id: "BREAKFAST", label: "Desayuno" },
   { id: "LUNCH", label: "Almuerzo" },
@@ -46,7 +48,7 @@ function RecipeCombobox({
   disabled,
   onAdd,
 }: Readonly<{
-  recipes: any[];
+  recipes: RecipeOption[];
   disabled: boolean;
   onAdd: (recipeId: string) => void;
 }>) {
@@ -72,7 +74,7 @@ function RecipeCombobox({
                   <div className="relative h-6 w-6 rounded-md overflow-hidden shrink-0 border border-border/50">
                     <Image
                       src={selectedRecipe.image}
-                      alt={selectedRecipe.title}
+                      alt=""
                       fill
                       className="object-cover"
                       sizes="24px"
@@ -112,7 +114,7 @@ function RecipeCombobox({
                     <div className="relative h-8 w-8 rounded-md overflow-hidden shrink-0 mr-3 border border-border/50">
                       <Image
                         src={r.image}
-                        alt={r.title}
+                        alt=""
                         fill
                         className="object-cover"
                         sizes="32px"
@@ -131,6 +133,7 @@ function RecipeCombobox({
         variant="secondary"
         className="shrink-0 h-[42px] w-[42px] cursor-pointer"
         disabled={disabled || !value}
+        aria-label="Añadir al menú"
         onClick={() => {
           if (value) {
             onAdd(value);
@@ -138,7 +141,7 @@ function RecipeCombobox({
           }
         }}
       >
-        <Plus className="h-4 w-4" />
+        <Plus className="h-4 w-4" aria-hidden="true" />
       </Button>
     </div>
   );
@@ -196,8 +199,8 @@ export function MenuPageClient() {
       { enabled: !!activeFamilyId },
     );
 
-  const { data: recipesData } = api.recipe.getAll.useQuery({ limit: 100 });
-  const recipes = recipesData?.items;
+  // Only what the picker shows, and every recipe rather than the first page
+  const { data: recipes } = api.recipe.getOptions.useQuery();
 
   const schedulesByDay = useMemo(() => {
     if (!mSchedules) return {};
@@ -289,7 +292,7 @@ export function MenuPageClient() {
         >
           <ChevronLeft className="h-4 w-4 mr-2" /> Anterior
         </Button>
-        <span className="font-semibold px-4 capitalize">
+        <span className="font-semibold px-4">
           {format(currentWeekStart, "dd MMM", { locale: es })} -{" "}
           {format(weekEnd, "dd MMM", { locale: es })}
         </span>
@@ -318,7 +321,7 @@ export function MenuPageClient() {
               >
                 <CardHeader className="py-4">
                   <CardTitle className="flex justify-between items-center text-lg gap-2">
-                    <span className="capitalize truncate min-w-0">
+                    <span className="first-letter:uppercase truncate min-w-0">
                       {format(day, "EEEE, dd 'de' MMMM", { locale: es })}
                     </span>
                     {daySchedules.length > 0 && (
@@ -344,50 +347,56 @@ export function MenuPageClient() {
                             </span>
                             <div className="flex flex-col gap-1 mt-1">
                               {mealSchedules.map((s) => (
-                                <Link
-                                  href={`/recipes/${s.recipeId}`}
+                                // The title link stretches over the row so the
+                                // remove button can be its sibling, not nested
+                                // inside it
+                                <div
                                   key={s.id}
-                                  className="block group"
+                                  className="group relative flex items-center gap-3 bg-muted hover:bg-muted/80 p-2 rounded-lg border transition-colors has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-ring"
                                 >
-                                  <div className="flex items-center gap-3 bg-muted hover:bg-muted/80 p-2 rounded-lg border transition-colors cursor-pointer">
-                                    <div className="relative h-12 w-12 overflow-hidden rounded-md border border-border/50 shrink-0">
-                                      <Image
-                                        src={s.recipe.image}
-                                        alt={s.recipe.title}
-                                        fill
-                                        className="object-cover"
-                                        sizes="48px"
-                                      />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <p className="font-medium text-sm truncate pr-2 text-foreground">
-                                        {s.recipe.title}
-                                      </p>
-                                      <div className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
-                                        <span>{s.recipe.difficulty}</span>
-                                        <span>•</span>
-                                        <span>
-                                          {(s.recipe as any).prepTime +
-                                            (s.recipe as any).cookTime}{" "}
-                                          min
-                                        </span>
-                                      </div>
-                                    </div>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        removeSchedule.mutate({ id: s.id });
-                                      }}
-                                      className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8 rounded-md transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100 shrink-0"
-                                      disabled={removeSchedule.isPending}
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                  <div className="relative h-12 w-12 overflow-hidden rounded-md border border-border/50 shrink-0">
+                                    <Image
+                                      src={s.recipe.image}
+                                      alt=""
+                                      fill
+                                      className="object-cover"
+                                      sizes="48px"
+                                    />
                                   </div>
-                                </Link>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-medium text-sm truncate pr-2 text-foreground">
+                                      <Link
+                                        href={`/recipes/${s.recipeId}`}
+                                        className="after:absolute after:inset-0 focus-visible:outline-none"
+                                      >
+                                        {s.recipe.title}
+                                      </Link>
+                                    </p>
+                                    <div className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
+                                      <span>
+                                        {DIFFICULTY_LABELS[s.recipe.difficulty]}
+                                      </span>
+                                      <span aria-hidden="true">•</span>
+                                      <span>
+                                        {s.recipe.prepTime + s.recipe.cookTime}{" "}
+                                        min
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      removeSchedule.mutate({ id: s.id });
+                                    }}
+                                    aria-label={`Quitar ${s.recipe.title} del menú`}
+                                    className="relative z-10 text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8 rounded-md transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:focus-visible:opacity-100 shrink-0"
+                                    disabled={removeSchedule.isPending}
+                                  >
+                                    <Trash2 className="h-4 w-4" aria-hidden="true" />
+                                  </Button>
+                                </div>
                               ))}
                             </div>
                           </div>
@@ -433,7 +442,7 @@ export function MenuPageClient() {
                 <span className="text-muted-foreground text-sm font-normal block mb-1">
                   Añadir comida para
                 </span>
-                <span className="capitalize">
+                <span className="block first-letter:uppercase">
                   {format(selectedDate, "EEEE, dd MMM", { locale: es })}
                 </span>
               </CardTitle>

@@ -20,12 +20,12 @@ export default function NotFound() {
         <p className="font-body text-muted-foreground mb-8 text-lg">
           Parece que esta receta ha desaparecido de la cocina.
         </p>
-        <Link href="/">
-          <Button className="cursor-pointer gap-2 rounded-full" size="lg">
-            <Home className="h-4 w-4" />
+        <Button asChild className="cursor-pointer gap-2 rounded-full" size="lg">
+          <Link href="/">
+            <Home className="h-4 w-4" aria-hidden="true" />
             Volver a las Recetas
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </div>
     </main>
   );

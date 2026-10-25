@@ -15,7 +15,9 @@ export const familyRouter = createTRPCRouter({
       include: {
         members: {
           include: {
-            user: true,
+            user: {
+              select: { id: true, name: true, email: true, image: true },
+            },
           },
         },
       },
@@ -25,12 +27,13 @@ export const familyRouter = createTRPCRouter({
     });
   }),
 
+  // Lists everyone so a family admin can pick who to add. Emails stay out of
+  // this response: any signed-in user can call it.
   getAllUsers: protectedProcedure.query(async ({ ctx }) => {
     return ctx.db.user.findMany({
       select: {
         id: true,
         name: true,
-        email: true,
         image: true,
       },
       orderBy: {

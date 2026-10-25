@@ -6,7 +6,7 @@ import { TRPCReactProvider } from "@/trpc/react";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { type Metadata, type Viewport } from "next";
-import { DM_Sans, Fraunces, Geist } from "next/font/google";
+import { DM_Sans, Fraunces } from "next/font/google";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.siteUrl),
@@ -53,11 +53,6 @@ export const viewport: Viewport = {
   ],
 };
 
-const geist = Geist({
-  subsets: ["latin"],
-  variable: "--font-geist-sans",
-});
-
 const fraunces = Fraunces({
   subsets: ["latin"],
   variable: "--font-display",
@@ -76,7 +71,7 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${geist.variable} ${fraunces.variable} ${dmSans.variable}`}
+      className={`${fraunces.variable} ${dmSans.variable}`}
       suppressHydrationWarning
     >
       <body>

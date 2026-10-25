@@ -1,17 +1,18 @@
 import { PlatformIcon } from "@/components/PlatformIcon";
 import { CommentsSection } from "@/components/recipes/CommentsSection";
+import { CookingTools } from "@/components/recipes/CookingTools";
 import { RecipeAssistant } from "@/components/recipes/RecipeAssistant";
+import { RecipeIngredients } from "@/components/recipes/RecipeIngredients";
 import { RecipePageActions } from "@/components/recipes/RecipePageActions";
 import { BackButton } from "@/components/BackButton";
-import { Button } from "@/components/ui/button";
+import { DIFFICULTY_LABELS } from "@/lib/recipe-types";
 import { absoluteUrl } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 import { getServerSession } from "@/server/auth/session";
 import { api } from "@/trpc/server";
-import { Clock, Edit, ExternalLink, Flame, Users } from "lucide-react";
+import { Clock, ExternalLink, Flame, Users } from "lucide-react";
 import { type Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { cache } from "react";
@@ -72,13 +73,14 @@ export default async function RecipePage({
 }: Readonly<RecipePageProps>) {
   await connection();
   const { id } = await params;
-  const recipe = await getRecipe(id);
+  const [recipe, session] = await Promise.all([
+    getRecipe(id),
+    getServerSession(),
+  ]);
 
   if (!recipe) {
     notFound();
   }
-
-  const session = await getServerSession();
 
   const difficultyClass = {
     Easy: "badge-easy",
@@ -94,12 +96,6 @@ export default async function RecipePage({
       }[recipe.videoSource.platform]
     : null;
 
-  const difficultyLabels = {
-    Easy: "Fácil",
-    Medium: "Media",
-    Hard: "Difícil",
-  };
-
   const recipeJsonLd = {
     "@context": "https://schema.org",
     "@type": "Recipe",
@@ -108,7 +104,7 @@ export default async function RecipePage({
     image: [recipe.image],
     url: absoluteUrl(`/recipes/${recipe.id}`),
     recipeCuisine: recipe.cuisine,
-    recipeCategory: difficultyLabels[recipe.difficulty],
+    recipeCategory: DIFFICULTY_LABELS[recipe.difficulty],
     prepTime: `PT${recipe.prepTime}M`,
     cookTime: `PT${recipe.cookTime}M`,
     totalTime: `PT${recipe.prepTime + recipe.cookTime}M`,
@@ -135,7 +131,7 @@ export default async function RecipePage({
           alt={recipe.title}
           fill
           className="object-cover"
-          priority
+          preload
           sizes="100vw"
         />
         <div className="from-background via-background/40 absolute inset-0 bg-linear-to-t to-transparent" />
@@ -159,7 +155,7 @@ export default async function RecipePage({
               {recipe.cuisine}
             </span>
             <span className={cn("badge-difficulty", difficultyClass)}>
-              {difficultyLabels[recipe.difficulty]}
+              {DIFFICULTY_LABELS[recipe.difficulty]}
             </span>
           </div>
 
@@ -229,25 +225,17 @@ export default async function RecipePage({
             </a>
           ) : null}
 
+          <CookingTools
+            recipeId={recipe.id}
+            isLoggedIn={Boolean(session?.user)}
+            initialCooked={recipe.cookedByMe}
+          />
+
           <div className="mt-10 grid gap-10 md:grid-cols-2">
-            <section>
-              <h2 className="font-display text-foreground mb-5 text-2xl font-semibold">
-                Ingredientes
-              </h2>
-              <ul className="space-y-2">
-                {recipe.ingredients.map((ingredient, index) => (
-                  <li
-                    key={index}
-                    className="font-body text-foreground hover:bg-muted/50 flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors"
-                  >
-                    <span className="bg-primary/20 flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
-                      <span className="bg-primary h-1.5 w-1.5 rounded-full" />
-                    </span>
-                    <span className="capitalize">{ingredient}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
+            <RecipeIngredients
+              ingredients={recipe.ingredients}
+              servings={recipe.servings}
+            />
 
             <section>
               <h2 className="font-display text-foreground mb-5 text-2xl font-semibold">
@@ -279,7 +267,7 @@ export default async function RecipePage({
                 {recipe.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="bg-secondary text-secondary-foreground rounded-full px-3.5 py-1.5 text-xs font-medium capitalize"
+                    className="bg-secondary text-secondary-foreground rounded-full px-3.5 py-1.5 text-xs font-medium first-letter:uppercase"
                   >
                     #{tag}
                   </span>
