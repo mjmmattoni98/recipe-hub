@@ -1,5 +1,6 @@
 "use client";
 
+import { AssistantAnswer } from "@/components/recipes/AssistantAnswer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -101,14 +102,7 @@ export function RecipeAssistant({ recipeId }: Readonly<{ recipeId: string }>) {
           Pensando…
         </p>
       ) : null}
-      {!ask.isPending && answer ? (
-        <p
-          className="bg-muted/50 mt-4 rounded-xl px-4 py-3 text-sm leading-relaxed"
-          aria-live="polite"
-        >
-          {answer}
-        </p>
-      ) : null}
+      {!ask.isPending && answer ? <AssistantAnswer answer={answer} /> : null}
     </section>
   );
 }
