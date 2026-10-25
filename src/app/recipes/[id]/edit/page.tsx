@@ -2,19 +2,14 @@ import { EditRecipeClient } from "@/components/recipes/EditRecipeClient";
 import { type RecipeFormValues } from "@/components/RecipeForm";
 import { absoluteUrl } from "@/lib/seo";
 import { requireServerSession } from "@/server/auth/require-session";
-import { api } from "@/trpc/server";
 import { type Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getRecipe } from "../get-recipe";
 import { connection } from "next/server";
-import { cache } from "react";
 
 type EditRecipePageProps = {
   params: Promise<{ id: string }>;
 };
-
-const getRecipe = cache(async (id: string) => {
-  return api.recipe.getById({ id });
-});
 
 export async function generateMetadata({
   params,
