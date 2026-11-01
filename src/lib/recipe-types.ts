@@ -4,6 +4,7 @@ import type {
   VideoSource,
   VideoPlatform,
 } from "../../generated/prisma/client";
+import type { RecipeAppliance } from "./recipe-appliances";
 
 // Recipe with VideoSource relation included and the viewer's own cooked status
 export type RecipeWithVideoSource = Recipe & {
@@ -24,6 +25,7 @@ export const DIFFICULTY_LABELS: Record<RecipeDifficulty, string> = {
 export type CookingStatus = "all" | "cooked" | "wantToTry";
 
 export type FilterCriteria = {
+  appliance: RecipeAppliance | null;
   cuisine: string[];
   difficulty: RecipeDifficulty[];
   ingredients: string[];

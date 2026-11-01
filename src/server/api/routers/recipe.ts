@@ -1,3 +1,5 @@
+import { recipeApplianceSchema } from "@/lib/recipe-appliances";
+import { recipeApplianceCondition } from "@/server/recipe-appliance";
 import {
   createTRPCRouter,
   protectedProcedure,
@@ -17,6 +19,7 @@ const FACET_INGREDIENT_LIMIT = 12;
 const recipeFilterInput = z.object({
   cursor: z.string().nullish(),
   limit: z.number().int().min(1).max(50).default(12),
+  appliance: recipeApplianceSchema.optional(),
   searchQuery: z.string().optional(),
   cuisine: z.array(z.string()).optional(),
   difficulty: z.array(z.enum(["Easy", "Medium", "Hard"])).optional(),
@@ -52,11 +55,13 @@ export const recipeRouter = createTRPCRouter({
     .query(async ({ ctx, input: filters }) => {
       const limit = filters.limit;
 
-      // Two filters have no native Prisma operator: substring matching inside
-      // the tags array, and comparing against prepTime + cookTime. Resolve
-      // them to a set of ids with one raw query and fold that into the main
+      // Appliance aliases, tag substring matching and combined time need SQL.
+      // Resolve them to a set of ids with one raw query and fold that into the main
       // (fully typed) filtered/paginated query.
       const rawConditions: Prisma.Sql[] = [];
+      if (filters.appliance) {
+        rawConditions.push(recipeApplianceCondition(filters.appliance));
+      }
       if (filters.dietaryRestrictions?.length) {
         rawConditions.push(Prisma.sql`(
           SELECT bool_and(
@@ -130,8 +135,10 @@ export const recipeRouter = createTRPCRouter({
 
       let nextCursor: string | undefined;
       if (recipes.length > limit) {
-        const nextItem = recipes.pop();
-        nextCursor = nextItem?.id;
+        recipes.pop();
+        // The next query skips its cursor, so use the last returned recipe,
+        // not the extra lookahead row (which has not been shown yet).
+        nextCursor = recipes.at(-1)?.id;
       }
 
       return {

@@ -1,3 +1,4 @@
+import { recipeApplianceSchema } from "@/lib/recipe-appliances";
 import {
   DIFFICULTY_LABELS,
   type CookingStatus,
@@ -35,6 +36,7 @@ export const COOKING_STATUS_OPTIONS: { label: string; value: CookingStatus }[] =
   ];
 
 const PARAMS = {
+  appliance: "appliance",
   search: "q",
   cuisine: "cuisine",
   difficulty: "difficulty",
@@ -45,6 +47,7 @@ const PARAMS = {
 } as const;
 
 export const EMPTY_FILTERS: FilterCriteria = {
+  appliance: null,
   cuisine: [],
   difficulty: [],
   ingredients: [],
@@ -83,8 +86,12 @@ export function parseRecipeFilters(
 ): FilterCriteria {
   const maxTotalTime = Number(params.get(PARAMS.maxTotalTime));
   const status = params.get(PARAMS.status);
+  const appliance = recipeApplianceSchema.safeParse(
+    params.get(PARAMS.appliance),
+  );
 
   return {
+    appliance: appliance.success ? appliance.data : null,
     searchQuery: params.get(PARAMS.search)?.trim() ?? "",
     cuisine: uniqueValues(params.getAll(PARAMS.cuisine)),
     difficulty: uniqueValues(params.getAll(PARAMS.difficulty)).filter(
@@ -104,6 +111,8 @@ export function parseRecipeFilters(
 export function recipeFiltersToSearchParams(filters: FilterCriteria) {
   const params = new URLSearchParams();
   const searchQuery = filters.searchQuery.trim();
+  if (filters.appliance !== null)
+    params.set(PARAMS.appliance, filters.appliance);
   if (searchQuery) params.set(PARAMS.search, searchQuery);
   for (const value of filters.cuisine) params.append(PARAMS.cuisine, value);
   for (const value of filters.difficulty) {
@@ -129,6 +138,7 @@ export function recipeFiltersToSearchParams(filters: FilterCriteria) {
 export function recipeListInput(filters: FilterCriteria) {
   return {
     limit: RECIPE_PAGE_SIZE,
+    appliance: filters.appliance ?? undefined,
     searchQuery: filters.searchQuery.trim() || undefined,
     cuisine: filters.cuisine.length ? filters.cuisine : undefined,
     difficulty: filters.difficulty.length ? filters.difficulty : undefined,
@@ -144,6 +154,7 @@ export function recipeListInput(filters: FilterCriteria) {
 // Counts everything the filter panel controls; the search box is separate.
 export function countActiveFilters(filters: FilterCriteria) {
   return (
+    (filters.appliance === null ? 0 : 1) +
     filters.cuisine.length +
     filters.difficulty.length +
     filters.ingredients.length +
