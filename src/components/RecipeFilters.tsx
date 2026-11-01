@@ -1,3 +1,4 @@
+import { APPLIANCE_OPTIONS } from "@/lib/recipe-appliances";
 import {
   COOKING_STATUS_OPTIONS,
   countActiveFilters,
@@ -11,7 +12,15 @@ import type {
   FilterCriteria,
   RecipeDifficulty,
 } from "@/lib/recipe-types";
-import { Bookmark, ChefHat, Clock, Globe, Heart, Leaf } from "lucide-react";
+import {
+  Bookmark,
+  ChefHat,
+  Clock,
+  CookingPot,
+  Globe,
+  Heart,
+  Leaf,
+} from "lucide-react";
 import { FilterChip } from "./FilterChip";
 
 interface RecipeFiltersProps {
@@ -79,6 +88,24 @@ export function RecipeFilters({
 
   return (
     <div className="space-y-6">
+      <div className="space-y-3" role="group" aria-label="Aparato">
+        <div className="text-foreground flex items-center gap-2 text-sm font-medium">
+          <CookingPot className="text-primary h-4 w-4" aria-hidden="true" />
+          <span>Aparato</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {APPLIANCE_OPTIONS.map((option) => (
+            <FilterChip
+              key={option.label}
+              label={option.label}
+              isActive={filters.appliance === option.value}
+              onClick={() =>
+                onFilterChange({ ...filters, appliance: option.value })
+              }
+            />
+          ))}
+        </div>
+      </div>
       {isLoggedIn ? (
         <div className="space-y-3">
           <div className="text-foreground flex items-center gap-2 text-sm font-medium">

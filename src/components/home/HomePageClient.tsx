@@ -22,6 +22,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { authClient } from "@/lib/auth-client";
+import { APPLIANCE_LABELS } from "@/lib/recipe-appliances";
 import {
   COOKING_STATUS_OPTIONS,
   countActiveFilters,
@@ -289,6 +290,14 @@ function ActiveFilterPills({
     values.filter((item) => item !== value);
 
   const pills: { key: string; label: string; next: FilterCriteria }[] = [];
+
+  if (filters.appliance !== null) {
+    pills.push({
+      key: "appliance",
+      label: APPLIANCE_LABELS[filters.appliance],
+      next: { ...filters, appliance: null },
+    });
+  }
 
   if (filters.cookingStatus !== "all") {
     pills.push({
