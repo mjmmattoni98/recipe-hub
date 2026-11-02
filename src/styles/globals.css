@@ -3,17 +3,29 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@theme {
-  --font-sans:
-    var(--font-body), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
-    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-}
+/*
+ * Recipe Hub — "cuaderno de cocina"
+ *
+ * A cookbook on the counter: warm paper, dark ink, an olive green for the
+ * things you can press and a saffron yellow reserved for "you cooked this".
+ * Headlines are set in a serif, metadata (times, servings, step numbers) in
+ * a small monospace so it reads like the margin notes of a recipe card.
+ * Surfaces are separated by hairlines rather than shadows.
+ */
 
 @theme inline {
+  --font-sans:
+    var(--font-geist), ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
+  --font-display: var(--font-instrument-serif), ui-serif, Georgia, serif;
+  --font-mono:
+    var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -28,6 +40,8 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-highlight: var(--highlight);
+  --color-highlight-foreground: var(--highlight-foreground);
   --color-destructive: var(--destructive);
   --color-border: var(--border);
   --color-input: var(--input);
@@ -45,234 +59,145 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-
-  /* Custom Fonts — Distinctive choices */
-  --font-display: "Fraunces", serif;
-  --font-body: "DM Sans", sans-serif;
-
-  /* Custom Gradients */
-  --gradient-warm: linear-gradient(
-    135deg,
-    oklch(0.65 0.18 35) 0%,
-    oklch(0.72 0.14 50) 100%
-  );
-  --gradient-sage: linear-gradient(
-    135deg,
-    oklch(0.55 0.12 145) 0%,
-    oklch(0.6 0.1 155) 100%
-  );
-  --gradient-hero: linear-gradient(
-    180deg,
-    oklch(0.97 0.02 50) 0%,
-    oklch(0.95 0.03 45) 100%
-  );
 }
 
-@utility font-display {
-  font-family: var(--font-display);
-}
-
-@utility font-body {
-  font-family: var(--font-body);
-}
-
-@utility gradient-warm {
-  background: var(--gradient-warm);
-}
-
-@utility gradient-sage {
-  background: var(--gradient-sage);
-}
-
-@utility gradient-hero {
-  background: var(--gradient-hero);
-}
-
-@utility grain {
-  position: relative;
+/* Small uppercase monospace label: the "margin note" voice of the UI */
+@utility eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 :root {
-  --radius: 0.625rem;
+  --radius: 0.5rem;
 
-  /* Light Theme — Warm, appetizing palette */
-  --background: oklch(0.985 0.005 50);
-  --foreground: oklch(0.15 0.02 50);
+  /* Paper and ink */
+  --background: oklch(0.975 0.008 85);
+  --foreground: oklch(0.22 0.015 60);
 
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.15 0.02 50);
+  --card: oklch(0.99 0.005 85);
+  --card-foreground: oklch(0.22 0.015 60);
 
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0.02 50);
+  --popover: oklch(0.99 0.005 85);
+  --popover-foreground: oklch(0.22 0.015 60);
 
-  --primary: oklch(0.6 0.18 35);
-  --primary-foreground: oklch(0.985 0.005 50);
+  /* Olive */
+  --primary: oklch(0.46 0.09 128);
+  --primary-foreground: oklch(0.985 0.006 85);
 
-  --secondary: oklch(0.95 0.04 40);
-  --secondary-foreground: oklch(0.4 0.08 35);
+  --secondary: oklch(0.94 0.014 85);
+  --secondary-foreground: oklch(0.3 0.02 60);
 
-  --muted: oklch(0.97 0.01 50);
-  --muted-foreground: oklch(0.5 0.02 50);
+  --muted: oklch(0.945 0.012 85);
+  --muted-foreground: oklch(0.47 0.015 60);
 
-  --accent: oklch(0.96 0.03 40);
-  --accent-foreground: oklch(0.6 0.18 35);
+  --accent: oklch(0.935 0.03 122);
+  --accent-foreground: oklch(0.32 0.07 128);
 
-  --destructive: oklch(0.577 0.245 27.325);
+  /* Saffron — only for "cooked" and the current day */
+  --highlight: oklch(0.85 0.14 84);
+  --highlight-foreground: oklch(0.26 0.04 70);
 
-  --border: oklch(0.92 0.01 50);
-  --input: oklch(0.92 0.01 50);
-  --ring: oklch(0.6 0.18 35);
+  /* Tomato */
+  --destructive: oklch(0.55 0.19 29);
 
-  /* Shadows */
-  --shadow-card: 0 1px 3px rgb(0 0 0 / 0.04), 0 4px 12px rgb(0 0 0 / 0.06);
-  --shadow-card-hover:
-    0 4px 12px rgb(0 0 0 / 0.08), 0 12px 28px rgb(0 0 0 / 0.1);
-  --shadow-elevated: 0 8px 30px rgb(0 0 0 / 0.08), 0 2px 8px rgb(0 0 0 / 0.04);
+  --border: oklch(0.885 0.012 80);
+  --input: oklch(0.86 0.014 80);
+  --ring: oklch(0.46 0.09 128);
 
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.46 0.09 128);
+  --chart-2: oklch(0.85 0.14 84);
+  --chart-3: oklch(0.55 0.19 29);
+  --chart-4: oklch(0.6 0.06 230);
+  --chart-5: oklch(0.47 0.015 60);
+
+  --sidebar: var(--card);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
 }
 
 .dark {
   color-scheme: dark;
 
-  /* Dark Theme — Deep, rich and cozy */
-  --background: oklch(0.12 0.01 40);
-  --foreground: oklch(0.98 0.005 50);
+  /* Kitchen at night: charcoal paper, chalk ink */
+  --background: oklch(0.175 0.008 70);
+  --foreground: oklch(0.94 0.01 85);
 
-  --card: oklch(0.17 0.015 40);
-  --card-foreground: oklch(0.98 0.005 50);
+  --card: oklch(0.21 0.009 70);
+  --card-foreground: oklch(0.94 0.01 85);
 
-  --popover: oklch(0.17 0.015 40);
-  --popover-foreground: oklch(0.98 0.005 50);
+  --popover: oklch(0.22 0.009 70);
+  --popover-foreground: oklch(0.94 0.01 85);
 
-  --primary: oklch(0.65 0.2 35);
-  --primary-foreground: oklch(0.12 0.01 40);
+  --primary: oklch(0.76 0.11 124);
+  --primary-foreground: oklch(0.2 0.03 125);
 
-  --secondary: oklch(0.25 0.03 35);
-  --secondary-foreground: oklch(0.98 0.005 50);
+  --secondary: oklch(0.26 0.01 70);
+  --secondary-foreground: oklch(0.9 0.01 85);
 
-  --muted: oklch(0.2 0.01 40);
-  --muted-foreground: oklch(0.7 0.02 50);
+  --muted: oklch(0.245 0.008 70);
+  --muted-foreground: oklch(0.7 0.012 80);
 
-  --accent: oklch(0.22 0.02 35);
-  --accent-foreground: oklch(0.98 0.005 50);
+  --accent: oklch(0.29 0.035 124);
+  --accent-foreground: oklch(0.88 0.07 124);
 
-  --destructive: oklch(0.704 0.191 22.216);
+  --highlight: oklch(0.8 0.13 84);
+  --highlight-foreground: oklch(0.21 0.03 70);
 
-  --border: oklch(0.25 0.01 40);
-  --input: oklch(0.25 0.01 40);
-  --ring: oklch(0.556 0 0);
+  --destructive: oklch(0.67 0.17 28);
 
-  --shadow-card: 0 1px 3px rgb(0 0 0 / 0.2), 0 4px 12px rgb(0 0 0 / 0.25);
-  --shadow-card-hover:
-    0 4px 12px rgb(0 0 0 / 0.3), 0 12px 28px rgb(0 0 0 / 0.35);
-  --shadow-elevated: 0 8px 30px rgb(0 0 0 / 0.3), 0 2px 8px rgb(0 0 0 / 0.2);
+  --border: oklch(0.3 0.01 70);
+  --input: oklch(0.35 0.012 70);
+  --ring: oklch(0.76 0.11 124);
 
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.76 0.11 124);
+  --chart-2: oklch(0.8 0.13 84);
+  --chart-3: oklch(0.67 0.17 28);
+  --chart-4: oklch(0.7 0.07 230);
+  --chart-5: oklch(0.7 0.012 80);
 }
 
 @layer base {
   html {
     color-scheme: light;
-    -webkit-tap-highlight-color: rgb(0 0 0 / 10%);
+    -webkit-tap-highlight-color: transparent;
   }
 
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
-    @apply bg-background text-foreground font-body antialiased;
+    @apply bg-background text-foreground font-sans antialiased;
     touch-action: manipulation;
+  }
+
+  ::selection {
+    background: var(--highlight);
+    color: var(--highlight-foreground);
   }
 }
 
-@layer components {
-  .recipe-card {
-    @apply bg-card relative overflow-hidden rounded-2xl transition-all duration-500 ease-out;
-    box-shadow: var(--shadow-card);
-    content-visibility: auto;
-    contain-intrinsic-size: 420px;
+/* Page gutter shared by every screen so edges line up between pages */
+@utility page {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 80rem;
+  padding-inline: 1rem;
+
+  @media (width >= 40rem) {
+    padding-inline: 1.5rem;
   }
 
-  .recipe-card:hover {
-    box-shadow: var(--shadow-card-hover);
-    transform: translateY(-6px) scale(1.01);
-  }
-
-  .badge-difficulty {
-    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold tracking-wide;
-  }
-
-  .badge-easy {
-    @apply bg-emerald-100 text-emerald-700;
-  }
-
-  :is(.dark) .badge-easy {
-    @apply bg-emerald-900/40 text-emerald-400;
-  }
-
-  .badge-medium {
-    @apply bg-amber-100 text-amber-700;
-  }
-
-  :is(.dark) .badge-medium {
-    @apply bg-amber-900/40 text-amber-400;
-  }
-
-  .badge-hard {
-    @apply bg-rose-100 text-rose-700;
-  }
-
-  :is(.dark) .badge-hard {
-    @apply bg-rose-900/40 text-rose-400;
-  }
-
-  .filter-chip {
-    @apply inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium transition-all duration-300;
-    @apply border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-primary hover:shadow-sm;
-  }
-
-  .filter-chip.active {
-    @apply bg-primary text-primary-foreground border-primary shadow-sm;
-  }
-
-  .platform-badge {
-    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-200;
-  }
-
-  .platform-youtube {
-    @apply bg-red-500/10 text-red-600 hover:bg-red-500/20;
-  }
-
-  .platform-instagram {
-    @apply bg-pink-500/10 text-pink-600 hover:bg-pink-500/20;
-  }
-
-  .platform-tiktok {
-    @apply bg-foreground/10 text-foreground hover:bg-foreground/20;
+  @media (width >= 64rem) {
+    padding-inline: 2rem;
   }
 }

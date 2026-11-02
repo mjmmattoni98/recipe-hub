@@ -47,13 +47,15 @@ export function AiDraftDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button type="button" variant="outline">
-          <Wand2 className="mr-2 h-4 w-4" />
+          <Wand2 aria-hidden="true" />
           Generar con IA
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Generar receta con IA</DialogTitle>
+          <DialogTitle className="font-display text-3xl font-normal tracking-tight">
+            Generar receta con IA
+          </DialogTitle>
           <DialogDescription>
             Pega el texto de una receta: un pie de foto, una nota o unos pasos
             sueltos. Se envía a OpenRouter con un modelo gratuito y solo está

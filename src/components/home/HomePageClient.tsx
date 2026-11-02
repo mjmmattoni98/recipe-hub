@@ -3,25 +3,19 @@
 import { RecipeCard } from "@/components/RecipeCard";
 import { RecipeFilters } from "@/components/RecipeFilters";
 import { SearchBar } from "@/components/SearchBar";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLoadMoreOnScroll } from "@/hooks/use-load-more-on-scroll";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
+  SheetDescription,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { authClient } from "@/lib/auth-client";
 import { APPLIANCE_LABELS } from "@/lib/recipe-appliances";
 import {
   COOKING_STATUS_OPTIONS,
@@ -38,36 +32,19 @@ import { DIFFICULTY_LABELS, type FilterCriteria } from "@/lib/recipe-types";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { keepPreviousData } from "@tanstack/react-query";
-import {
-  CalendarDays,
-  ChefHat,
-  CircleUser,
-  Filter,
-  LogOut,
-  Moon,
-  Plus,
-  Shield,
-  SlidersHorizontal,
-  Sun,
-  UsersRound,
-  UtensilsCrossed,
-  X,
-  type LucideIcon,
-} from "lucide-react";
-import { useTheme } from "next-themes";
+import { SlidersHorizontal, X } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 type HomePageClientProps = {
   isLoggedIn: boolean;
-  isAdmin: boolean;
   userName: string | null;
 };
 
 const SEARCH_DEBOUNCE_MS = 400;
-// Matches the xl:grid-cols-3 grid: the first row is above the fold
-const EAGER_IMAGE_COUNT = 3;
+// Matches the xl:grid-cols-4 grid: the first row is above the fold
+const EAGER_IMAGE_COUNT = 4;
 
 // Filters live in the URL so they survive opening a recipe and coming back,
 // and so a filtered view can be shared. replaceState (rather than
@@ -90,193 +67,6 @@ function useUrlRecipeFilters(isLoggedIn: boolean) {
   }, []);
 
   return [filters, setFilters] as const;
-}
-
-function NavLink({
-  href,
-  label,
-  icon: Icon,
-  primary = false,
-}: Readonly<{
-  href: string;
-  label: string;
-  icon: LucideIcon;
-  primary?: boolean;
-}>) {
-  return (
-    <Button
-      asChild
-      size="sm"
-      variant={primary ? "default" : "outline"}
-      className="gap-2 rounded-full"
-    >
-      <Link href={href}>
-        <Icon className="h-4 w-4" aria-hidden="true" />
-        {/* Icon-only on phones, but the link keeps its accessible name */}
-        <span className="sr-only sm:not-sr-only">{label}</span>
-      </Link>
-    </Button>
-  );
-}
-
-function AccountMenu({
-  isAdmin,
-  userName,
-  onSignOut,
-}: Readonly<{
-  isAdmin: boolean;
-  userName: string | null;
-  onSignOut: () => Promise<void>;
-}>) {
-  const { resolvedTheme, setTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-muted-foreground hover:text-foreground cursor-pointer rounded-full"
-          aria-label="Cuenta"
-        >
-          <CircleUser className="h-5 w-5" aria-hidden="true" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        {userName ? (
-          <>
-            <DropdownMenuLabel className="truncate">
-              {userName}
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-          </>
-        ) : null}
-        {isAdmin ? (
-          <DropdownMenuItem asChild>
-            <Link href="/admin">
-              <Shield aria-hidden="true" />
-              Cuentas
-            </Link>
-          </DropdownMenuItem>
-        ) : null}
-        <DropdownMenuItem onSelect={() => setTheme(isDark ? "light" : "dark")}>
-          {isDark ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
-          {isDark ? "Modo claro" : "Modo oscuro"}
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => void onSignOut()}>
-          <LogOut aria-hidden="true" />
-          Cerrar Sesión
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
-function AuthenticatedActions({
-  isAdmin,
-  userName,
-  onSignOut,
-}: Readonly<{
-  isAdmin: boolean;
-  userName: string | null;
-  onSignOut: () => Promise<void>;
-}>) {
-  return (
-    <>
-      <NavLink href="/menu" label="Menú" icon={CalendarDays} />
-      <NavLink href="/family" label="Familia" icon={UsersRound} />
-      <NavLink href="/new-recipe" label="Nueva Receta" icon={Plus} primary />
-      <AccountMenu
-        isAdmin={isAdmin}
-        userName={userName}
-        onSignOut={onSignOut}
-      />
-    </>
-  );
-}
-
-function GuestActions() {
-  return (
-    <>
-      <ThemeToggle />
-      <Button
-        asChild
-        size="sm"
-        variant="outline"
-        className="cursor-pointer rounded-full"
-      >
-        <Link href="/sign-in">Iniciar Sesión</Link>
-      </Button>
-    </>
-  );
-}
-
-function Hero({
-  isLoggedIn,
-  searchValue,
-  onSearchChange,
-}: Readonly<{
-  isLoggedIn: boolean;
-  searchValue: string;
-  onSearchChange: (value: string) => void;
-}>) {
-  const searchBar = <SearchBar value={searchValue} onChange={onSearchChange} />;
-
-  // Signed-in users come back to find a recipe, not to read the pitch, so
-  // they get a compact header that keeps the grid near the top.
-  if (isLoggedIn) {
-    return (
-      <header className="relative overflow-hidden">
-        <div className="from-primary/6 via-secondary/50 to-background absolute inset-0 bg-linear-to-b" />
-        <div className="relative container mx-auto px-4 pt-10 pb-4 md:pt-14 md:pb-6">
-          <div className="mx-auto max-w-3xl space-y-6 text-center">
-            <h1 className="font-display text-foreground text-3xl leading-tight font-bold tracking-tight text-balance md:text-5xl">
-              ¿Qué cocinamos <span className="text-primary italic">hoy</span>?
-            </h1>
-            <div className="flex justify-center">{searchBar}</div>
-          </div>
-        </div>
-      </header>
-    );
-  }
-
-  return (
-    <header className="relative overflow-hidden">
-      <div className="from-primary/6 via-secondary/50 to-background absolute inset-0 bg-linear-to-b" />
-      <div className="from-primary/4 to-accent/3 absolute inset-0 bg-linear-to-r" />
-
-      <div className="bg-primary/10 absolute -top-24 -right-24 h-96 w-96 rounded-full blur-3xl" />
-      <div className="bg-accent/10 absolute -bottom-32 -left-32 h-80 w-80 rounded-full blur-3xl" />
-
-      <div className="relative container mx-auto px-4 pt-16 pb-20 md:pt-24 md:pb-28">
-        <div className="mx-auto max-w-3xl space-y-8 text-center">
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <span className="font-body bg-primary/10 text-primary border-primary/20 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium">
-              <UtensilsCrossed className="h-3.5 w-3.5" aria-hidden="true" />
-              Tu Colección de Recetas
-            </span>
-          </div>
-
-          <h1 className="font-display text-foreground animate-in fade-in slide-in-from-bottom-6 text-5xl leading-[1.1] font-bold tracking-tight text-balance delay-100 duration-700 md:text-7xl">
-            Descubre Recetas{" "}
-            <span className="text-primary italic">Deliciosas</span>
-          </h1>
-
-          <p className="font-body text-muted-foreground animate-in fade-in slide-in-from-bottom-6 mx-auto max-w-xl text-lg leading-relaxed delay-200 duration-700">
-            Explora una colección seleccionada de recetas de todo el mundo.
-            Filtra por tipo de cocina, dificultad o ingredientes para encontrar
-            tu próxima aventura culinaria.
-          </p>
-
-          <div className="animate-in fade-in slide-in-from-bottom-8 flex justify-center pt-4 delay-300 duration-700">
-            {searchBar}
-          </div>
-        </div>
-      </div>
-    </header>
-  );
 }
 
 function ActiveFilterPills({
@@ -356,22 +146,22 @@ function ActiveFilterPills({
 
   return (
     <ul
-      className="mb-8 flex flex-wrap items-center gap-2"
+      className="flex flex-wrap items-center gap-2"
       aria-label="Filtros activos"
     >
       {pills.map((pill) => (
         <li
           key={pill.key}
-          className="bg-primary/10 text-primary inline-flex items-center gap-1 rounded-full py-1 pr-1 pl-3 text-xs font-medium"
+          className="bg-accent text-accent-foreground inline-flex h-8 items-center gap-1 rounded-full pr-1 pl-3 text-sm first-letter:uppercase"
         >
           {pill.label}
           <button
             type="button"
             onClick={() => onFilterChange(pill.next)}
             aria-label={`Quitar filtro ${pill.label}`}
-            className="hover:bg-primary/20 cursor-pointer rounded-full p-1 transition-colors"
+            className="hover:bg-foreground/10 flex size-6 cursor-pointer items-center justify-center rounded-full transition-colors"
           >
-            <X className="h-3 w-3" aria-hidden="true" />
+            <X className="size-3.5" aria-hidden="true" />
           </button>
         </li>
       ))}
@@ -384,21 +174,67 @@ function ActiveFilterPills({
               searchQuery: filters.searchQuery,
             })
           }
-          className="text-muted-foreground hover:text-foreground ml-1 cursor-pointer text-xs underline underline-offset-2 transition-colors"
+          className="text-muted-foreground hover:text-foreground ml-1 cursor-pointer text-sm underline decoration-1 underline-offset-4 transition-colors"
         >
-          Borrar filtros
+          Quitar todos
         </button>
       </li>
     </ul>
   );
 }
 
+function ResultCount({
+  shown,
+  total,
+}: Readonly<{ shown: number; total: number | undefined }>) {
+  if (total === undefined) return null;
+
+  if (shown < total) {
+    return (
+      <>
+        <span className="text-foreground">{shown}</span> de{" "}
+        <span className="text-foreground">{total}</span> recetas
+      </>
+    );
+  }
+
+  return (
+    <>
+      <span className="text-foreground">{total}</span>{" "}
+      {total === 1 ? "receta" : "recetas"}
+    </>
+  );
+}
+
+const RECIPE_GRID_CLASS =
+  "grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4";
+// One row on the widest grid: enough to show more is coming without
+// pushing the real cards around when they land.
+const NEXT_PAGE_SKELETON_COUNT = 4;
+
+function RecipeCardSkeletons({ count }: Readonly<{ count: number }>) {
+  return Array.from({ length: count }).map((_, i) => (
+    <div key={`recipe-skeleton-${i}`} aria-hidden="true">
+      <Skeleton className="aspect-4/3 w-full rounded-md" />
+      <Skeleton className="mt-4 h-3 w-1/2" />
+      <Skeleton className="mt-3 h-7 w-4/5" />
+      <Skeleton className="mt-3 h-4 w-full" />
+    </div>
+  ));
+}
+
+function RecipeGridSkeleton() {
+  return (
+    <div className={RECIPE_GRID_CLASS}>
+      <RecipeCardSkeletons count={RECIPE_PAGE_SIZE} />
+    </div>
+  );
+}
+
 export function HomePageClient({
   isLoggedIn,
-  isAdmin,
   userName,
 }: Readonly<HomePageClientProps>) {
-  const router = useRouter();
   const [filters, setFilters] = useUrlRecipeFilters(isLoggedIn);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   // The input updates on every keystroke; the URL (and so the query) only
@@ -425,6 +261,7 @@ export function HomePageClient({
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isFetchNextPageError,
   } = api.recipe.getAll.useInfiniteQuery(queryInput, {
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     // Keep showing the previous results while a new filter loads instead
@@ -442,78 +279,84 @@ export function HomePageClient({
   );
   const total = data?.pages[0]?.total;
 
+  // A failed page stops the automatic loading; the retry button takes over
+  // so a flaky connection can't loop requests. Placeholder data is the
+  // previous filter's list, so it must not page in more of it.
+  const setLoadMoreSentinel = useLoadMoreOnScroll({
+    enabled:
+      hasNextPage &&
+      !isFetchingNextPage &&
+      !isFetchNextPageError &&
+      !isPlaceholderData,
+    onLoadMore: () => void fetchNextPage(),
+  });
+
   const activeFilterCount = countActiveFilters(filters);
+  const firstName = userName?.split(/\s+/)[0];
 
   const clearEverything = () => {
     setSearchInput("");
     setFilters(EMPTY_FILTERS);
   };
 
-  const handleSignOut = async () => {
-    await authClient.signOut();
-    router.refresh();
-  };
-
   return (
-    <div className="bg-background min-h-screen">
-      <nav className="border-border/60 bg-background/80 sticky top-0 z-50 border-b backdrop-blur-xl">
-        <div className="container mx-auto flex h-16 items-center justify-between gap-2 px-4">
-          <Link href="/" className="flex shrink-0 items-center gap-2.5">
-            <div className="bg-primary flex h-9 w-9 items-center justify-center rounded-xl">
-              <ChefHat
-                className="text-primary-foreground h-5 w-5"
-                aria-hidden="true"
-              />
-            </div>
-            <span className="font-display text-foreground text-xl font-bold tracking-tight">
-              RecipeHub
-            </span>
-          </Link>
+    <main id="main-content">
+      <header className="page pt-10 pb-8 md:pt-16 md:pb-12">
+        <p className="eyebrow text-muted-foreground mb-4">
+          {firstName ? `Hola, ${firstName}` : "Recetario de casa"}
+        </p>
+        {isLoggedIn ? (
+          <h1 className="font-display text-foreground text-[3.25rem] leading-[0.92] tracking-tight text-balance md:text-8xl">
+            ¿Qué cocinamos <em className="text-primary">hoy</em>?
+          </h1>
+        ) : (
+          <>
+            <h1 className="font-display text-foreground max-w-4xl text-[3.25rem] leading-[0.92] tracking-tight text-balance md:text-8xl">
+              Las recetas de casa, <em className="text-primary">a mano</em>.
+            </h1>
+            <p className="text-muted-foreground mt-5 max-w-xl text-lg text-pretty">
+              Un recetario compartido: busca por ingrediente, tiempo o aparato y
+              encuentra qué preparar esta noche.
+            </p>
+          </>
+        )}
 
-          <div className="flex items-center gap-2 sm:gap-3">
-            {isLoggedIn ? (
-              <AuthenticatedActions
-                isAdmin={isAdmin}
-                userName={userName}
-                onSignOut={handleSignOut}
-              />
-            ) : (
-              <GuestActions />
-            )}
-          </div>
-        </div>
-      </nav>
+        <div className="mt-8 flex max-w-3xl gap-2 md:mt-10">
+          <SearchBar value={searchInput} onChange={setSearchInput} />
 
-      <Hero
-        isLoggedIn={isLoggedIn}
-        searchValue={searchInput}
-        onSearchChange={setSearchInput}
-      />
-
-      <main id="main-content" className="container mx-auto px-4 py-10 md:py-14">
-        <div className="flex flex-col gap-10 lg:flex-row">
-          <aside className="hidden w-72 shrink-0 lg:block">
-            <div className="sticky top-24">
-              {/* The panel is taller than most viewports; scrolling it on its
-                  own keeps the lower filters reachable while it's pinned */}
-              <div
-                className="bg-card max-h-[calc(100dvh-7rem)] overflow-y-auto overscroll-contain rounded-2xl border p-6"
-                style={{ boxShadow: "var(--shadow-card)" }}
+          <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="outline"
+                className="bg-card h-12 shrink-0 gap-2 px-4"
+                aria-label={
+                  activeFilterCount > 0
+                    ? `Filtros (${activeFilterCount} activos)`
+                    : "Filtros"
+                }
               >
-                <div className="mb-6 flex items-center justify-between">
-                  <h2 className="font-display text-foreground flex items-center gap-2 text-lg font-semibold">
-                    <SlidersHorizontal
-                      className="text-primary h-4 w-4"
-                      aria-hidden="true"
-                    />
-                    Filtros
-                  </h2>
-                  {activeFilterCount > 0 ? (
-                    <span className="bg-primary text-primary-foreground rounded-full px-2.5 py-0.5 text-xs font-semibold">
-                      {activeFilterCount}
-                    </span>
-                  ) : null}
-                </div>
+                <SlidersHorizontal aria-hidden="true" />
+                <span className="hidden sm:inline">Filtros</span>
+                {activeFilterCount > 0 ? (
+                  <span className="bg-foreground text-background flex size-5 items-center justify-center rounded-full font-mono text-[11px]">
+                    {activeFilterCount}
+                  </span>
+                ) : null}
+              </Button>
+            </SheetTrigger>
+            <SheetContent
+              side="right"
+              className="bg-background w-full gap-0 sm:max-w-md"
+            >
+              <SheetHeader className="border-b px-6 pt-6 pb-5">
+                <SheetTitle className="font-display text-4xl leading-none font-normal tracking-tight">
+                  Filtros
+                </SheetTitle>
+                <SheetDescription>
+                  Los cambios se aplican al momento.
+                </SheetDescription>
+              </SheetHeader>
+              <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-6">
                 <RecipeFilters
                   filters={filters}
                   onFilterChange={setFilters}
@@ -522,156 +365,118 @@ export function HomePageClient({
                   isLoggedIn={isLoggedIn}
                 />
               </div>
-            </div>
-          </aside>
-
-          <div className="min-w-0 flex-1">
-            <div className="mb-6 lg:hidden">
-              <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="outline" className="gap-2 rounded-full">
-                    <Filter className="h-4 w-4" aria-hidden="true" />
-                    Filtros
-                    {activeFilterCount > 0 ? (
-                      <span className="bg-primary text-primary-foreground ml-1 rounded-full px-2 py-0.5 text-xs font-semibold">
-                        {activeFilterCount}
-                      </span>
-                    ) : null}
+              <SheetFooter className="flex-row items-center justify-between border-t px-6 py-4">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  disabled={activeFilterCount === 0}
+                  onClick={() =>
+                    setFilters({
+                      ...EMPTY_FILTERS,
+                      searchQuery: filters.searchQuery,
+                    })
+                  }
+                >
+                  Borrar
+                </Button>
+                <SheetClose asChild>
+                  <Button type="button">
+                    {total === undefined
+                      ? "Ver recetas"
+                      : `Ver ${total} ${total === 1 ? "receta" : "recetas"}`}
                   </Button>
-                </SheetTrigger>
-                <SheetContent
-                  side="left"
-                  className="bg-card w-80 overflow-y-auto"
-                >
-                  <SheetHeader>
-                    <SheetTitle className="font-display">Filtros</SheetTitle>
-                  </SheetHeader>
-                  <div className="mt-6 pb-6">
-                    <RecipeFilters
-                      filters={filters}
-                      onFilterChange={setFilters}
-                      availableCuisines={availableCuisines}
-                      availableIngredients={availableIngredients}
-                      isLoggedIn={isLoggedIn}
-                    />
-                  </div>
-                </SheetContent>
-              </Sheet>
+                </SheetClose>
+              </SheetFooter>
+            </SheetContent>
+          </Sheet>
+        </div>
+      </header>
+
+      <section aria-labelledby="results-heading" className="page">
+        <div className="mb-8 flex flex-col gap-4 border-t pt-4 md:flex-row md:items-center md:justify-between">
+          <h2
+            id="results-heading"
+            className="eyebrow text-muted-foreground shrink-0"
+            aria-live="polite"
+          >
+            <ResultCount shown={recipes.length} total={total} />
+          </h2>
+          <ActiveFilterPills filters={filters} onFilterChange={setFilters} />
+        </div>
+
+        {isLoading ? (
+          <RecipeGridSkeleton />
+        ) : recipes.length > 0 ? (
+          <>
+            <div
+              className={cn(
+                RECIPE_GRID_CLASS,
+                "transition-opacity duration-200",
+                isPlaceholderData && "opacity-50",
+              )}
+              aria-busy={isPlaceholderData || isFetchingNextPage}
+            >
+              {recipes.map((recipe, index) => (
+                <RecipeCard
+                  key={recipe.id}
+                  recipe={recipe}
+                  isLoggedIn={isLoggedIn}
+                  eager={index < EAGER_IMAGE_COUNT}
+                />
+              ))}
+              {isFetchingNextPage ? (
+                <RecipeCardSkeletons count={NEXT_PAGE_SKELETON_COUNT} />
+              ) : null}
             </div>
 
-            <p
-              className="font-body text-muted-foreground mb-4 min-h-5 text-sm"
-              aria-live="polite"
-            >
-              {total === undefined ? null : recipes.length < total ? (
-                <>
-                  Mostrando{" "}
-                  <span className="text-foreground font-semibold">
-                    {recipes.length}
-                  </span>{" "}
-                  de{" "}
-                  <span className="text-foreground font-semibold">{total}</span>{" "}
-                  recetas
-                </>
-              ) : (
-                <>
-                  <span className="text-foreground font-semibold">{total}</span>{" "}
-                  {total === 1 ? "receta" : "recetas"}
-                </>
-              )}
-            </p>
-
-            <ActiveFilterPills filters={filters} onFilterChange={setFilters} />
-
-            {isLoading ? (
-              <div className="grid grid-cols-1 gap-7 sm:grid-cols-2 xl:grid-cols-3">
-                {Array.from({ length: RECIPE_PAGE_SIZE }).map((_, i) => (
-                  <div key={`recipe-skeleton-${i}`} className="space-y-3">
-                    <Skeleton className="aspect-4/3 w-full rounded-2xl" />
-                    <Skeleton className="h-5 w-3/4" />
-                    <Skeleton className="h-4 w-full" />
-                  </div>
-                ))}
-              </div>
-            ) : recipes.length > 0 ? (
-              <>
-                <div
-                  className={cn(
-                    "grid grid-cols-1 gap-7 transition-opacity duration-200 sm:grid-cols-2 xl:grid-cols-3",
-                    isPlaceholderData && "opacity-60",
-                  )}
-                  aria-busy={isPlaceholderData}
-                >
-                  {recipes.map((recipe, index) => (
-                    <RecipeCard
-                      key={recipe.id}
-                      recipe={recipe}
-                      isLoggedIn={isLoggedIn}
-                      eager={index < EAGER_IMAGE_COUNT}
-                    />
-                  ))}
-                </div>
-
-                {hasNextPage && !isPlaceholderData ? (
-                  <div className="mt-10 flex justify-center">
+            {hasNextPage ? (
+              <div
+                ref={setLoadMoreSentinel}
+                className="mt-16 flex justify-center"
+              >
+                {isFetchNextPageError ? (
+                  <div className="flex flex-col items-center gap-3 text-center">
+                    <p className="text-muted-foreground text-sm">
+                      No se pudieron cargar más recetas.
+                    </p>
                     <Button
                       type="button"
                       variant="outline"
-                      className="cursor-pointer rounded-full"
-                      onClick={() => fetchNextPage()}
-                      disabled={isFetchingNextPage}
+                      onClick={() => void fetchNextPage()}
                     >
-                      {isFetchingNextPage ? "Cargando…" : "Cargar más"}
+                      Reintentar
                     </Button>
                   </div>
                 ) : null}
-              </>
-            ) : (
-              <div className="py-24 text-center">
-                <div className="bg-muted mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl">
-                  <UtensilsCrossed
-                    className="text-muted-foreground h-10 w-10"
-                    aria-hidden="true"
-                  />
-                </div>
-                <h3 className="font-display text-foreground mb-2 text-2xl font-semibold">
-                  No se encontraron recetas
-                </h3>
-                <p className="text-muted-foreground font-body mx-auto mb-6 max-w-sm text-sm leading-relaxed">
-                  Intenta ajustar tus filtros o términos de búsqueda para
-                  descubrir algo delicioso.
-                </p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="cursor-pointer rounded-full"
-                  onClick={clearEverything}
-                >
-                  Borrar búsqueda y filtros
-                </Button>
               </div>
-            )}
-          </div>
-        </div>
-      </main>
-
-      <footer className="border-border/60 mt-12 border-t">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-            <div className="flex items-center gap-2">
-              <div className="bg-primary/10 flex h-7 w-7 items-center justify-center rounded-lg">
-                <ChefHat className="text-primary h-4 w-4" aria-hidden="true" />
-              </div>
-              <span className="font-display text-muted-foreground text-sm font-semibold">
-                RecipeHub
-              </span>
-            </div>
-            <p className="font-body text-muted-foreground text-xs">
-              Hecho con amor para amantes de la comida en todas partes.
+            ) : recipes.length > RECIPE_PAGE_SIZE ? (
+              <p className="eyebrow text-muted-foreground mt-16 text-center">
+                Eso es todo · {recipes.length} recetas
+              </p>
+            ) : null}
+          </>
+        ) : (
+          <div className="mx-auto max-w-md py-20 text-center">
+            <p className="font-display text-foreground text-5xl tracking-tight">
+              Nada por aquí.
             </p>
+            <p className="text-muted-foreground mt-4 text-pretty">
+              Ninguna receta coincide con la búsqueda y los filtros. Prueba con
+              menos filtros o con otra palabra.
+            </p>
+            <div className="mt-8 flex flex-wrap justify-center gap-2">
+              <Button type="button" variant="outline" onClick={clearEverything}>
+                Borrar búsqueda y filtros
+              </Button>
+              {isLoggedIn ? (
+                <Button asChild>
+                  <Link href="/new-recipe">Añadir una receta</Link>
+                </Button>
+              ) : null}
+            </div>
           </div>
-        </div>
-      </footer>
-    </div>
+        )}
+      </section>
+    </main>
   );
 }

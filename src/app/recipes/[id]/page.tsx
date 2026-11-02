@@ -1,15 +1,16 @@
+import { BackLink } from "@/components/BackLink";
 import { PlatformIcon } from "@/components/PlatformIcon";
 import { CommentsSection } from "@/components/recipes/CommentsSection";
 import { CookingTools } from "@/components/recipes/CookingTools";
+import { DifficultyMeter } from "@/components/recipes/DifficultyMeter";
 import { RecipeAssistant } from "@/components/recipes/RecipeAssistant";
 import { RecipeIngredients } from "@/components/recipes/RecipeIngredients";
 import { RecipePageActions } from "@/components/recipes/RecipePageActions";
-import { BackButton } from "@/components/BackButton";
+import { RecipeSteps } from "@/components/recipes/RecipeSteps";
 import { DIFFICULTY_LABELS } from "@/lib/recipe-types";
 import { absoluteUrl } from "@/lib/seo";
-import { cn } from "@/lib/utils";
 import { getServerSession } from "@/server/auth/session";
-import { Clock, ExternalLink, Flame, Users } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { type Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -77,20 +78,6 @@ export default async function RecipePage({
     notFound();
   }
 
-  const difficultyClass = {
-    Easy: "badge-easy",
-    Medium: "badge-medium",
-    Hard: "badge-hard",
-  }[recipe.difficulty];
-
-  const platformClass = recipe.videoSource
-    ? {
-        YouTube: "platform-youtube",
-        Instagram: "platform-instagram",
-        TikTok: "platform-tiktok",
-      }[recipe.videoSource.platform]
-    : null;
-
   const recipeJsonLd = {
     "@context": "https://schema.org",
     "@type": "Recipe",
@@ -113,170 +100,135 @@ export default async function RecipePage({
     keywords: recipe.tags.join(", "),
   };
 
+  const isLoggedIn = Boolean(session?.user);
+  const stats = [
+    { label: "Preparación", value: recipe.prepTime, unit: "min" },
+    { label: "Cocción", value: recipe.cookTime, unit: "min" },
+    { label: "Total", value: recipe.prepTime + recipe.cookTime, unit: "min" },
+    {
+      label: "Raciones",
+      value: recipe.servings,
+      unit: recipe.servings === 1 ? "ración" : "rac.",
+    },
+  ];
+
   return (
-    <main id="main-content" className="bg-background min-h-screen pb-16">
+    <main id="main-content">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(recipeJsonLd) }}
       />
 
-      <div className="relative aspect-video max-h-[55vh] w-full overflow-hidden">
-        <Image
-          src={recipe.image}
-          alt={recipe.title}
-          fill
-          className="object-cover"
-          preload
-          sizes="100vw"
-        />
-        <div className="from-background via-background/40 absolute inset-0 bg-linear-to-t to-transparent" />
-
-        <div className="absolute top-4 right-4 left-4 z-10 flex justify-between">
-          <BackButton
-            variant="secondary"
-            className="bg-background/80 hover:bg-background h-11 w-11 rounded-full shadow-lg backdrop-blur-md transition-transform duration-200 hover:scale-105"
-          />
-          {session?.user ? <RecipePageActions recipeId={id} /> : null}
-        </div>
+      <div className="page flex min-h-9 items-center justify-between gap-4 pt-6 md:pt-8">
+        <BackLink label="Recetas" />
+        {isLoggedIn ? <RecipePageActions recipeId={id} /> : null}
       </div>
 
-      <div className="relative z-10 container mx-auto -mt-24 max-w-4xl px-4">
-        <article
-          className="bg-card rounded-2xl border p-7 md:p-10"
-          style={{ boxShadow: "var(--shadow-elevated)" }}
-        >
-          <div className="mb-4 flex flex-wrap items-center gap-2">
-            <span className="bg-secondary text-secondary-foreground rounded-full px-3 py-1 text-xs font-semibold">
-              {recipe.cuisine}
-            </span>
-            <span className={cn("badge-difficulty", difficultyClass)}>
-              {DIFFICULTY_LABELS[recipe.difficulty]}
-            </span>
-          </div>
-
-          <h1 className="font-display text-foreground mb-4 text-3xl leading-tight font-bold md:text-5xl md:leading-tight">
+      <header className="page mt-6 grid gap-8 md:mt-8 lg:grid-cols-12 lg:items-end lg:gap-12">
+        <div className="lg:col-span-7">
+          <p className="eyebrow text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span>{recipe.cuisine}</span>
+            <span aria-hidden="true">·</span>
+            <DifficultyMeter difficulty={recipe.difficulty} />
+          </p>
+          <h1 className="font-display text-foreground mt-4 text-5xl leading-[0.92] tracking-tight text-balance md:text-7xl xl:text-[5.5rem]">
             {recipe.title}
           </h1>
-
-          <p className="text-muted-foreground font-body max-w-2xl text-lg leading-relaxed">
+          <p className="text-muted-foreground mt-6 max-w-2xl text-lg text-pretty md:text-xl">
             {recipe.description}
           </p>
 
-          <div className="border-border mt-8 grid grid-cols-2 gap-4 border-y py-6 sm:grid-cols-3">
-            <div className="flex items-center gap-3">
-              <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-xl">
-                <Clock className="text-primary h-5 w-5" aria-hidden="true" />
+          <dl className="mt-10 grid grid-cols-2 gap-y-5 border-y py-5 sm:grid-cols-4">
+            {stats.map((stat) => (
+              <div key={stat.label}>
+                <dt className="eyebrow text-muted-foreground">{stat.label}</dt>
+                <dd className="mt-1 flex items-baseline gap-1">
+                  <span className="font-display text-foreground text-4xl leading-none tabular-nums">
+                    {stat.value}
+                  </span>
+                  <span className="text-muted-foreground text-sm">
+                    {stat.unit}
+                  </span>
+                </dd>
               </div>
-              <div>
-                <p className="text-muted-foreground text-xs font-medium">
-                  Tiempo Prep.
-                </p>
-                <p className="text-foreground font-body text-sm font-semibold">
-                  {recipe.prepTime} min
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-xl">
-                <Flame className="text-primary h-5 w-5" aria-hidden="true" />
-              </div>
-              <div>
-                <p className="text-muted-foreground text-xs font-medium">
-                  Tiempo Cocción
-                </p>
-                <p className="text-foreground font-body text-sm font-semibold">
-                  {recipe.cookTime} min
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-xl">
-                <Users className="text-primary h-5 w-5" aria-hidden="true" />
-              </div>
-              <div>
-                <p className="text-muted-foreground text-xs font-medium">
-                  Raciones
-                </p>
-                <p className="text-foreground font-body text-sm font-semibold">
-                  {recipe.servings}
-                </p>
-              </div>
-            </div>
+            ))}
+          </dl>
+
+          <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-4">
+            <CookingTools
+              recipeId={recipe.id}
+              isLoggedIn={isLoggedIn}
+              initialCooked={recipe.cookedByMe}
+            />
+            {recipe.videoSource ? (
+              <a
+                href={recipe.videoSource.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-foreground decoration-primary/50 inline-flex items-center gap-2 text-sm font-medium underline decoration-1 underline-offset-4 hover:decoration-current"
+              >
+                <PlatformIcon platform={recipe.videoSource.platform} />
+                Ver el vídeo en {recipe.videoSource.platform}
+                <ArrowUpRight className="size-3.5" aria-hidden="true" />
+              </a>
+            ) : null}
           </div>
+        </div>
 
-          {recipe.videoSource ? (
-            <a
-              href={recipe.videoSource.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={cn(
-                "platform-badge mt-6 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-transform duration-200 hover:scale-105",
-                platformClass,
-              )}
-            >
-              <PlatformIcon platform={recipe.videoSource.platform} />
-              <span>Ver en {recipe.videoSource.platform}</span>
-              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-            </a>
-          ) : null}
-
-          <CookingTools
-            recipeId={recipe.id}
-            isLoggedIn={Boolean(session?.user)}
-            initialCooked={recipe.cookedByMe}
+        <div className="bg-muted relative -order-1 aspect-4/3 overflow-hidden rounded-md lg:order-none lg:col-span-5 lg:aspect-4/5">
+          <Image
+            src={recipe.image}
+            alt={recipe.title}
+            fill
+            className="object-cover"
+            preload
+            sizes="(max-width: 1024px) 100vw, 40vw"
           />
+        </div>
+      </header>
 
-          <div className="mt-10 grid gap-10 md:grid-cols-2">
+      <div className="page mt-16 grid gap-12 md:mt-20 lg:grid-cols-12">
+        <aside className="lg:col-span-4">
+          <div className="lg:sticky lg:top-24">
             <RecipeIngredients
               ingredients={recipe.ingredients}
               servings={recipe.servings}
             />
-
-            <section>
-              <h2 className="font-display text-foreground mb-5 text-2xl font-semibold">
-                Instrucciones
-              </h2>
-              <ol className="space-y-5">
-                {recipe.instructions.map((instruction, index) => (
-                  <li key={index} className="font-body group flex gap-4">
-                    <span className="bg-primary text-primary-foreground flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold shadow-md transition-transform duration-200 group-hover:scale-110">
-                      {index + 1}
-                    </span>
-                    <p className="text-foreground pt-1 leading-relaxed">
-                      {instruction}
-                    </p>
-                  </li>
-                ))}
-              </ol>
-            </section>
           </div>
+        </aside>
 
-          {session?.user ? <RecipeAssistant recipeId={recipe.id} /> : null}
+        <div className="min-w-0 space-y-16 lg:col-span-8 lg:pl-6">
+          <RecipeSteps instructions={recipe.instructions} />
+
+          {isLoggedIn ? <RecipeAssistant recipeId={recipe.id} /> : null}
 
           {recipe.tags.length > 0 ? (
-            <section className="border-border mt-10 border-t pt-6">
-              <h3 className="text-muted-foreground font-body mb-3 text-xs font-semibold tracking-wider uppercase">
+            <section aria-labelledby="tags-heading">
+              <h2
+                id="tags-heading"
+                className="eyebrow text-muted-foreground mb-3"
+              >
                 Etiquetas
-              </h3>
-              <div className="flex flex-wrap gap-2">
+              </h2>
+              <ul className="flex flex-wrap gap-2">
                 {recipe.tags.map((tag) => (
-                  <span
+                  <li
                     key={tag}
-                    className="bg-secondary text-secondary-foreground rounded-full px-3.5 py-1.5 text-xs font-medium first-letter:uppercase"
+                    className="bg-secondary text-secondary-foreground rounded-full px-3 py-1 font-mono text-xs"
                   >
                     #{tag}
-                  </span>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </section>
           ) : null}
 
           <CommentsSection
             recipeId={recipe.id}
-            isLoggedIn={Boolean(session?.user)}
+            isLoggedIn={isLoggedIn}
             currentUserId={session?.user.id}
           />
-        </article>
+        </div>
       </div>
     </main>
   );

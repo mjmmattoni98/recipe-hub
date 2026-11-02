@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Command,
   CommandEmpty,
@@ -11,6 +10,10 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@/components/ui/native-select";
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -19,23 +22,25 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DIFFICULTY_LABELS } from "@/lib/recipe-types";
 import { cn } from "@/lib/utils";
 import { api, type RouterOutputs } from "@/trpc/react";
-import { addDays, format, isSameDay, startOfWeek, subDays } from "date-fns";
-import { es } from "date-fns/locale";
 import {
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsUpDown,
-  Plus,
-  Trash2,
-} from "lucide-react";
+  addDays,
+  format,
+  isSameDay,
+  isWithinInterval,
+  startOfWeek,
+  subDays,
+} from "date-fns";
+import { es } from "date-fns/locale";
+import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 type MealType = "BREAKFAST" | "LUNCH" | "DINNER" | "SNACK";
 type RecipeOption = RouterOutputs["recipe"]["getOptions"][number];
+type Schedule = RouterOutputs["menu"]["getWeeklyMenu"][number];
+
 const MEAL_TYPES: { id: MealType; label: string }[] = [
   { id: "BREAKFAST", label: "Desayuno" },
   { id: "LUNCH", label: "Almuerzo" },
@@ -43,439 +48,460 @@ const MEAL_TYPES: { id: MealType; label: string }[] = [
   { id: "SNACK", label: "Snack" },
 ];
 
-function RecipeCombobox({
+const weekStartOf = (date: Date) => startOfWeek(date, { weekStartsOn: 1 });
+
+// Picking a recipe adds it straight away: one tap instead of pick-then-confirm
+function AddRecipePicker({
   recipes,
   disabled,
+  mealLabel,
   onAdd,
 }: Readonly<{
   recipes: RecipeOption[];
   disabled: boolean;
+  mealLabel: string;
   onAdd: (recipeId: string) => void;
 }>) {
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState("");
-
-  const selectedRecipe = useMemo(() => recipes?.find((r) => r.id === value), [recipes, value]);
 
   return (
-    <div className="flex gap-2">
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className="flex-1 justify-between h-auto py-2 px-3 hover:bg-muted font-normal cursor-pointer min-w-0"
-            disabled={disabled}
-          >
-            <div className="flex items-center gap-2 overflow-hidden">
-              {selectedRecipe ? (
-                <>
-                  <div className="relative h-6 w-6 rounded-md overflow-hidden shrink-0 border border-border/50">
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          disabled={disabled}
+          aria-label={`Añadir receta a ${mealLabel.toLowerCase()}`}
+          className="border-input text-muted-foreground hover:text-foreground hover:border-foreground/40 focus-visible:ring-ring/50 flex h-11 w-full cursor-pointer items-center gap-2 rounded-md border border-dashed px-3 text-sm transition-colors outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Plus className="size-4" aria-hidden="true" />
+          Añadir receta
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        className="w-[min(22rem,calc(100vw-2rem))] p-0"
+        align="start"
+      >
+        <Command>
+          <CommandInput placeholder="Buscar receta…" />
+          <CommandList>
+            <CommandEmpty>No hay recetas con ese nombre.</CommandEmpty>
+            <CommandGroup>
+              {recipes.map((recipe) => (
+                <CommandItem
+                  key={recipe.id}
+                  value={recipe.id}
+                  keywords={[recipe.title]}
+                  onSelect={() => {
+                    onAdd(recipe.id);
+                    setOpen(false);
+                  }}
+                  className="gap-3"
+                >
+                  <span className="bg-muted relative size-9 shrink-0 overflow-hidden rounded-sm">
                     <Image
-                      src={selectedRecipe.image}
+                      src={recipe.image}
                       alt=""
                       fill
                       className="object-cover"
-                      sizes="24px"
+                      sizes="36px"
                     />
-                  </div>
-                  <span className="truncate">{selectedRecipe.title}</span>
-                </>
-              ) : (
-                <span className="text-muted-foreground truncate">Elegir receta...</span>
-              )}
-            </div>
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[300px] p-0" align="start">
-          <Command>
-            <CommandInput placeholder="Buscar receta..." />
-            <CommandList>
-              <CommandEmpty>No se encontraron recetas.</CommandEmpty>
-              <CommandGroup>
-                {recipes?.map((r) => (
-                  <CommandItem
-                    key={r.id}
-                    value={r.id}
-                    onSelect={(currentValue) => {
-                      setValue(currentValue === value ? "" : currentValue);
-                      setOpen(false);
-                    }}
-                    keywords={[r.title]}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4 shrink-0",
-                        value === r.id ? "opacity-100" : "opacity-0",
-                      )}
-                    />
-                    <div className="relative h-8 w-8 rounded-md overflow-hidden shrink-0 mr-3 border border-border/50">
-                      <Image
-                        src={r.image}
-                        alt=""
-                        fill
-                        className="object-cover"
-                        sizes="32px"
-                      />
-                    </div>
-                    <span className="truncate pr-2">{r.title}</span>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
-      <Button
-        size="icon"
-        variant="secondary"
-        className="shrink-0 h-[42px] w-[42px] cursor-pointer"
-        disabled={disabled || !value}
-        aria-label="Añadir al menú"
-        onClick={() => {
-          if (value) {
-            onAdd(value);
-            setValue("");
-          }
-        }}
-      >
-        <Plus className="h-4 w-4" aria-hidden="true" />
-      </Button>
-    </div>
+                  </span>
+                  <span className="truncate">{recipe.title}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
 
-function EditPanelForm({ selectedDate, recipes, activeFamilyId, scheduleRecipe }: any) {
+function ScheduledRecipe({
+  schedule,
+  onRemove,
+  removing,
+}: Readonly<{
+  schedule: Schedule;
+  onRemove: () => void;
+  removing: boolean;
+}>) {
   return (
-    <div className="space-y-4">
-      {MEAL_TYPES.map((meal) => (
-        <div key={meal.id} className="space-y-2 pb-4 border-b last:border-0 last:pb-0">
-          <p className="font-medium text-sm">{meal.label}</p>
-          <RecipeCombobox
-            recipes={recipes || []}
-            disabled={scheduleRecipe.isPending || !activeFamilyId}
-            onAdd={(recipeId) => {
-              if (!activeFamilyId) return;
+    // The title link stretches over the row so the remove button can be its
+    // sibling, not nested inside it
+    <li className="group bg-card hover:border-foreground/25 has-[a:focus-visible]:ring-ring/50 relative flex items-center gap-3 rounded-md border p-2 pr-1 transition-colors has-[a:focus-visible]:ring-[3px]">
+      <span className="bg-muted relative size-14 shrink-0 overflow-hidden rounded-sm">
+        <Image
+          src={schedule.recipe.image}
+          alt=""
+          fill
+          className="object-cover"
+          sizes="56px"
+        />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="font-display text-foreground truncate text-xl leading-tight">
+          <Link
+            href={`/recipes/${schedule.recipeId}`}
+            className="after:absolute after:inset-0 focus-visible:outline-none"
+          >
+            {schedule.recipe.title}
+          </Link>
+        </p>
+        <p className="eyebrow text-muted-foreground mt-1">
+          {schedule.recipe.prepTime + schedule.recipe.cookTime} min ·{" "}
+          {DIFFICULTY_LABELS[schedule.recipe.difficulty]}
+        </p>
+      </div>
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        onClick={onRemove}
+        aria-label={`Quitar ${schedule.recipe.title} del menú`}
+        className="text-muted-foreground hover:text-destructive relative z-10 shrink-0 rounded-full"
+        disabled={removing}
+      >
+        <X aria-hidden="true" />
+      </Button>
+    </li>
+  );
+}
 
-              scheduleRecipe.mutate({
-                familyId: activeFamilyId,
-                date: format(selectedDate, "yyyy-MM-dd"),
-                mealType: meal.id,
-                recipeId: recipeId,
-              });
-            }}
-          />
-        </div>
-      ))}
+function MenuSkeleton() {
+  return (
+    <div className="page space-y-8">
+      <Skeleton className="h-10 w-72" />
+      <div className="grid grid-cols-7 gap-2">
+        {Array.from({ length: 7 }).map((_, i) => (
+          <Skeleton key={i} className="h-24 rounded-md lg:h-40" />
+        ))}
+      </div>
+      <Skeleton className="h-80 w-full rounded-lg" />
     </div>
   );
 }
 
 export function MenuPageClient() {
   const [currentWeekStart, setCurrentWeekStart] = useState(() =>
-    startOfWeek(new Date(), { weekStartsOn: 1 }),
+    weekStartOf(new Date()),
   );
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
 
   const utils = api.useUtils();
   const { data: families, isLoading: loadingFamilies } =
     api.family.getMyFamilies.useQuery();
   const [selectedFamilyId, setSelectedFamilyId] = useState<string>("");
 
-  // Need to safely select the first family if available
   const activeFamilyId = selectedFamilyId || families?.[0]?.id;
-
   const weekEnd = addDays(currentWeekStart, 6);
 
-  const { data: mSchedules, isLoading: loadingMenu } =
+  const { data: schedules, isLoading: loadingMenu } =
     api.menu.getWeeklyMenu.useQuery(
       {
-        familyId: activeFamilyId!,
+        familyId: activeFamilyId ?? "",
         startDate: format(currentWeekStart, "yyyy-MM-dd"),
-        endDate: format(weekEnd, "yyyy-MM-dd"), // We'll load 7 days at a time
+        endDate: format(weekEnd, "yyyy-MM-dd"),
       },
-      { enabled: !!activeFamilyId },
+      { enabled: Boolean(activeFamilyId) },
     );
 
   // Only what the picker shows, and every recipe rather than the first page
   const { data: recipes } = api.recipe.getOptions.useQuery();
 
   const schedulesByDay = useMemo(() => {
-    if (!mSchedules) return {};
-    const grouped: Record<string, typeof mSchedules> = {};
-    mSchedules.forEach((s) => {
-      // `s.date` is a UTC-midnight instant for the stored calendar day;
-      // use UTC components so the grouping key doesn't shift across the
-      // local timezone's day boundary.
-      const dateKey = new Date(s.date).toISOString().slice(0, 10);
+    const grouped: Record<string, Schedule[]> = {};
+    for (const schedule of schedules ?? []) {
+      // `date` is a UTC-midnight instant for the stored calendar day; use UTC
+      // components so the key doesn't shift across the local day boundary.
+      const dateKey = new Date(schedule.date).toISOString().slice(0, 10);
       grouped[dateKey] ??= [];
-      grouped[dateKey].push(s);
-    });
+      grouped[dateKey].push(schedule);
+    }
     return grouped;
-  }, [mSchedules]);
+  }, [schedules]);
 
   const scheduleRecipe = api.menu.scheduleRecipe.useMutation({
     onSuccess: () => {
       toast.success("Receta añadida al menú");
-      utils.menu.getWeeklyMenu.invalidate();
+      void utils.menu.getWeeklyMenu.invalidate();
     },
     onError: (e) => toast.error(e.message),
   });
 
   const removeSchedule = api.menu.removeScheduledRecipe.useMutation({
     onSuccess: () => {
-      toast.success("Receta eliminada del menú");
-      utils.menu.getWeeklyMenu.invalidate();
+      toast.success("Receta quitada del menú");
+      void utils.menu.getWeeklyMenu.invalidate();
     },
     onError: (e) => toast.error(e.message),
   });
 
-  // Generate 7 days for the view
+  const goToWeek = (weekStart: Date) => {
+    setCurrentWeekStart(weekStart);
+    // Keep the selected weekday when paging, so "Wednesday" stays Wednesday
+    const offset = Math.round(
+      (selectedDate.getTime() - currentWeekStart.getTime()) / 86_400_000,
+    );
+    setSelectedDate(addDays(weekStart, Math.min(Math.max(offset, 0), 6)));
+  };
+
+  const today = new Date();
+  const isCurrentWeek = isWithinInterval(today, {
+    start: currentWeekStart,
+    end: addDays(weekEnd, 1),
+  });
   const days = Array.from({ length: 7 }, (_, i) =>
     addDays(currentWeekStart, i),
   );
+  const selectedKey = format(selectedDate, "yyyy-MM-dd");
+  const selectedSchedules = schedulesByDay[selectedKey] ?? [];
 
   if (loadingFamilies) {
-    return (
-      <div className="space-y-8">
-        <Skeleton className="h-10 w-[200px]" />
-        <Skeleton className="h-14 w-full rounded-lg" />
-        <div className="grid gap-6 lg:grid-cols-[1fr_350px]">
-          <div className="space-y-4">
-            {Array.from({ length: 7 }).map((_, i) => (
-              <Skeleton key={`skeleton-${i}`} className="h-20 w-full rounded-xl" />
-            ))}
-          </div>
-          <div className="hidden lg:block">
-            <Skeleton className="h-[400px] w-full rounded-xl" />
-          </div>
-        </div>
-      </div>
-    );
+    return <MenuSkeleton />;
   }
 
   if (!families || families.length === 0) {
     return (
-      <div className="text-center p-12 border rounded-xl bg-muted/30 text-muted-foreground">
-        Aún no perteneces a ninguna familia. Crea una primero para empezar a
-        planificar.
+      <div className="page">
+        <div className="mx-auto max-w-md rounded-lg border border-dashed px-6 py-16 text-center">
+          <p className="font-display text-4xl tracking-tight">
+            Primero, una familia.
+          </p>
+          <p className="text-muted-foreground mt-3 text-pretty">
+            El menú se comparte con tu familia. Crea una (o pide que te añadan)
+            para empezar a planificar.
+          </p>
+          <Button asChild className="mt-6">
+            <Link href="/family">Ir a Familia</Link>
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
-      {families.length > 1 && (
-        <div className="flex items-center gap-4">
-          <span className="font-medium text-sm">Seleccionar familia:</span>
-          <select
-            className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm max-w-xs"
-            value={activeFamilyId}
-            onChange={(e) => setSelectedFamilyId(e.target.value)}
+    <div className="page space-y-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-full"
+            aria-label="Semana anterior"
+            onClick={() => goToWeek(subDays(currentWeekStart, 7))}
           >
-            {families.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      {/* Week Navigation */}
-      <div className="flex items-center justify-between bg-card border rounded-lg p-2">
-        <Button
-          variant="ghost"
-          onClick={() => setCurrentWeekStart((prev) => subDays(prev, 7))}
-        >
-          <ChevronLeft className="h-4 w-4 mr-2" /> Anterior
-        </Button>
-        <span className="font-semibold px-4">
-          {format(currentWeekStart, "dd MMM", { locale: es })} -{" "}
-          {format(weekEnd, "dd MMM", { locale: es })}
-        </span>
-        <Button
-          variant="ghost"
-          onClick={() => setCurrentWeekStart((prev) => addDays(prev, 7))}
-        >
-          Siguiente <ChevronRight className="h-4 w-4 ml-2" />
-        </Button>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-[1fr_350px]">
-        {/* Calendar / Week Grid */}
-        <div className="space-y-4">
-          {days.map((day) => {
-            const isToday = isSameDay(day, new Date());
-            const isSelected = isSameDay(day, selectedDate);
-            const dateKey = format(day, "yyyy-MM-dd");
-            const daySchedules = schedulesByDay[dateKey] || [];
-
-            return (
-              <Card
-                key={day.toISOString()}
-                className={`cursor-pointer transition-colors hover:border-primary/50 ${isSelected ? "border-primary ring-1 ring-primary" : ""} ${isToday ? "bg-primary/5" : ""}`}
-                onClick={() => setSelectedDate(day)}
-              >
-                <CardHeader className="py-4">
-                  <CardTitle className="flex justify-between items-center text-lg gap-2">
-                    <span className="first-letter:uppercase truncate min-w-0">
-                      {format(day, "EEEE, dd 'de' MMMM", { locale: es })}
-                    </span>
-                    {daySchedules.length > 0 && (
-                      <span className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded-full shrink-0">
-                        {daySchedules.length} comidas
-                      </span>
-                    )}
-                  </CardTitle>
-                </CardHeader>
-                {daySchedules.length > 0 && (
-                  <CardContent className="pb-4 pt-0">
-                    <div className="flex flex-col gap-2">
-                      {MEAL_TYPES.map((meal) => {
-                        const mealSchedules = daySchedules.filter(
-                          (s) => s.mealType === meal.id,
-                        );
-                        if (mealSchedules.length === 0) return null;
-
-                        return (
-                          <div key={meal.id} className="text-sm">
-                            <span className="font-medium text-muted-foreground uppercase text-xs w-20 inline-block">
-                              {meal.label}
-                            </span>
-                            <div className="flex flex-col gap-1 mt-1">
-                              {mealSchedules.map((s) => (
-                                // The title link stretches over the row so the
-                                // remove button can be its sibling, not nested
-                                // inside it
-                                <div
-                                  key={s.id}
-                                  className="group relative flex items-center gap-3 bg-muted hover:bg-muted/80 p-2 rounded-lg border transition-colors has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-ring"
-                                >
-                                  <div className="relative h-12 w-12 overflow-hidden rounded-md border border-border/50 shrink-0">
-                                    <Image
-                                      src={s.recipe.image}
-                                      alt=""
-                                      fill
-                                      className="object-cover"
-                                      sizes="48px"
-                                    />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="font-medium text-sm truncate pr-2 text-foreground">
-                                      <Link
-                                        href={`/recipes/${s.recipeId}`}
-                                        className="after:absolute after:inset-0 focus-visible:outline-none"
-                                      >
-                                        {s.recipe.title}
-                                      </Link>
-                                    </p>
-                                    <div className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
-                                      <span>
-                                        {DIFFICULTY_LABELS[s.recipe.difficulty]}
-                                      </span>
-                                      <span aria-hidden="true">•</span>
-                                      <span>
-                                        {s.recipe.prepTime + s.recipe.cookTime}{" "}
-                                        min
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      removeSchedule.mutate({ id: s.id });
-                                    }}
-                                    aria-label={`Quitar ${s.recipe.title} del menú`}
-                                    className="relative z-10 text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8 rounded-md transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:focus-visible:opacity-100 shrink-0"
-                                    disabled={removeSchedule.isPending}
-                                  >
-                                    <Trash2 className="h-4 w-4" aria-hidden="true" />
-                                  </Button>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                )}
-                {isSelected && (
-                  <CardContent className="pt-4 pb-6 mt-2 border-t bg-muted/20 block lg:hidden">
-                    <p className="text-sm text-primary font-medium mb-4">Añadir comida para este día:</p>
-                    <EditPanelForm 
-                      selectedDate={selectedDate} 
-                      recipes={recipes} 
-                      activeFamilyId={activeFamilyId} 
-                      scheduleRecipe={scheduleRecipe} 
-                    />
-                  </CardContent>
-                )}
-              </Card>
-            );
-          })}
-          {loadingMenu && (
-            <div className="space-y-4">
-              {Array.from({ length: 7 }).map((_, i) => (
-                <Card key={`skeleton-card-${i}`} className="block">
-                  <CardHeader className="py-4">
-                    <CardTitle className="flex justify-between items-center gap-2">
-                      <Skeleton className="h-6 w-48" />
-                    </CardTitle>
-                  </CardHeader>
-                </Card>
-              ))}
-            </div>
+            <ChevronLeft aria-hidden="true" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-full"
+            aria-label="Semana siguiente"
+            onClick={() => goToWeek(addDays(currentWeekStart, 7))}
+          >
+            <ChevronRight aria-hidden="true" />
+          </Button>
+          <p
+            className="font-display ml-3 text-2xl tracking-tight first-letter:uppercase md:text-3xl"
+            aria-live="polite"
+          >
+            {format(currentWeekStart, "d MMM", { locale: es })} –{" "}
+            {format(weekEnd, "d MMM yyyy", { locale: es })}
+          </p>
+          {isCurrentWeek ? null : (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="ml-2"
+              onClick={() => {
+                setCurrentWeekStart(weekStartOf(today));
+                setSelectedDate(today);
+              }}
+            >
+              Hoy
+            </Button>
           )}
         </div>
 
-        {/* Edit Panel for Selected Date */}
-        <div className="sticky top-24 h-fit hidden lg:block">
-          <Card>
-            <CardHeader className="bg-primary/5 border-b rounded-t-xl pb-4">
-              <CardTitle className="text-lg">
-                <span className="text-muted-foreground text-sm font-normal block mb-1">
-                  Añadir comida para
-                </span>
-                <span className="block first-letter:uppercase">
-                  {format(selectedDate, "EEEE, dd MMM", { locale: es })}
-                </span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6 space-y-6">
-              <div className="space-y-4">
-                {MEAL_TYPES.map((meal) => (
-                  <div
-                    key={meal.id}
-                    className="space-y-2 pb-4 border-b last:border-0 last:pb-0"
-                  >
-                    <p className="font-medium text-sm">{meal.label}</p>
-                    <RecipeCombobox
-                      recipes={recipes || []}
-                      disabled={scheduleRecipe.isPending || !activeFamilyId}
-                      onAdd={(recipeId) => {
-                        if (!activeFamilyId) return;
-
-                        scheduleRecipe.mutate({
-                          familyId: activeFamilyId,
-                          date: format(selectedDate, "yyyy-MM-dd"),
-                          mealType: meal.id,
-                          recipeId: recipeId,
-                        });
-                      }}
-                    />
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {families.length > 1 ? (
+          <label className="flex items-center gap-3">
+            <span className="eyebrow text-muted-foreground">Familia</span>
+            <NativeSelect
+              value={activeFamilyId}
+              onChange={(e) => setSelectedFamilyId(e.target.value)}
+              className="min-w-44"
+            >
+              {families.map((family) => (
+                <NativeSelectOption key={family.id} value={family.id}>
+                  {family.name}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
+          </label>
+        ) : null}
       </div>
+
+      {/* The week at a glance; each day is also how you pick what to edit */}
+      <ol
+        className={cn(
+          "grid grid-cols-7 gap-1.5 transition-opacity sm:gap-2",
+          loadingMenu && "opacity-50",
+        )}
+        aria-label="Días de la semana"
+      >
+        {days.map((day) => {
+          const dateKey = format(day, "yyyy-MM-dd");
+          const daySchedules = schedulesByDay[dateKey] ?? [];
+          const isToday = isSameDay(day, today);
+          const isSelected = isSameDay(day, selectedDate);
+          const count = daySchedules.length;
+
+          return (
+            <li key={dateKey} className="min-w-0">
+              <button
+                type="button"
+                onClick={() => setSelectedDate(day)}
+                aria-pressed={isSelected}
+                aria-label={`${format(day, "EEEE d 'de' MMMM", { locale: es })}${isToday ? ", hoy" : ""}: ${count} ${count === 1 ? "comida" : "comidas"}`}
+                className={cn(
+                  "focus-visible:ring-ring/50 flex h-full w-full cursor-pointer flex-col rounded-md border p-2 text-left transition-colors outline-none focus-visible:ring-[3px] sm:p-3 lg:min-h-40",
+                  isSelected
+                    ? "bg-foreground text-background border-foreground"
+                    : "bg-card hover:border-foreground/30",
+                )}
+              >
+                <span
+                  className={cn(
+                    "eyebrow flex items-center gap-1.5",
+                    isSelected ? "text-background/70" : "text-muted-foreground",
+                  )}
+                >
+                  {format(day, "EEE", { locale: es }).replace(".", "")}
+                  {isToday ? (
+                    <span className="bg-highlight size-1.5 rounded-full" />
+                  ) : null}
+                </span>
+                <span className="font-display mt-1 text-3xl leading-none tabular-nums sm:text-4xl">
+                  {format(day, "d")}
+                </span>
+
+                {/* Phones: one dot per meal. Wider screens: the titles. */}
+                <span
+                  aria-hidden="true"
+                  className="mt-3 flex flex-wrap gap-1 lg:hidden"
+                >
+                  {daySchedules.slice(0, 4).map((schedule) => (
+                    <span
+                      key={schedule.id}
+                      className={cn(
+                        "size-1.5 rounded-full",
+                        isSelected ? "bg-background" : "bg-primary",
+                      )}
+                    />
+                  ))}
+                </span>
+                <span
+                  aria-hidden="true"
+                  className="mt-4 hidden min-w-0 space-y-1.5 lg:block"
+                >
+                  {daySchedules.slice(0, 3).map((schedule) => (
+                    <span
+                      key={schedule.id}
+                      className={cn(
+                        "block truncate border-l-2 pl-2 text-xs leading-tight",
+                        isSelected
+                          ? "border-background/50"
+                          : "border-primary/60",
+                      )}
+                    >
+                      {schedule.recipe.title}
+                    </span>
+                  ))}
+                  {count > 3 ? (
+                    <span
+                      className={cn(
+                        "block pl-2.5 font-mono text-[11px]",
+                        isSelected
+                          ? "text-background/70"
+                          : "text-muted-foreground",
+                      )}
+                    >
+                      +{count - 3} más
+                    </span>
+                  ) : null}
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ol>
+
+      <section
+        aria-labelledby="day-heading"
+        className="bg-card rounded-lg border"
+      >
+        <div className="flex items-baseline justify-between gap-4 border-b px-5 py-5 md:px-8 md:py-6">
+          <h2
+            id="day-heading"
+            className="font-display text-3xl tracking-tight first-letter:uppercase md:text-4xl"
+          >
+            {format(selectedDate, "EEEE d 'de' MMMM", { locale: es })}
+          </h2>
+          <p className="eyebrow text-muted-foreground shrink-0">
+            {selectedSchedules.length}{" "}
+            {selectedSchedules.length === 1 ? "comida" : "comidas"}
+          </p>
+        </div>
+
+        <div className="divide-y">
+          {MEAL_TYPES.map((meal) => {
+            const mealSchedules = selectedSchedules.filter(
+              (schedule) => schedule.mealType === meal.id,
+            );
+
+            return (
+              <div
+                key={meal.id}
+                className="grid gap-3 px-5 py-5 md:grid-cols-[10rem_1fr] md:gap-6 md:px-8"
+              >
+                <h3 className="eyebrow text-muted-foreground md:pt-3">
+                  {meal.label}
+                </h3>
+                <div className="space-y-2">
+                  {mealSchedules.length > 0 ? (
+                    <ul className="space-y-2">
+                      {mealSchedules.map((schedule) => (
+                        <ScheduledRecipe
+                          key={schedule.id}
+                          schedule={schedule}
+                          removing={removeSchedule.isPending}
+                          onRemove={() =>
+                            removeSchedule.mutate({ id: schedule.id })
+                          }
+                        />
+                      ))}
+                    </ul>
+                  ) : null}
+                  <AddRecipePicker
+                    recipes={recipes ?? []}
+                    mealLabel={meal.label}
+                    disabled={scheduleRecipe.isPending || !activeFamilyId}
+                    onAdd={(recipeId) => {
+                      if (!activeFamilyId) return;
+                      scheduleRecipe.mutate({
+                        familyId: activeFamilyId,
+                        date: selectedKey,
+                        mealType: meal.id,
+                        recipeId,
+                      });
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 }

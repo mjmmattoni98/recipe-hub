@@ -1,10 +1,9 @@
 "use client";
 
 import { RecipeForm, type RecipeFormValues } from "@/components/RecipeForm";
-import { Button } from "@/components/ui/button";
+import { BackLink } from "@/components/BackLink";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { api } from "@/trpc/react";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -41,42 +40,27 @@ export function EditRecipeClient({
   };
 
   return (
-    <div className="bg-background min-h-screen">
-      <div className="border-border/60 bg-background/80 sticky top-0 z-50 border-b backdrop-blur-xl">
-        <div className="container mx-auto flex h-16 items-center gap-4 px-4">
-          <Button
-            asChild
-            variant="ghost"
-            size="icon"
-            className="cursor-pointer rounded-full"
-          >
-            <Link href={`/recipes/${recipeId}`} aria-label="Volver a la receta">
-              <ArrowLeft className="h-5 w-5" aria-hidden="true" />
-            </Link>
-          </Button>
-          <h1 className="font-display text-foreground text-xl font-bold">
-            Editar Receta
-          </h1>
+    <main id="main-content">
+      <PageHeader
+        lead={
+          <BackLink
+            fallbackHref={`/recipes/${recipeId}`}
+            label="Volver a la receta"
+          />
+        }
+        eyebrow="Editando"
+        title={defaultValues.title}
+      />
+      <div className="page">
+        <div className="max-w-5xl">
+          <RecipeForm
+            defaultValues={defaultValues}
+            onSubmit={handleSubmit}
+            isSubmitting={updateRecipe.isPending}
+            submitLabel="Guardar cambios"
+          />
         </div>
       </div>
-
-      <main
-        id="main-content"
-        className="container mx-auto max-w-3xl px-4 py-10"
-      >
-        <div className="mb-8">
-          <p className="font-body text-muted-foreground">
-            Actualiza los detalles de tu receta.
-          </p>
-        </div>
-
-        <RecipeForm
-          defaultValues={defaultValues}
-          onSubmit={handleSubmit}
-          isSubmitting={updateRecipe.isPending}
-          submitLabel="Actualizar Receta"
-        />
-      </main>
-    </div>
+    </main>
   );
 }

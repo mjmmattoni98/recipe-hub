@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api } from "@/trpc/react";
-import { Loader2, Wand2 } from "lucide-react";
+import { ArrowUp, Loader2, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -39,43 +39,49 @@ export function RecipeAssistant({ recipeId }: Readonly<{ recipeId: string }>) {
 
   return (
     <section
-      className="border-border mt-10 border-t pt-6"
+      className="bg-card rounded-lg border p-6 md:p-8"
       aria-labelledby="recipe-assistant-heading"
     >
+      <p className="eyebrow text-muted-foreground flex items-center gap-2">
+        <Sparkles className="size-3.5" aria-hidden="true" />
+        Asistente
+      </p>
       <h2
         id="recipe-assistant-heading"
-        className="font-display text-foreground mb-2 flex items-center gap-2 text-2xl font-semibold"
+        className="font-display text-foreground mt-2 text-3xl tracking-tight md:text-4xl"
       >
-        <Wand2 className="h-5 w-5" aria-hidden="true" />
-        Pregunta sobre esta receta
+        ¿Alguna duda con esta receta?
       </h2>
-      <p className="text-muted-foreground mb-4 text-sm">
-        Respuestas con un modelo gratuito de OpenRouter. Revísalas antes de
+      <p className="text-muted-foreground mt-2 text-sm">
+        Responde un modelo gratuito de OpenRouter. Revisa la respuesta antes de
         cocinar.
       </p>
-      <div className="mb-4 flex flex-wrap gap-2">
+
+      <div className="mt-5 flex flex-wrap gap-2">
         {SUGGESTIONS.map((suggestion) => (
-          <Button
+          <button
             key={suggestion}
             type="button"
-            variant="outline"
-            size="sm"
             onClick={() => submit(suggestion)}
             disabled={ask.isPending}
+            className="border-input hover:border-foreground/40 hover:text-foreground text-foreground/80 h-8 cursor-pointer rounded-full border px-3 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           >
             {suggestion}
-          </Button>
+          </button>
         ))}
       </div>
+
       <form
-        className="flex flex-col gap-3 sm:flex-row sm:items-end"
+        className="mt-4"
         onSubmit={(event) => {
           event.preventDefault();
           submit(question);
         }}
       >
-        <div className="flex-1 space-y-2">
-          <Label htmlFor="recipe-question">Tu pregunta</Label>
+        <Label htmlFor="recipe-question" className="sr-only">
+          Tu pregunta
+        </Label>
+        <div className="relative">
           <Input
             id="recipe-question"
             name="question"
@@ -83,22 +89,28 @@ export function RecipeAssistant({ recipeId }: Readonly<{ recipeId: string }>) {
             maxLength={500}
             onChange={(event) => setQuestion(event.target.value)}
             placeholder="¿Puedo hacerla sin horno?"
+            className="bg-background h-12 pr-14"
           />
+          <Button
+            type="submit"
+            size="icon-sm"
+            className="absolute top-1/2 right-2 -translate-y-1/2 rounded-full"
+            disabled={ask.isPending || question.trim().length < 3}
+            aria-label={ask.isPending ? "Pensando…" : "Preguntar"}
+          >
+            {ask.isPending ? (
+              <Loader2 className="animate-spin" aria-hidden="true" />
+            ) : (
+              <ArrowUp aria-hidden="true" />
+            )}
+          </Button>
         </div>
-        <Button
-          type="submit"
-          disabled={ask.isPending || question.trim().length < 3}
-        >
-          {ask.isPending ? (
-            <span className="animate-spin" aria-hidden="true">
-              <Loader2 />
-            </span>
-          ) : null}
-          {ask.isPending ? "Pensando…" : "Preguntar"}
-        </Button>
       </form>
       {ask.isPending ? (
-        <p className="text-muted-foreground mt-4 text-sm" aria-live="polite">
+        <p
+          className="eyebrow text-muted-foreground mt-5 animate-pulse"
+          aria-live="polite"
+        >
           Pensando…
         </p>
       ) : null}

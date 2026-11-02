@@ -6,7 +6,7 @@ import { TRPCReactProvider } from "@/trpc/react";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { type Metadata, type Viewport } from "next";
-import { DM_Sans, Fraunces } from "next/font/google";
+import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.siteUrl),
@@ -48,20 +48,28 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fef7f1" },
-    { media: "(prefers-color-scheme: dark)", color: "#1f1a17" },
+    { media: "(prefers-color-scheme: light)", color: "#f8f5ee" },
+    { media: "(prefers-color-scheme: dark)", color: "#1b1916" },
   ],
 };
 
-const fraunces = Fraunces({
+const instrumentSerif = Instrument_Serif({
   subsets: ["latin"],
-  variable: "--font-display",
+  weight: "400",
+  style: ["normal", "italic"],
+  variable: "--font-instrument-serif",
   display: "swap",
 });
 
-const dmSans = DM_Sans({
+const geist = Geist({
   subsets: ["latin"],
-  variable: "--font-body",
+  variable: "--font-geist",
+  display: "swap",
+});
+
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
   display: "swap",
 });
 
@@ -71,9 +79,14 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${fraunces.variable} ${dmSans.variable}`}
+      className={`${instrumentSerif.variable} ${geist.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        {/* The app ships its own dark theme. Without this, Dark Reader rewrites
+            inline styles before hydration and React reports a mismatch. */}
+        <meta name="darkreader-lock" />
+      </head>
       <body>
         <TRPCReactProvider>
           <ThemeProvider
@@ -84,7 +97,7 @@ export default function RootLayout({
           >
             <a
               href="#main-content"
-              className="focus:bg-background focus:text-foreground focus:ring-ring sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-100 focus:rounded-md focus:px-3 focus:py-2 focus:ring-2 focus:outline-none"
+              className="focus:bg-foreground focus:text-background sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-100 focus:rounded-md focus:px-3 focus:py-2 focus:outline-none"
             >
               Saltar al contenido
             </a>

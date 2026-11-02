@@ -1,3 +1,4 @@
+import { AppShell } from "@/components/layout/AppShell";
 import { NewRecipeClient } from "@/components/recipes/NewRecipeClient";
 import { absoluteUrl } from "@/lib/seo";
 import { requireServerSession } from "@/server/auth/require-session";
@@ -26,5 +27,9 @@ export default async function NewRecipePage() {
   await connection();
   await requireServerSession("/new-recipe");
 
-  return <NewRecipeClient />;
+  return (
+    <AppShell>
+      <NewRecipeClient />
+    </AppShell>
+  );
 }

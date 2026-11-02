@@ -1,31 +1,27 @@
+import { Wordmark } from "@/components/layout/Wordmark";
 import { Button } from "@/components/ui/button";
-import { ChefHat, Home } from "lucide-react";
 import Link from "next/link";
 
 export default function NotFound() {
   return (
     <main
       id="main-content"
-      className="bg-background relative flex min-h-screen items-center justify-center p-4"
+      className="page flex min-h-dvh flex-col py-6 sm:py-10"
     >
-      <div className="from-primary/5 via-secondary/30 to-background absolute inset-0 bg-linear-to-br" />
-
-      <div className="relative text-center">
-        <div className="bg-muted mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl">
-          <ChefHat className="text-muted-foreground h-10 w-10" />
-        </div>
-        <h1 className="font-display text-foreground mb-2 text-7xl font-bold">
-          404
+      <Wordmark />
+      <div className="flex flex-1 flex-col justify-center py-16">
+        <p className="eyebrow text-muted-foreground">Error 404</p>
+        <h1 className="font-display mt-4 max-w-3xl text-6xl leading-[0.92] tracking-tight text-balance md:text-8xl">
+          Esta receta no está en el <em className="text-primary">recetario</em>.
         </h1>
-        <p className="font-body text-muted-foreground mb-8 text-lg">
-          Parece que esta receta ha desaparecido de la cocina.
+        <p className="text-muted-foreground mt-6 max-w-lg text-lg text-pretty">
+          Puede que la hayan borrado o que el enlace esté mal copiado.
         </p>
-        <Button asChild className="cursor-pointer gap-2 rounded-full" size="lg">
-          <Link href="/">
-            <Home className="h-4 w-4" aria-hidden="true" />
-            Volver a las Recetas
-          </Link>
-        </Button>
+        <div className="mt-8">
+          <Button asChild size="lg">
+            <Link href="/">Volver a las recetas</Link>
+          </Button>
+        </div>
       </div>
     </main>
   );

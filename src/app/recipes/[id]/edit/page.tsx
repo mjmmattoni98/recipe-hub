@@ -17,10 +17,10 @@ export async function generateMetadata({
   const { id } = await params;
   const recipe = await getRecipe(id);
 
-  const title = recipe ? `Edit ${recipe.title}` : "Edit Recipe";
+  const title = recipe ? `Editar ${recipe.title}` : "Editar receta";
   const description = recipe
-    ? `Update details for ${recipe.title}.`
-    : "Update recipe details.";
+    ? `Actualiza los detalles de ${recipe.title}.`
+    : "Actualiza los detalles de la receta.";
 
   return {
     title,

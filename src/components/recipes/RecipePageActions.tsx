@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
-import { Edit, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -44,15 +44,11 @@ export function RecipePageActions({
   });
 
   return (
-    <div className="flex items-center gap-3">
-      <Button
-        asChild
-        variant="secondary"
-        size="icon"
-        className="bg-background/80 hover:bg-background h-11 w-11 cursor-pointer rounded-full shadow-lg backdrop-blur-md transition-transform duration-200 hover:scale-105"
-      >
-        <Link href={`/recipes/${recipeId}/edit`} aria-label="Editar receta">
-          <Edit className="h-5 w-5" aria-hidden="true" />
+    <div className="flex items-center gap-2">
+      <Button asChild variant="outline" size="sm">
+        <Link href={`/recipes/${recipeId}/edit`}>
+          <Pencil aria-hidden="true" />
+          Editar
         </Link>
       </Button>
 
@@ -62,12 +58,12 @@ export function RecipePageActions({
       >
         <AlertDialogTrigger asChild>
           <Button
-            variant="secondary"
-            size="icon"
-            className="bg-background/80 hover:bg-background h-11 w-11 cursor-pointer rounded-full shadow-lg backdrop-blur-md transition-transform duration-200 hover:scale-105"
-            aria-label="Eliminar receta"
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground hover:text-destructive"
           >
-            <Trash2 className="h-5 w-5" aria-hidden="true" />
+            <Trash2 aria-hidden="true" />
+            Eliminar
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>

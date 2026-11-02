@@ -1,3 +1,4 @@
+import { AppShell } from "@/components/layout/AppShell";
 import { notFound } from "next/navigation";
 import { getRecipe } from "./get-recipe";
 
@@ -19,5 +20,5 @@ export default async function RecipeLayout({
     notFound();
   }
 
-  return children;
+  return <AppShell>{children}</AppShell>;
 }

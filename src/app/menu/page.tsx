@@ -1,41 +1,32 @@
-import { getServerSession } from "@/server/auth/session";
-import { redirect } from "next/navigation";
-import { MenuPageClient } from "./MenuPageClient";
+import { AppShell } from "@/components/layout/AppShell";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { requireServerSession } from "@/server/auth/require-session";
 import { type Metadata } from "next";
-import { BackButton } from "@/components/BackButton";
+import { MenuPageClient } from "./MenuPageClient";
 
 export const metadata: Metadata = {
-  title: "Menú Semanal - Recipe Hub",
+  title: "Menú semanal",
   description: "Organiza el menú de comidas para toda tu familia.",
+  robots: { index: false, follow: false },
 };
 
 export default async function MenuPage() {
-  const session = await getServerSession();
-  
-  if (!session?.user) {
-    redirect("/sign-in");
-  }
+  await requireServerSession("/menu");
 
   return (
-    <div className="bg-background min-h-screen">
-      <div className="border-border/60 bg-background/80 sticky top-0 z-50 border-b backdrop-blur-xl">
-        <div className="container mx-auto flex h-16 items-center gap-4 px-4">
-          <BackButton className="bg-background/80 hover:bg-background" />
-          <h1 className="font-display text-foreground text-xl font-bold">
-            Menú Semanal
-          </h1>
-        </div>
-      </div>
-
-      <main className="container mx-auto py-8 px-4 sm:px-6">
-        <div className="mb-8">
-          <p className="text-muted-foreground mt-2">
-            Organiza las comidas de tu familia fácilmente. Selecciona un día para planificar y el historial automático mantendrá 30 días limpios.
-          </p>
-        </div>
-        
+    <AppShell>
+      <main id="main-content">
+        <PageHeader
+          eyebrow="Planificación"
+          title={
+            <>
+              Menú de la <em className="text-primary">semana</em>
+            </>
+          }
+          description="Elige un día y apunta qué se come. Lo planificado se borra solo pasados 30 días."
+        />
         <MenuPageClient />
       </main>
-    </div>
+    </AppShell>
   );
 }

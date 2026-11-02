@@ -13,13 +13,12 @@ type VideoPlatform = "YouTube" | "Instagram" | "TikTok";
 
 export function VideoSourceField({ form }: Readonly<{ form: RecipeFormApi }>) {
   return (
-    <div className="space-y-4 rounded-lg border p-4">
-      <h3 className="font-medium">Origen del Vídeo (Opcional)</h3>
+    <div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <form.Field name="videoSource.platform">
           {(field) => (
             <div className="space-y-2">
-              <Label>Plataforma</Label>
+              <Label htmlFor="video-platform">Plataforma del vídeo</Label>
               <Select
                 value={field.state.value}
                 onValueChange={(val: VideoPlatform) => {
@@ -33,7 +32,7 @@ export function VideoSourceField({ form }: Readonly<{ form: RecipeFormApi }>) {
                   }
                 }}
               >
-                <SelectTrigger>
+                <SelectTrigger id="video-platform" className="w-full">
                   <SelectValue placeholder="Selecciona plataforma" />
                 </SelectTrigger>
                 <SelectContent>
@@ -48,8 +47,10 @@ export function VideoSourceField({ form }: Readonly<{ form: RecipeFormApi }>) {
         <form.Field name="videoSource.url">
           {(field) => (
             <div className="space-y-2 md:col-span-2">
-              <Label>URL</Label>
+              <Label htmlFor="video-url">Enlace al vídeo</Label>
               <Input
+                id="video-url"
+                type="url"
                 value={field.state.value || ""}
                 onChange={(e) => {
                   field.handleChange(e.target.value);
@@ -63,7 +64,7 @@ export function VideoSourceField({ form }: Readonly<{ form: RecipeFormApi }>) {
                     });
                   }
                 }}
-                placeholder="https://..."
+                placeholder="https://…"
               />
             </div>
           )}
