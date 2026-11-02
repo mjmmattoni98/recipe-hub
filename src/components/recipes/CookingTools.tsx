@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
-import { CheckCircle } from "lucide-react";
+import { Check } from "lucide-react";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 
@@ -38,16 +38,17 @@ function CookedToggle({
       type="button"
       variant="outline"
       onClick={handleClick}
+      aria-pressed={cooked}
       aria-label={
         cooked ? "Cocinada (marcar como pendiente)" : "Marcar como cocinada"
       }
       className={cn(
-        "cursor-pointer gap-2 rounded-full",
+        "rounded-full",
         cooked &&
-          "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300",
+          "bg-highlight text-highlight-foreground hover:bg-highlight/85 hover:text-highlight-foreground border-transparent",
       )}
     >
-      <CheckCircle className="h-4 w-4" aria-hidden="true" />
+      <Check strokeWidth={2.5} aria-hidden="true" />
       {cooked ? "Cocinada" : "Marcar como cocinada"}
     </Button>
   );
@@ -105,8 +106,8 @@ function KeepScreenOn() {
         onCheckedChange={setEnabled}
         className="cursor-pointer"
       />
-      <Label htmlFor="keep-screen-on" className="font-body cursor-pointer">
-        Mantener la pantalla encendida
+      <Label htmlFor="keep-screen-on" className="cursor-pointer font-normal">
+        Pantalla siempre encendida
       </Label>
     </div>
   );
@@ -127,7 +128,7 @@ export function CookingTools({
   if (!isLoggedIn && !supportsWakeLock) return null;
 
   return (
-    <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
+    <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
       {isLoggedIn ? (
         <CookedToggle recipeId={recipeId} initialCooked={initialCooked} />
       ) : null}

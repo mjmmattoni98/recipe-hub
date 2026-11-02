@@ -1,10 +1,8 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { scaleIngredient } from "@/lib/scale-ingredient";
 import { cn } from "@/lib/utils";
-import { Minus, Plus } from "lucide-react";
+import { Check, Minus, Plus } from "lucide-react";
 import { useState } from "react";
 
 const MAX_SERVINGS = 99;
@@ -41,86 +39,102 @@ export function RecipeIngredients({
   };
 
   return (
-    <section>
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-foreground text-2xl font-semibold">
-          Ingredientes
-        </h2>
+    <section
+      aria-labelledby="ingredients-heading"
+      className="bg-card rounded-lg border p-6 md:p-7"
+    >
+      <h2
+        id="ingredients-heading"
+        className="font-display text-foreground text-4xl tracking-tight"
+      >
+        Ingredientes
+      </h2>
+
+      <div className="mt-5 flex items-center justify-between gap-3 border-y py-3">
+        <span className="eyebrow text-muted-foreground">Raciones</span>
         <div
           role="group"
           aria-label="Raciones"
-          className="border-border flex items-center gap-1 rounded-full border p-1"
+          className="flex items-center gap-1"
         >
-          <Button
+          <button
             type="button"
-            variant="ghost"
-            size="icon-sm"
-            className="cursor-pointer rounded-full"
+            className="hover:bg-secondary flex size-8 cursor-pointer items-center justify-center rounded-full border transition-colors disabled:cursor-not-allowed disabled:opacity-40"
             aria-label="Menos raciones"
             disabled={targetServings <= 1}
             onClick={() => setTargetServings((count) => count - 1)}
           >
-            <Minus className="h-4 w-4" aria-hidden="true" />
-          </Button>
+            <Minus className="size-3.5" aria-hidden="true" />
+          </button>
           <span
-            className="font-body min-w-24 text-center text-sm font-semibold"
+            className="min-w-24 text-center font-mono text-sm font-medium tabular-nums"
             aria-live="polite"
           >
             {servingsLabel(targetServings)}
           </span>
-          <Button
+          <button
             type="button"
-            variant="ghost"
-            size="icon-sm"
-            className="cursor-pointer rounded-full"
+            className="hover:bg-secondary flex size-8 cursor-pointer items-center justify-center rounded-full border transition-colors disabled:cursor-not-allowed disabled:opacity-40"
             aria-label="Más raciones"
             disabled={targetServings >= MAX_SERVINGS}
             onClick={() => setTargetServings((count) => count + 1)}
           >
-            <Plus className="h-4 w-4" aria-hidden="true" />
-          </Button>
+            <Plus className="size-3.5" aria-hidden="true" />
+          </button>
         </div>
       </div>
 
       {factor === 1 ? null : (
-        <p className="text-muted-foreground font-body mb-3 text-xs">
+        <p className="text-muted-foreground mt-3 text-xs">
           Cantidades ajustadas desde {servingsLabel(baseServings)}.{" "}
           <button
             type="button"
             onClick={() => setTargetServings(baseServings)}
-            className="text-primary cursor-pointer underline underline-offset-2"
+            className="text-foreground cursor-pointer underline underline-offset-2"
           >
             Restablecer
           </button>
         </p>
       )}
 
-      <ul className="space-y-2">
+      <ul className="mt-2">
         {ingredients.map((ingredient, index) => {
-          const id = `ingredient-${index}`;
           const isChecked = checked.has(index);
 
           return (
-            <li key={id}>
-              <label
-                htmlFor={id}
-                className="font-body text-foreground hover:bg-muted/50 flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 transition-colors"
+            <li
+              key={`ingredient-${index}`}
+              className="border-b border-dashed last:border-b-0"
+            >
+              <button
+                type="button"
+                role="checkbox"
+                aria-checked={isChecked}
+                onClick={() => toggleChecked(index)}
+                className="group focus-visible:ring-ring/50 flex w-full cursor-pointer items-start gap-3 rounded-sm py-3 text-left outline-none focus-visible:ring-[3px]"
               >
-                <Checkbox
-                  id={id}
-                  checked={isChecked}
-                  onCheckedChange={() => toggleChecked(index)}
-                  className="h-5 w-5 rounded-full"
-                />
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "mt-0.5 flex size-[18px] shrink-0 items-center justify-center rounded-[5px] border transition-colors",
+                    isChecked
+                      ? "bg-primary border-primary text-primary-foreground"
+                      : "border-input group-hover:border-foreground/50",
+                  )}
+                >
+                  {isChecked ? (
+                    <Check className="size-3" strokeWidth={3} />
+                  ) : null}
+                </span>
                 <span
                   className={cn(
-                    "first-letter:uppercase",
+                    "leading-snug first-letter:uppercase",
                     isChecked && "text-muted-foreground line-through",
                   )}
                 >
                   {scaleIngredient(ingredient, factor)}
                 </span>
-              </label>
+              </button>
             </li>
           );
         })}

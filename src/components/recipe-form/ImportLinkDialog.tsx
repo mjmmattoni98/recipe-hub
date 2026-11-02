@@ -48,13 +48,15 @@ export function ImportLinkDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button type="button" variant="outline">
-          <Link2 className="mr-2 h-4 w-4" />
+          <Link2 aria-hidden="true" />
           Importar enlace
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle>Importar desde un enlace</DialogTitle>
+          <DialogTitle className="font-display text-3xl font-normal tracking-tight">
+            Importar desde un enlace
+          </DialogTitle>
           <DialogDescription>
             Pega un enlace de YouTube, TikTok o Instagram. Se lee el texto
             público de la publicación y se rellena la receta. Si Instagram no

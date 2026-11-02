@@ -1,0 +1,192 @@
+[
+  {
+    "title": "Patatas gajo al pimentón en airfryer",
+    "description": "Patatas doradas por fuera y tiernas por dentro, con pimentón y romero. Una guarnición sencilla con poco aceite. Los tiempos pueden variar según el tamaño de la cesta y el grosor de los gajos. Fotografía ilustrativa generada con IA.",
+    "cuisine": "Española",
+    "difficulty": "Easy",
+    "prepTime": 10,
+    "cookTime": 25,
+    "servings": 2,
+    "tags": [
+      "Airfryer",
+      "Vegana",
+      "Sin Gluten",
+      "Guarnición"
+    ],
+    "ingredients": [
+      "500 g de patatas",
+      "15 ml de aceite de oliva virgen extra",
+      "1 cucharadita de pimentón dulce",
+      "1/2 cucharadita de ajo en polvo",
+      "1/2 cucharadita de romero seco",
+      "Sal y pimienta al gusto"
+    ],
+    "instructions": [
+      "Lava las patatas y córtalas en gajos de grosor parecido, de unos 2 cm. Sécalas muy bien con un paño limpio.",
+      "Mezcla los gajos con el aceite, el pimentón, el ajo, el romero, la sal y la pimienta.",
+      "Precalienta la airfryer 3 minutos a 190 °C. Reparte las patatas en una sola capa; si no caben, cocina en tandas.",
+      "Cocina a 190 °C durante 20 minutos y agita la cesta a mitad de cocción.",
+      "Comprueba que estén tiernas al pincharlas. Si necesitan más cocción o color, añade de 2 a 5 minutos. Sirve inmediatamente."
+    ],
+    "imageFile": "patatas-airfryer.png"
+  },
+  {
+    "title": "Salmón al limón y hierbas en airfryer",
+    "description": "Lomos de salmón con limón, perejil y aceite de oliva, preparados en freidora de aire. Una comida rápida para acompañar con ensalada o verduras. Fotografía ilustrativa generada con IA.",
+    "cuisine": "Mediterránea",
+    "difficulty": "Easy",
+    "prepTime": 5,
+    "cookTime": 15,
+    "servings": 2,
+    "tags": [
+      "Airfryer",
+      "Sin Gluten",
+      "Pescado"
+    ],
+    "ingredients": [
+      "2 lomos de salmón descongelado de 150–180 g cada uno",
+      "10 ml de aceite de oliva virgen extra",
+      "1/2 limón: zumo y ralladura",
+      "1 cucharadita de perejil picado",
+      "1/2 cucharadita de ajo en polvo",
+      "Sal y pimienta al gusto"
+    ],
+    "instructions": [
+      "Seca los lomos y comprueba que no tengan espinas. Mezcla el aceite con una cucharada de zumo de limón, un poco de ralladura, el perejil, el ajo, la sal y la pimienta.",
+      "Unta el salmón con la mezcla. Precalienta la airfryer 3 minutos a 180 °C.",
+      "Coloca los lomos con la piel hacia abajo en la cesta, separados entre sí.",
+      "Cocina a 180 °C de 8 a 12 minutos, según el grosor. Comprueba con un termómetro que el centro alcance 63 °C; si hace falta, continúa en intervalos de 1–2 minutos.",
+      "Sirve con el resto del limón. El tiempo indicado incluye precalentamiento; comprueba el punto antes de servir."
+    ],
+    "imageFile": "salmon-airfryer.png"
+  },
+  {
+    "title": "Garbanzos crujientes especiados en airfryer",
+    "description": "Un aperitivo de garbanzos con pimentón y comino que también sirve para dar textura a ensaladas y cremas. Sécalos muy bien para conseguir un acabado crujiente. Fotografía ilustrativa generada con IA.",
+    "cuisine": "Mediterránea",
+    "difficulty": "Easy",
+    "prepTime": 5,
+    "cookTime": 20,
+    "servings": 4,
+    "tags": [
+      "Airfryer",
+      "Vegana",
+      "Sin Gluten",
+      "Aperitivo"
+    ],
+    "ingredients": [
+      "400 g de garbanzos cocidos y escurridos",
+      "10 ml de aceite de oliva virgen extra",
+      "1 cucharadita de pimentón dulce o ahumado",
+      "1/2 cucharadita de comino molido",
+      "1/2 cucharadita de ajo en polvo",
+      "1/4 cucharadita de sal"
+    ],
+    "instructions": [
+      "Enjuaga los garbanzos, escúrrelos y sécalos a fondo con un paño limpio. Retira las pieles que se desprendan.",
+      "Precalienta la airfryer 3 minutos a 190 °C. Mezcla los garbanzos con el aceite y la sal.",
+      "Distribúyelos en una capa sin amontonar. Cocina a 190 °C durante 12 minutos, agitando la cesta cada 5–6 minutos.",
+      "Mezcla con el pimentón, el comino y el ajo. Cocina 3–5 minutos más, vigilando que las especias no se quemen.",
+      "Deja templar 5 minutos fuera de la cesta: se vuelven más crujientes al enfriarse. Consume el mismo día para disfrutar de la mejor textura."
+    ],
+    "imageFile": "garbanzos-airfryer.png"
+  },
+  {
+    "title": "Hummus de garbanzos en Mambo",
+    "description": "Crema de garbanzos con limón, sésamo y comino, sin cocción. Adaptada del recetario de Cecotec: https://cecotec.es/recetas/entrantes/hummus-de-garbanzos . Fotografía ilustrativa generada con IA.",
+    "cuisine": "Mediterránea",
+    "difficulty": "Easy",
+    "prepTime": 10,
+    "cookTime": 0,
+    "servings": 4,
+    "tags": [
+      "Mambo",
+      "Vegana",
+      "Sin Gluten",
+      "Aperitivo"
+    ],
+    "ingredients": [
+      "400 g de garbanzos cocidos y escurridos",
+      "50 ml de aceite de oliva",
+      "50 ml de agua",
+      "1 diente de ajo pelado",
+      "Zumo de 1/2 limón",
+      "1 cucharadita de sésamo tostado",
+      "1 cucharadita de comino molido",
+      "1/2 cucharadita de pimentón",
+      "Sal al gusto",
+      "2 zanahorias para acompañar"
+    ],
+    "instructions": [
+      "Monta las cuchillas en la jarra de Mambo. Añade garbanzos, ajo troceado, aceite, agua, limón, sésamo, comino, pimentón y sal.",
+      "Cierra correctamente la tapa y coloca el cubilete. Sin activar el calor, tritura 30 segundos aumentando progresivamente de velocidad 6 a 8.",
+      "Detén el robot antes de abrir y baja los restos con la espátula. Si prefieres una textura más fina, repite unos segundos a velocidad 8.",
+      "Reparte en un cuenco y acompaña con las zanahorias lavadas, peladas y cortadas en bastones."
+    ],
+    "imageFile": "hummus-mambo.png"
+  },
+  {
+    "title": "Gazpacho tradicional en Mambo",
+    "description": "Gazpacho de tomate, pepino y pimiento, preparado en frío con Mambo. Adaptado de Cecotec: https://cecotec.es/recetas/mambo/gazpacho . Tiempo activo de 15 minutos; añade refrigeración si los ingredientes no están fríos. Fotografía ilustrativa generada con IA.",
+    "cuisine": "Española",
+    "difficulty": "Easy",
+    "prepTime": 15,
+    "cookTime": 0,
+    "servings": 6,
+    "tags": [
+      "Mambo",
+      "Vegana",
+      "Sin Gluten",
+      "Sopa fría"
+    ],
+    "ingredients": [
+      "1 kg de tomates maduros",
+      "100 g de pimiento verde sin semillas",
+      "70 g de pepino pelado",
+      "50 g de cebolla",
+      "1 diente de ajo sin germen",
+      "50 ml de aceite de oliva",
+      "30 ml de vinagre de vino",
+      "250 ml de agua fría",
+      "Sal al gusto"
+    ],
+    "instructions": [
+      "Lava las verduras y córtalas en trozos. Monta las cuchillas de Mambo e introduce tomate, pimiento, pepino, cebolla y ajo.",
+      "Cierra la tapa con el cubilete colocado. Tritura sin calor a velocidad 5 durante 20 segundos.",
+      "Con el robot detenido, abre y baja los restos de las paredes con la espátula.",
+      "Añade aceite, vinagre, agua fría y sal. Cierra de nuevo y tritura sin calor a velocidad 10 durante 3 minutos. Respeta el nivel máximo de tu jarra y divide en tandas si es necesario.",
+      "Prueba y ajusta la sal. Sirve frío; si hace falta, refrigera antes de servir. La guarnición de verduras picadas de la imagen es opcional."
+    ],
+    "imageFile": "gazpacho-mambo.png"
+  },
+  {
+    "title": "Pesto de albahaca y piñones en Mambo",
+    "description": "Salsa de albahaca, parmesano y piñones para pasta, verduras o tostadas. Adaptación con piñones del pesto de anacardos de Cecotec: https://cecotec.es/recetas/mambo/pesto-de-anacardos-en-mambo . Fotografía ilustrativa generada con IA.",
+    "cuisine": "Italiana",
+    "difficulty": "Easy",
+    "prepTime": 10,
+    "cookTime": 0,
+    "servings": 6,
+    "tags": [
+      "Mambo",
+      "Sin Gluten",
+      "Salsa"
+    ],
+    "ingredients": [
+      "20 g de hojas de albahaca fresca",
+      "40 g de piñones",
+      "50 g de queso parmesano en trozos pequeños",
+      "125 ml de aceite de oliva",
+      "1 diente de ajo pelado",
+      "Una pizca de sal"
+    ],
+    "instructions": [
+      "Lava y seca bien la albahaca. Monta las cuchillas de Mambo y añade las hojas y el ajo. Cierra la tapa con el cubilete y pica sin calor a velocidad 10 durante 8 segundos.",
+      "Con el robot detenido, baja los restos con la espátula. Incorpora el parmesano y los piñones y tritura a velocidad 8 durante 15 segundos.",
+      "Vuelve a detener y baja los restos. Repite otros 15 segundos a velocidad 8.",
+      "Añade aceite y sal. Cierra y mezcla sin calor a velocidad 6 durante 3 minutos, siguiendo la base de Cecotec.",
+      "Usa como salsa para unas 6 raciones de pasta. Si lo preparas con antelación, pásalo a un recipiente limpio y cerrado, refrigera enseguida y consume pronto."
+    ],
+    "imageFile": "pesto-mambo.png"
+  }
+]

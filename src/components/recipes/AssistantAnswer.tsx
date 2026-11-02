@@ -29,7 +29,7 @@ const InlineText = ({ nodes }: { nodes: InlineNode[] }) =>
       return (
         <code
           key={index}
-          className="bg-background rounded px-1 py-0.5 text-[0.85em]"
+          className="bg-secondary rounded px-1 py-0.5 font-mono text-[0.85em]"
         >
           {node.text}
         </code>
@@ -54,18 +54,16 @@ export const AssistantAnswer = ({ answer }: { answer: string }) => {
 
   return (
     <div
-      className="bg-muted/60 mt-4 space-y-4 rounded-xl px-4 py-4 leading-relaxed"
+      className="border-primary mt-6 space-y-4 border-l-2 pl-5 leading-relaxed"
       aria-live="polite"
     >
       {blocks.length === 0 ? (
-        <p className="text-foreground font-body whitespace-pre-wrap">
-          {answer}
-        </p>
+        <p className="text-foreground whitespace-pre-wrap">{answer}</p>
       ) : (
         blocks.map((block, index) => {
           if (block.type === "paragraph") {
             return (
-              <p key={index} className="text-foreground font-body text-pretty">
+              <p key={index} className="text-foreground text-pretty">
                 <InlineText nodes={block.children} />
               </p>
             );
@@ -79,13 +77,13 @@ export const AssistantAnswer = ({ answer }: { answer: string }) => {
                   {block.ordered ? (
                     <span
                       aria-hidden="true"
-                      className="bg-primary text-primary-foreground mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+                      className="text-primary font-display mt-[-0.2rem] w-6 shrink-0 text-2xl leading-none"
                     >
                       {itemIndex + 1}
                     </span>
                   ) : (
                     <span
-                      className="bg-primary/15 mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full"
+                      className="mt-2.5 flex w-6 shrink-0 justify-center"
                       aria-hidden="true"
                     >
                       <span className="bg-primary size-1.5 rounded-full" />
@@ -93,7 +91,7 @@ export const AssistantAnswer = ({ answer }: { answer: string }) => {
                   )}
                   <div className="min-w-0">
                     {item.label ? (
-                      <p className="text-foreground font-body font-semibold text-pretty">
+                      <p className="text-foreground font-semibold text-pretty">
                         <InlineText nodes={item.label} />
                       </p>
                     ) : null}
@@ -101,8 +99,8 @@ export const AssistantAnswer = ({ answer }: { answer: string }) => {
                       <p
                         className={
                           item.label
-                            ? "text-foreground font-body mt-0.5 text-pretty"
-                            : "text-foreground font-body text-pretty"
+                            ? "text-foreground mt-0.5 text-pretty"
+                            : "text-foreground text-pretty"
                         }
                       >
                         <InlineText nodes={item.body} />

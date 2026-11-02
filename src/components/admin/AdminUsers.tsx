@@ -152,7 +152,7 @@ function initials(name: string) {
 }
 
 const selectClassName =
-  "border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50";
+  "border-input bg-card h-9 cursor-pointer rounded-md border px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50";
 
 export function AdminUsers({
   currentUserId,
@@ -310,15 +310,11 @@ export function AdminUsers({
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <p className="text-muted-foreground max-w-2xl">
-          Crea cuentas, cambia el nombre o la contraseña y elige quién puede
-          administrar Recipe Hub. El registro público sigue cerrado.
-        </p>
+    <div className="space-y-6">
+      <div className="flex justify-end">
         <Button
           type="button"
-          className="cursor-pointer gap-2 rounded-full"
+          className="gap-2"
           onClick={() => setCreateOpen(true)}
         >
           <UserPlus className="h-4 w-4" aria-hidden="true" />
@@ -326,12 +322,9 @@ export function AdminUsers({
         </Button>
       </div>
 
-      <section
-        className="bg-card rounded-2xl border"
-        style={{ boxShadow: "var(--shadow-card)" }}
-      >
+      <section className="bg-card rounded-lg border">
         <div className="flex items-center justify-between gap-3 border-b px-5 py-4">
-          <h2 className="font-display text-lg font-semibold">Personas</h2>
+          <h2 className="font-display text-2xl tracking-tight">Personas</h2>
           {isLoading ? null : (
             <span className="text-muted-foreground text-sm">
               {users.length === 1 ? "1 cuenta" : `${users.length} cuentas`}
@@ -342,7 +335,7 @@ export function AdminUsers({
         {isLoading ? (
           <div className="space-y-3 p-5">
             {Array.from({ length: 3 }).map((_, index) => (
-              <Skeleton key={index} className="h-16 w-full rounded-xl" />
+              <Skeleton key={index} className="h-16 w-full rounded-md" />
             ))}
           </div>
         ) : loadError ? (
@@ -351,7 +344,6 @@ export function AdminUsers({
             <Button
               type="button"
               variant="outline"
-              className="cursor-pointer rounded-full"
               onClick={() => void loadUsers("initial")}
             >
               Reintentar
@@ -380,7 +372,7 @@ export function AdminUsers({
                   className="flex flex-col gap-4 px-5 py-4 lg:flex-row lg:items-center"
                 >
                   <div className="flex min-w-0 flex-1 items-center gap-3">
-                    <div className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold">
+                    <div className="bg-accent text-accent-foreground flex size-10 shrink-0 items-center justify-center rounded-full font-mono text-xs font-semibold">
                       {initials(user.name) || "?"}
                     </div>
                     <div className="min-w-0">
@@ -541,9 +533,11 @@ function CreateAccountDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="rounded-2xl sm:max-w-md">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-display">Nueva cuenta</DialogTitle>
+          <DialogTitle className="font-display text-3xl font-normal tracking-tight">
+            Nueva cuenta
+          </DialogTitle>
           <DialogDescription>
             La persona podrá iniciar sesión con este correo y esta contraseña.
           </DialogDescription>
@@ -572,7 +566,7 @@ function CreateAccountDialog({
                     onBlur={field.handleBlur}
                     onChange={(event) => field.handleChange(event.target.value)}
                     aria-invalid={isInvalid}
-                    className="h-11 rounded-xl"
+                    className="h-11 rounded-md"
                     autoComplete="off"
                   />
                   <FieldError errors={field.state.meta.errors} />
@@ -599,7 +593,7 @@ function CreateAccountDialog({
                     onBlur={field.handleBlur}
                     onChange={(event) => field.handleChange(event.target.value)}
                     aria-invalid={isInvalid}
-                    className="h-11 rounded-xl"
+                    className="h-11 rounded-md"
                     autoComplete="off"
                     spellCheck={false}
                   />
@@ -625,7 +619,7 @@ function CreateAccountDialog({
                     onBlur={field.handleBlur}
                     onChange={(event) => field.handleChange(event.target.value)}
                     aria-invalid={isInvalid}
-                    className="h-11 rounded-xl"
+                    className="h-11 rounded-md"
                     autoComplete="new-password"
                   />
                   <FieldError errors={field.state.meta.errors} />
@@ -640,7 +634,7 @@ function CreateAccountDialog({
                 <select
                   id="create-role"
                   name={field.name}
-                  className={`${selectClassName} h-11 w-full rounded-xl`}
+                  className={`${selectClassName} h-11 w-full`}
                   value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(event) => {
@@ -701,9 +695,11 @@ function RenameAccountDialog({
         if (!open) onClose();
       }}
     >
-      <DialogContent className="rounded-2xl sm:max-w-md">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-display">Cambiar nombre</DialogTitle>
+          <DialogTitle className="font-display text-3xl font-normal tracking-tight">
+            Cambiar nombre
+          </DialogTitle>
           <DialogDescription>
             {user ? `El correo ${user.email} no cambia.` : null}
           </DialogDescription>
@@ -771,7 +767,7 @@ function RenameAccountForm({
                 onBlur={field.handleBlur}
                 onChange={(event) => field.handleChange(event.target.value)}
                 aria-invalid={isInvalid}
-                className="h-11 rounded-xl"
+                className="h-11 rounded-md"
                 autoComplete="off"
               />
               <FieldError errors={field.state.meta.errors} />
@@ -814,9 +810,11 @@ function PasswordDialog({
         if (!open) onClose();
       }}
     >
-      <DialogContent className="rounded-2xl sm:max-w-md">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-display">Nueva contraseña</DialogTitle>
+          <DialogTitle className="font-display text-3xl font-normal tracking-tight">
+            Nueva contraseña
+          </DialogTitle>
           <DialogDescription>
             {user
               ? `Sustituye la contraseña de ${user.name}. La sesión actual no se cierra.`
@@ -888,7 +886,7 @@ function PasswordForm({
                 onBlur={field.handleBlur}
                 onChange={(event) => field.handleChange(event.target.value)}
                 aria-invalid={isInvalid}
-                className="h-11 rounded-xl"
+                className="h-11 rounded-md"
                 autoComplete="new-password"
               />
               <FieldError errors={field.state.meta.errors} />
@@ -914,7 +912,7 @@ function PasswordForm({
                 onBlur={field.handleBlur}
                 onChange={(event) => field.handleChange(event.target.value)}
                 aria-invalid={isInvalid}
-                className="h-11 rounded-xl"
+                className="h-11 rounded-md"
                 autoComplete="new-password"
               />
               <FieldError errors={field.state.meta.errors} />
@@ -957,9 +955,9 @@ function DeleteAccountDialog({
         if (!open && !pending) onClose();
       }}
     >
-      <AlertDialogContent className="rounded-2xl">
+      <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle className="font-display">
+          <AlertDialogTitle className="font-display text-3xl font-normal tracking-tight">
             Eliminar cuenta
           </AlertDialogTitle>
           <AlertDialogDescription>

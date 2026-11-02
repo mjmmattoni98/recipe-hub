@@ -1,0 +1,79 @@
+{
+  "createdAt": "2026-11-01",
+  "recipes": [
+    {
+      "title": "Patatas gajo al pimentón en airfryer",
+      "url": "https://recipehub.mjmmattoni.dev/recipes/16aaaf89-31a8-4f7d-8786-0be87989fd66"
+    },
+    {
+      "title": "Salmón al limón y hierbas en airfryer",
+      "url": "https://recipehub.mjmmattoni.dev/recipes/34768796-4096-4474-a1ff-b7a966d385f4"
+    },
+    {
+      "title": "Garbanzos crujientes especiados en airfryer",
+      "url": "https://recipehub.mjmmattoni.dev/recipes/4ac364ee-042d-4b4b-9f15-831f51efaa2f"
+    },
+    {
+      "title": "Hummus de garbanzos en Mambo",
+      "url": "https://recipehub.mjmmattoni.dev/recipes/2a5c32f2-72d3-4c1a-8cd8-17b9376b0f77"
+    },
+    {
+      "title": "Gazpacho tradicional en Mambo",
+      "url": "https://recipehub.mjmmattoni.dev/recipes/50d402ac-5793-49c6-a6a3-9150d1b63903"
+    },
+    {
+      "title": "Pesto de albahaca y piñones en Mambo",
+      "url": "https://recipehub.mjmmattoni.dev/recipes/8cd0a3ae-6909-4418-8143-4aa3980c8a4a"
+    }
+  ],
+  "verification": [
+    {
+      "url": "https://recipehub.mjmmattoni.dev/recipes/16aaaf89-31a8-4f7d-8786-0be87989fd66",
+      "title": "Patatas gajo al pimentón en airfryer",
+      "allIngredientsPresent": true,
+      "allStepsPresent": true,
+      "allTagsPresent": true,
+      "imageLoaded": true
+    },
+    {
+      "url": "https://recipehub.mjmmattoni.dev/recipes/34768796-4096-4474-a1ff-b7a966d385f4",
+      "title": "Salmón al limón y hierbas en airfryer",
+      "allIngredientsPresent": true,
+      "allStepsPresent": true,
+      "allTagsPresent": true,
+      "imageLoaded": true
+    },
+    {
+      "url": "https://recipehub.mjmmattoni.dev/recipes/4ac364ee-042d-4b4b-9f15-831f51efaa2f",
+      "title": "Garbanzos crujientes especiados en airfryer",
+      "allIngredientsPresent": true,
+      "allStepsPresent": true,
+      "allTagsPresent": true,
+      "imageLoaded": true
+    },
+    {
+      "url": "https://recipehub.mjmmattoni.dev/recipes/2a5c32f2-72d3-4c1a-8cd8-17b9376b0f77",
+      "title": "Hummus de garbanzos en Mambo",
+      "allIngredientsPresent": true,
+      "allStepsPresent": true,
+      "allTagsPresent": true,
+      "imageLoaded": true
+    },
+    {
+      "url": "https://recipehub.mjmmattoni.dev/recipes/50d402ac-5793-49c6-a6a3-9150d1b63903",
+      "title": "Gazpacho tradicional en Mambo",
+      "allIngredientsPresent": true,
+      "allStepsPresent": true,
+      "allTagsPresent": true,
+      "imageLoaded": true
+    },
+    {
+      "url": "https://recipehub.mjmmattoni.dev/recipes/8cd0a3ae-6909-4418-8143-4aa3980c8a4a",
+      "title": "Pesto de albahaca y piñones en Mambo",
+      "allIngredientsPresent": true,
+      "allStepsPresent": true,
+      "allTagsPresent": true,
+      "imageLoaded": true
+    }
+  ]
+}

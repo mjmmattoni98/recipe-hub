@@ -1,0 +1,19 @@
+Generated with built-in image_gen tool.
+
+patatas-airfryer.png
+Use case: photorealistic-natural. Asset type: RecipeHub recipe cover, one standalone square food photograph. Subject: crispy golden potato wedges seasoned with paprika and dried rosemary, served on an ivory ceramic plate. Authentic appetizing home cooking, overhead camera, centered entire dish with generous crop-safe margins, pale warm stone countertop, soft natural window light, realistic textures. No text, no logos, no watermark, no collage. Generate one image only.
+
+salmon-airfryer.png
+Use case: photorealistic-natural. Asset type: RecipeHub recipe cover, one standalone square food photograph. Subject: two cooked salmon fillets glazed with olive oil and lemon, with fine herb flecks and a lemon wedge, on an ivory ceramic plate. Authentic appetizing home cooking, overhead camera, centered entire dish with generous crop-safe margins, pale warm stone countertop, soft natural window light, realistic textures. No text, no logos, no watermark, no collage. Generate one image only.
+
+garbanzos-airfryer.png
+Use case: photorealistic-natural. Asset type: RecipeHub recipe cover, one standalone square food photograph. Subject: crispy roasted chickpeas seasoned with smoked paprika in a shallow ivory ceramic bowl. Authentic appetizing home cooking, overhead camera, centered entire dish with generous crop-safe margins, pale warm stone countertop, soft natural window light, realistic textures. No text, no logos, no watermark, no collage. Generate one image only.
+
+hummus-mambo.png
+Use case: photorealistic-natural. Asset type: RecipeHub recipe cover, one standalone square food photograph. Subject: creamy hummus with a swirl of olive oil and dusting of smoked paprika, a few chickpeas, in a shallow ivory ceramic bowl. Authentic appetizing home cooking, overhead camera, centered entire dish with generous crop-safe margins, pale warm stone countertop, soft natural window light, realistic textures. No text, no logos, no watermark, no collage. Generate one image only.
+
+gazpacho-mambo.png
+Use case: photorealistic-natural. Asset type: RecipeHub recipe cover, one standalone square food photograph. Subject: smooth red Spanish tomato gazpacho in an ivory ceramic bowl, garnished with finely diced tomato cucumber and green pepper. Authentic appetizing home cooking, overhead camera, centered entire dish with generous crop-safe margins, pale warm stone countertop, soft natural window light, realistic textures. No text, no logos, no watermark, no collage. Generate one image only.
+
+pesto-mambo.png
+Use case: photorealistic-natural. Asset type: RecipeHub recipe cover, one standalone square food photograph. Subject: fresh vibrant green basil pesto with visible finely ground pine nuts and parmesan, olive oil sheen, in a small ivory ceramic bowl, basil leaves nearby. Authentic appetizing home cooking, overhead camera, centered entire dish with generous crop-safe margins, pale warm stone countertop, soft natural window light, realistic textures. No text, no logos, no watermark, no collage. Generate one image only.

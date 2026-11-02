@@ -1,19 +1,11 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 import { useForm } from "@tanstack/react-form";
-import { ChefHat } from "lucide-react";
-import Link from "next/link";
+import { Wordmark } from "@/components/layout/Wordmark";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -59,42 +51,37 @@ export function SignInForm({ callbackUrl }: Readonly<SignInFormProps>) {
   });
 
   return (
-    <main
-      id="main-content"
-      className="relative flex min-h-screen items-center justify-center p-4"
-    >
-      <div className="from-primary/6 via-secondary/40 to-background absolute inset-0 bg-linear-to-br" />
-      <div className="bg-primary/8 absolute top-0 -right-20 h-80 w-80 rounded-full blur-3xl" />
-      <div className="bg-accent/10 absolute -bottom-20 -left-20 h-72 w-72 rounded-full blur-3xl" />
-
-      <div className="animate-in fade-in slide-in-from-bottom-6 relative w-full max-w-md duration-500">
-        <div className="mb-8 flex flex-col items-center gap-3">
-          <Link href="/" className="group flex items-center gap-2.5">
-            <div className="bg-primary flex h-11 w-11 items-center justify-center rounded-xl shadow-lg transition-transform duration-300 group-hover:scale-105">
-              <ChefHat
-                className="text-primary-foreground h-6 w-6"
-                aria-hidden="true"
-              />
-            </div>
-            <span className="font-display text-foreground text-2xl font-bold tracking-tight">
-              RecipeHub
-            </span>
-          </Link>
+    <main id="main-content" className="grid min-h-dvh lg:grid-cols-[1.1fr_1fr]">
+      {/* Always the dark "ink" panel, whatever the theme */}
+      <section className="relative hidden flex-col justify-between overflow-hidden border-r bg-[oklch(0.2_0.012_60)] p-12 text-[oklch(0.95_0.01_85)] lg:flex">
+        <Wordmark
+          className="text-3xl text-inherit"
+          accentClassName="text-[oklch(0.85_0.14_84)]"
+        />
+        <div>
+          <p className="eyebrow opacity-60">Recetario familiar</p>
+          <p className="font-display mt-4 max-w-xl text-7xl leading-[0.95] tracking-tight text-balance">
+            Lo que se cocina en casa,{" "}
+            <em className="text-[oklch(0.85_0.14_84)]">apuntado</em> para la
+            próxima vez.
+          </p>
         </div>
+        <p className="eyebrow opacity-50">
+          Solo con invitación · Pide una cuenta a quien administre
+        </p>
+      </section>
 
-        <Card
-          className="rounded-2xl border-none"
-          style={{ boxShadow: "var(--shadow-elevated)" }}
-        >
-          <CardHeader className="pb-2 text-center">
-            <CardTitle className="font-display text-2xl font-bold">
-              Bienvenido de nuevo
-            </CardTitle>
-            <CardDescription className="font-body">
-              Inicia sesión para gestionar tu colección de recetas
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+      <section className="flex flex-col p-6 sm:p-10">
+        <Wordmark className="lg:hidden" />
+        <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-12">
+          <p className="eyebrow text-muted-foreground">Bienvenido de nuevo</p>
+          <h1 className="font-display mt-3 text-5xl leading-none tracking-tight">
+            Entrar
+          </h1>
+          <p className="text-muted-foreground mt-3">
+            Accede para guardar recetas, planificar el menú y comentar.
+          </p>
+          <div className="mt-8">
             <form
               onSubmit={(event) => {
                 event.preventDefault();
@@ -124,8 +111,8 @@ export function SignInForm({ callbackUrl }: Readonly<SignInFormProps>) {
                           field.handleChange(event.target.value)
                         }
                         aria-invalid={isInvalid}
-                        className="h-12 rounded-xl"
-                        placeholder="tu@ejemplo.com…"
+                        className="h-12"
+                        placeholder="tu@ejemplo.com"
                         autoComplete="email"
                         spellCheck={false}
                       />
@@ -154,8 +141,8 @@ export function SignInForm({ callbackUrl }: Readonly<SignInFormProps>) {
                           field.handleChange(event.target.value)
                         }
                         aria-invalid={isInvalid}
-                        className="h-12 rounded-xl"
-                        placeholder="Introduce tu contraseña…"
+                        className="h-12"
+                        placeholder="••••••••"
                         autoComplete="current-password"
                       />
                       <FieldError errors={field.state.meta.errors} />
@@ -170,17 +157,17 @@ export function SignInForm({ callbackUrl }: Readonly<SignInFormProps>) {
                 {([canSubmit, isSubmitting]) => (
                   <Button
                     type="submit"
-                    className="h-12 w-full cursor-pointer rounded-xl text-base font-semibold"
+                    className="h-12 w-full text-base"
                     disabled={!canSubmit || isSubmitting}
                   >
-                    {isSubmitting ? "Iniciando sesión…" : "Iniciar Sesión"}
+                    {isSubmitting ? "Entrando…" : "Entrar"}
                   </Button>
                 )}
               </form.Subscribe>
             </form>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

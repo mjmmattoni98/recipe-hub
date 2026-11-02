@@ -1,5 +1,5 @@
 import { HomePageClient } from "@/components/home/HomePageClient";
-import { isAppAdmin, roleFromUnknown } from "@/lib/admin-role";
+import { AppShell } from "@/components/layout/AppShell";
 import {
   parseRecipeFilters,
   recipeListInput,
@@ -59,11 +59,12 @@ export default async function HomePage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd()) }}
       />
-      <HomePageClient
-        isLoggedIn={isLoggedIn}
-        isAdmin={isAppAdmin(roleFromUnknown(session?.user))}
-        userName={session?.user.name || null}
-      />
+      <AppShell>
+        <HomePageClient
+          isLoggedIn={isLoggedIn}
+          userName={session?.user.name || null}
+        />
+      </AppShell>
     </HydrateClient>
   );
 }
