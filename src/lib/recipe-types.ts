@@ -6,8 +6,9 @@ import type {
 } from "../../generated/prisma/client";
 import type { RecipeAppliance } from "./recipe-appliances";
 
-// Recipe with VideoSource relation included and the viewer's own cooked status
-export type RecipeWithVideoSource = Recipe & {
+// Recipe with VideoSource relation included and the viewer's own cooked status.
+// The author id is never sent to the client.
+export type RecipeWithVideoSource = Omit<Recipe, "createdById"> & {
   videoSource: VideoSource | null;
   cookedByMe: boolean;
 };
@@ -28,7 +29,6 @@ export type FilterCriteria = {
   appliance: RecipeAppliance | null;
   cuisine: string[];
   difficulty: RecipeDifficulty[];
-  ingredients: string[];
   searchQuery: string;
   // Upper bound on prepTime + cookTime, matching the time shown on cards
   maxTotalTime: number | null;

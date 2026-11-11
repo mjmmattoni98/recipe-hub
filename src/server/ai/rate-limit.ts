@@ -1,13 +1,11 @@
+import type { Prisma } from "../../../generated/prisma/client";
+
 const USER_LIMIT = 12;
 const USER_WINDOW_MS = 60 * 60 * 1000;
 const MINUTE_LIMIT = 18;
 const MINUTE_WINDOW_MS = 60 * 1000;
 const DAY_LIMIT = 40;
 const DAY_WINDOW_MS = 24 * 60 * 60 * 1000;
-
-const userHits = new Map<string, number[]>();
-let minuteHits: number[] = [];
-let dayHits: number[] = [];
 
 export class AiRateLimitError extends Error {
   constructor(message: string) {
@@ -16,43 +14,49 @@ export class AiRateLimitError extends Error {
   }
 }
 
-const recent = (stamps: number[], now: number, windowMs: number) => {
-  const cutoff = now - windowMs;
-  return stamps.filter((stamp) => stamp >= cutoff);
+// How many requests were already made inside each window
+export type AiRequestCounts = { user: number; minute: number; day: number };
+
+// Returns the message to show when one more request would go over a limit
+export const aiRateLimitMessage = (counts: AiRequestCounts) => {
+  if (counts.day >= DAY_LIMIT) {
+    return "Se ha alcanzado el límite diario de la IA gratuita. Vuelve a intentarlo mañana.";
+  }
+  if (counts.minute >= MINUTE_LIMIT) {
+    return "Hay demasiadas peticiones de IA en este momento. Espera un minuto.";
+  }
+  if (counts.user >= USER_LIMIT) {
+    return "Has alcanzado el límite de peticiones de IA por ahora. Inténtalo más tarde.";
+  }
+  return null;
 };
 
-export const resetAiRateLimits = () => {
-  userHits.clear();
-  minuteHits = [];
-  dayHits = [];
-};
+// Any client works, including a transaction client
+export type AiRateLimitDb = Pick<Prisma.TransactionClient, "aiRequest">;
 
-export const consumeAiRateLimit = (userId: string, now = Date.now()) => {
-  const nextDay = recent(dayHits, now, DAY_WINDOW_MS);
-  if (nextDay.length >= DAY_LIMIT) {
-    throw new AiRateLimitError(
-      "Se ha alcanzado el límite diario de la IA gratuita. Vuelve a intentarlo mañana.",
-    );
-  }
+// A soft guard: it counts, then records. Two requests at the same moment can
+// both pass the count, which is fine for a cost limit.
+export const consumeAiRateLimit = async (
+  db: AiRateLimitDb,
+  userId: string,
+  now = new Date(),
+) => {
+  const countSince = (windowMs: number, forUser?: string) =>
+    db.aiRequest.count({
+      where: {
+        ...(forUser ? { userId: forUser } : {}),
+        createdAt: { gte: new Date(now.getTime() - windowMs), lte: now },
+      },
+    });
 
-  const nextMinute = recent(minuteHits, now, MINUTE_WINDOW_MS);
-  if (nextMinute.length >= MINUTE_LIMIT) {
-    throw new AiRateLimitError(
-      "Hay demasiadas peticiones de IA en este momento. Espera un minuto.",
-    );
-  }
+  const [user, minute, day] = await Promise.all([
+    countSince(USER_WINDOW_MS, userId),
+    countSince(MINUTE_WINDOW_MS),
+    countSince(DAY_WINDOW_MS),
+  ]);
 
-  const nextUser = recent(userHits.get(userId) ?? [], now, USER_WINDOW_MS);
-  if (nextUser.length >= USER_LIMIT) {
-    throw new AiRateLimitError(
-      "Has alcanzado el límite de peticiones de IA por ahora. Inténtalo más tarde.",
-    );
-  }
+  const message = aiRateLimitMessage({ user, minute, day });
+  if (message) throw new AiRateLimitError(message);
 
-  nextUser.push(now);
-  nextMinute.push(now);
-  nextDay.push(now);
-  userHits.set(userId, nextUser);
-  minuteHits = nextMinute;
-  dayHits = nextDay;
+  await db.aiRequest.create({ data: { userId, createdAt: now } });
 };

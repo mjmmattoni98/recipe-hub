@@ -131,16 +131,6 @@ function ActiveFilterPills({
       },
     });
   }
-  for (const ingredient of filters.ingredients) {
-    pills.push({
-      key: `ingredient-${ingredient}`,
-      label: ingredient,
-      next: {
-        ...filters,
-        ingredients: without(filters.ingredients, ingredient),
-      },
-    });
-  }
 
   if (pills.length === 0) return null;
 
@@ -271,7 +261,6 @@ export function HomePageClient({
 
   const { data: facets } = api.recipe.getFilterFacets.useQuery();
   const availableCuisines = facets?.cuisines ?? [];
-  const availableIngredients = facets?.ingredients ?? [];
 
   const recipes = useMemo(
     () => data?.pages.flatMap((page) => page.items) ?? [],
@@ -361,7 +350,6 @@ export function HomePageClient({
                   filters={filters}
                   onFilterChange={setFilters}
                   availableCuisines={availableCuisines}
-                  availableIngredients={availableIngredients}
                   isLoggedIn={isLoggedIn}
                 />
               </div>

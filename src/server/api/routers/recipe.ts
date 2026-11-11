@@ -1,5 +1,8 @@
 import { recipeApplianceSchema } from "@/lib/recipe-appliances";
+import { canDeleteRecipe } from "@/lib/recipe-permissions";
+import { MAX_SEARCH_LENGTH } from "@/lib/recipe-search";
 import { recipeApplianceCondition } from "@/server/recipe-appliance";
+import { recipeSearchCondition } from "@/server/recipe-search";
 import {
   createTRPCRouter,
   protectedProcedure,
@@ -13,17 +16,16 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { Prisma } from "../../../../generated/prisma/client";
 
-// The filter panel only offers this many ingredient chips
-const FACET_INGREDIENT_LIMIT = 12;
+// Keeps the author id out of what the public procedures return
+const WITHOUT_AUTHOR = { createdById: true } as const;
 
 const recipeFilterInput = z.object({
   cursor: z.string().nullish(),
   limit: z.number().int().min(1).max(50).default(12),
   appliance: recipeApplianceSchema.optional(),
-  searchQuery: z.string().optional(),
+  searchQuery: z.string().trim().max(MAX_SEARCH_LENGTH).optional(),
   cuisine: z.array(z.string()).optional(),
   difficulty: z.array(z.enum(["Easy", "Medium", "Hard"])).optional(),
-  ingredients: z.array(z.string()).optional(),
   maxTotalTime: z.number().int().positive().optional(),
   dietaryRestrictions: z.array(z.string()).optional(),
   cookingStatus: z.enum(["all", "cooked", "wantToTry"]).optional(),
@@ -55,10 +57,12 @@ export const recipeRouter = createTRPCRouter({
     .query(async ({ ctx, input: filters }) => {
       const limit = filters.limit;
 
-      // Appliance aliases, tag substring matching and combined time need SQL.
-      // Resolve them to a set of ids with one raw query and fold that into the main
-      // (fully typed) filtered/paginated query.
+      // Search, appliance aliases, tag substring matching and combined time
+      // need SQL. Resolve them to a set of ids with one raw query and fold
+      // that into the main (fully typed) filtered/paginated query.
       const rawConditions: Prisma.Sql[] = [];
+      const searchCondition = recipeSearchCondition(filters.searchQuery ?? "");
+      if (searchCondition) rawConditions.push(searchCondition);
       if (filters.appliance) {
         rawConditions.push(recipeApplianceCondition(filters.appliance));
       }
@@ -91,17 +95,11 @@ export const recipeRouter = createTRPCRouter({
       const currentUserId = ctx.session?.user.id;
 
       const where: Prisma.RecipeWhereInput = {
-        ...(filters.searchQuery
-          ? { title: { contains: filters.searchQuery, mode: "insensitive" } }
-          : {}),
         ...(filters.cuisine?.length
           ? { cuisine: { in: filters.cuisine } }
           : {}),
         ...(filters.difficulty?.length
           ? { difficulty: { in: filters.difficulty } }
-          : {}),
-        ...(filters.ingredients?.length
-          ? { ingredients: { hasEvery: filters.ingredients } }
           : {}),
         ...(rawMatchIds ? { id: { in: rawMatchIds } } : {}),
         ...(filters.cookingStatus === "cooked" && currentUserId
@@ -122,6 +120,7 @@ export const recipeRouter = createTRPCRouter({
             ? { cursor: { id: filters.cursor }, skip: 1 }
             : {}),
           orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+          omit: WITHOUT_AUTHOR,
           include: {
             videoSource: true,
             cookedBy: {
@@ -152,25 +151,15 @@ export const recipeRouter = createTRPCRouter({
     }),
 
   getFilterFacets: publicProcedure.query(async ({ ctx }) => {
-    const [cuisineRows, ingredientRows] = await Promise.all([
-      ctx.db.recipe.findMany({
-        distinct: ["cuisine"],
-        select: { cuisine: true },
-      }),
-      ctx.db.$queryRaw<{ ingredient: string }[]>`
-        SELECT ingredient
-        FROM "Recipe" r, unnest(r."ingredients") AS ingredient
-        GROUP BY ingredient
-        ORDER BY COUNT(*) DESC, ingredient ASC
-        LIMIT ${FACET_INGREDIENT_LIMIT}
-      `,
-    ]);
+    const cuisineRows = await ctx.db.recipe.findMany({
+      distinct: ["cuisine"],
+      select: { cuisine: true },
+    });
 
     return {
       cuisines: cuisineRows
         .map((row) => row.cuisine)
         .sort((a, b) => a.localeCompare(b)),
-      ingredients: ingredientRows.map((row) => row.ingredient),
     };
   }),
 
@@ -198,8 +187,14 @@ export const recipeRouter = createTRPCRouter({
 
       if (!recipe) return null;
 
-      const { cookedBy, ...rest } = recipe;
-      return { ...rest, cookedByMe: cookedBy.length > 0 };
+      // The author id stays server-side; the page only learns whether the
+      // viewer may delete.
+      const { cookedBy, createdById, ...rest } = recipe;
+      return {
+        ...rest,
+        cookedByMe: cookedBy.length > 0,
+        canDelete: canDeleteRecipe(ctx.session?.user, { createdById }),
+      };
     }),
 
   toggleCookedByMe: protectedProcedure
@@ -231,7 +226,9 @@ export const recipeRouter = createTRPCRouter({
       const resolvedImage = await resolveRecipeImageUrl(input.image);
 
       return ctx.db.recipe.create({
+        omit: WITHOUT_AUTHOR,
         data: {
+          createdById: ctx.session.user.id,
           title: input.title,
           description: input.description,
           cuisine: input.cuisine,
@@ -272,6 +269,7 @@ export const recipeRouter = createTRPCRouter({
 
       const updatedRecipe = await ctx.db.recipe.update({
         where: { id: input.id },
+        omit: WITHOUT_AUTHOR,
         data: {
           title: input.title,
           description: input.description,
@@ -330,6 +328,14 @@ export const recipeRouter = createTRPCRouter({
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Receta no encontrada",
+        });
+      }
+
+      if (!canDeleteRecipe(ctx.session.user, existingRecipe)) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message:
+            "Solo quien creó la receta o un administrador puede eliminarla.",
         });
       }
 

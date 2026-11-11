@@ -8,6 +8,7 @@ import {
   recipeFiltersToSearchParams,
   recipeListInput,
 } from "./recipe-filters";
+import { MAX_SEARCH_LENGTH } from "./recipe-search";
 
 describe("appliance URL filters", () => {
   it("round-trips the appliance alongside the existing filters", () => {
@@ -56,5 +57,30 @@ describe("appliance URL filters", () => {
     assert.equal(params.get("difficulty"), "Easy");
     assert.equal(recipeListInput(EMPTY_FILTERS).appliance, undefined);
     assert.equal(countActiveFilters(EMPTY_FILTERS), 0);
+  });
+});
+
+describe("search URL filter", () => {
+  it("ignores an old ingredient parameter", () => {
+    const filters = parseRecipeFilters(
+      new URLSearchParams("q=pollo&ingredient=Sal&ingredients=Sal"),
+      false,
+    );
+    assert.deepEqual(filters, { ...EMPTY_FILTERS, searchQuery: "pollo" });
+    assert.equal(recipeFiltersToSearchParams(filters).toString(), "q=pollo");
+    assert.equal("ingredients" in recipeListInput(filters), false);
+    assert.equal(countActiveFilters(filters), 0);
+  });
+
+  it("cuts a long query to the length the server accepts", () => {
+    const filters = parseRecipeFilters(
+      new URLSearchParams({ q: ` ${"a".repeat(300)}` }),
+      false,
+    );
+    assert.equal(filters.searchQuery.length, MAX_SEARCH_LENGTH);
+    assert.equal(
+      recipeListInput(filters).searchQuery?.length,
+      MAX_SEARCH_LENGTH,
+    );
   });
 });

@@ -121,7 +121,9 @@ export default async function RecipePage({
 
       <div className="page flex min-h-9 items-center justify-between gap-4 pt-6 md:pt-8">
         <BackLink label="Recetas" />
-        {isLoggedIn ? <RecipePageActions recipeId={id} /> : null}
+        {isLoggedIn ? (
+          <RecipePageActions recipeId={id} canDelete={recipe.canDelete} />
+        ) : null}
       </div>
 
       <header className="page mt-6 grid gap-8 md:mt-8 lg:grid-cols-12 lg:items-end lg:gap-12">

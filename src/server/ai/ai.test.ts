@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { parseRecipeDraft } from "./parse-recipe-draft";
-import { consumeAiRateLimit, resetAiRateLimits } from "./rate-limit";
+import { aiRateLimitMessage } from "./rate-limit";
 
 describe("parseRecipeDraft", () => {
   it("reads a fenced recipe and normalizes dietary tags", () => {
@@ -50,49 +50,43 @@ Listo: {"title":"Sopa de ajo","description":"Sopa caliente de ajo y pan.","cuisi
   });
 });
 
-describe("consumeAiRateLimit", () => {
+describe("aiRateLimitMessage", () => {
+  const none = { user: 0, minute: 0, day: 0 };
+
+  it("allows a request while every window has room", () => {
+    assert.equal(aiRateLimitMessage(none), null);
+    assert.equal(aiRateLimitMessage({ user: 11, minute: 17, day: 39 }), null);
+  });
+
   it("limits one person to 12 requests an hour", () => {
-    resetAiRateLimits();
-    const now = Date.UTC(2026, 9, 23, 12, 0, 0);
-
-    for (let attempt = 0; attempt < 12; attempt += 1) {
-      consumeAiRateLimit("ada", now);
-    }
-
-    assert.throws(
-      () => consumeAiRateLimit("ada", now),
+    assert.match(
+      aiRateLimitMessage({ ...none, user: 12 }) ?? "",
       /límite de peticiones de IA/,
     );
   });
 
   it("limits the whole app to 18 requests a minute", () => {
-    resetAiRateLimits();
-    const now = Date.UTC(2026, 9, 23, 12, 0, 0);
-
-    for (let attempt = 0; attempt < 18; attempt += 1) {
-      consumeAiRateLimit(`user-${attempt}`, now);
-    }
-
-    assert.throws(
-      () => consumeAiRateLimit("user-extra", now),
+    assert.match(
+      aiRateLimitMessage({ ...none, minute: 18 }) ?? "",
       /demasiadas peticiones/,
     );
   });
 
   it("limits the whole app to 40 requests a day", () => {
-    resetAiRateLimits();
-    const start = Date.UTC(2026, 9, 23, 8, 0, 0);
-
-    for (let attempt = 0; attempt < 40; attempt += 1) {
-      consumeAiRateLimit(
-        `user-${attempt % 8}`,
-        start + attempt * 3 * 60 * 1000,
-      );
-    }
-
-    assert.throws(
-      () => consumeAiRateLimit("user-0", start + 40 * 3 * 60 * 1000),
+    assert.match(
+      aiRateLimitMessage({ ...none, day: 40 }) ?? "",
       /límite diario/,
+    );
+  });
+
+  it("reports the app-wide limits before the personal one", () => {
+    assert.match(
+      aiRateLimitMessage({ user: 12, minute: 18, day: 40 }) ?? "",
+      /límite diario/,
+    );
+    assert.match(
+      aiRateLimitMessage({ user: 12, minute: 18, day: 0 }) ?? "",
+      /demasiadas peticiones/,
     );
   });
 });

@@ -3,5 +3,5 @@
   "sortTailwindcss": {},
   "printWidth": 80,
   "sortPackageJson": true,
-  "ignorePatterns": []
+  "ignorePatterns": [".agents/", ".agent/"]
 }

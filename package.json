@@ -18,6 +18,9 @@
     "lint:fix": "oxlint --fix",
     "preview": "next build && next start",
     "start": "next start",
+    "test": "pnpm test:unit && pnpm test:db",
+    "test:db": "NODE_ENV=test tsx --conditions=react-server --test \"src/**/*.db-test.ts\"",
+    "test:unit": "tsx --test \"src/**/*.test.ts\" \"src/**/*.test.tsx\"",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

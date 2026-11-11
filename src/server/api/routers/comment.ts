@@ -36,7 +36,7 @@ export const commentRouter = createTRPCRouter({
       z.object({
         recipeId: z.string(),
         content: commentContentSchema,
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       return ctx.db.comment.create({

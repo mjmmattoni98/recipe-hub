@@ -10,6 +10,7 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
+import { env } from "@/env";
 import { getSessionFromHeaders } from "@/server/auth/get-session";
 import { db } from "@/server/db";
 
@@ -88,17 +89,20 @@ export const createTRPCRouter = t.router;
 /**
  * Middleware for timing procedure execution and adding an artificial delay in development.
  *
- * You can remove this if you don't like it, but it can help catch unwanted waterfalls by simulating
- * network latency that would occur in production but not in local development.
+ * It only runs under `next dev`: it can help catch unwanted waterfalls by simulating network
+ * latency that would occur in production but not in local development. Production and test runs
+ * skip both the delay and the log.
  */
 const timingMiddleware = t.middleware(async ({ next, path }) => {
+  if (env.NODE_ENV !== "development") {
+    return next();
+  }
+
   const start = Date.now();
 
-  if (t._config.isDev) {
-    // artificial delay in dev
-    const waitMs = Math.floor(Math.random() * 400) + 100;
-    await new Promise((resolve) => setTimeout(resolve, waitMs));
-  }
+  // artificial delay in dev
+  const waitMs = Math.floor(Math.random() * 400) + 100;
+  await new Promise((resolve) => setTimeout(resolve, waitMs));
 
   const result = await next();
 

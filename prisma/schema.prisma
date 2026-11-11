@@ -26,6 +26,9 @@ model Recipe {
   instructions String[]
   image        String
   tags         String[]
+  // Null for recipes that predate authorship
+  createdById  String?
+  createdBy    User?            @relation(fields: [createdById], references: [id], onDelete: SetNull)
   videoSource   VideoSource?
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
@@ -72,6 +75,8 @@ model User {
   comments      Comment[]
   menuSchedules MenuSchedule[]
   cookedRecipes RecipeCook[]
+  recipes       Recipe[]
+  aiRequests    AiRequest[]
 
   @@map("user")
 }
@@ -182,6 +187,7 @@ model MenuSchedule {
   recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
   user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
+  @@unique([familyId, date, mealType, recipeId])
   @@index([familyId, date])
 }
 
@@ -196,4 +202,15 @@ model RecipeCook {
 
   @@unique([recipeId, userId])
   @@index([userId])
+}
+
+// One row per AI request, so the rate limits hold across serverless instances
+model AiRequest {
+  id        String   @id @default(uuid())
+  userId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([userId, createdAt])
 }

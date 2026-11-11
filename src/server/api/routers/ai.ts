@@ -7,14 +7,18 @@ import {
 } from "@/server/ai/import-social-recipe";
 import { assertOpenRouterConfigured } from "@/server/ai/openrouter";
 import { RecipeDraftParseError } from "@/server/ai/parse-recipe-draft";
-import { AiRateLimitError, consumeAiRateLimit } from "@/server/ai/rate-limit";
+import {
+  AiRateLimitError,
+  consumeAiRateLimit,
+  type AiRateLimitDb,
+} from "@/server/ai/rate-limit";
 import { answerRecipeQuestion } from "@/server/ai/recipe-assistant";
 import { structureRecipeFromText } from "@/server/ai/recipe-draft";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 
-const consumeUserAiQuota = (userId: string) => {
+const consumeUserAiQuota = async (db: AiRateLimitDb, userId: string) => {
   try {
-    consumeAiRateLimit(userId);
+    await consumeAiRateLimit(db, userId);
   } catch (error) {
     if (
       error instanceof AiRateLimitError ||
@@ -39,7 +43,7 @@ export const aiRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       assertOpenRouterConfigured();
-      consumeUserAiQuota(ctx.session.user.id);
+      await consumeUserAiQuota(ctx.db, ctx.session.user.id);
 
       try {
         return await structureRecipeFromText(input.text);
@@ -91,7 +95,7 @@ export const aiRouter = createTRPCRouter({
         });
       }
 
-      consumeUserAiQuota(ctx.session.user.id);
+      await consumeUserAiQuota(ctx.db, ctx.session.user.id);
 
       const answer = await answerRecipeQuestion(recipe, input.question);
       return { answer };
@@ -104,7 +108,7 @@ export const aiRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      consumeUserAiQuota(ctx.session.user.id);
+      await consumeUserAiQuota(ctx.db, ctx.session.user.id);
 
       try {
         return await importSocialRecipeFromUrl(input.url);

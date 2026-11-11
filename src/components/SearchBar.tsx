@@ -1,5 +1,6 @@
 "use client";
 
+import { MAX_SEARCH_LENGTH } from "@/lib/recipe-search";
 import { Search, X } from "lucide-react";
 import { useEffect, useRef } from "react";
 
@@ -46,7 +47,8 @@ export function SearchBar({ value, onChange }: Readonly<SearchBarProps>) {
         ref={inputRef}
         type="search"
         placeholder="Buscar por nombre, ingrediente o etiqueta…"
-        aria-label="Buscar recetas"
+        aria-label="Buscar recetas por nombre, ingrediente o etiqueta"
+        maxLength={MAX_SEARCH_LENGTH}
         name="search"
         autoComplete="off"
         enterKeyHint="search"

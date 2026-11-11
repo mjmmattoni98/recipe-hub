@@ -12,7 +12,6 @@ it("renders the accessible appliance group for guests and shows the selection", 
         filters: { ...EMPTY_FILTERS, appliance },
         onFilterChange: () => {},
         availableCuisines: [],
-        availableIngredients: [],
         isLoggedIn: false,
       }),
     );

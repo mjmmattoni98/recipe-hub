@@ -1,6 +1,6 @@
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
-import { absoluteUrl, siteConfig } from "@/lib/seo";
+import { absoluteUrl, defaultSocialImage, siteConfig } from "@/lib/seo";
 import "@/styles/globals.css";
 import { TRPCReactProvider } from "@/trpc/react";
 import { Analytics } from "@vercel/analytics/next";
@@ -25,25 +25,33 @@ export const metadata: Metadata = {
     siteName: siteConfig.name,
     title: siteConfig.name,
     description: siteConfig.description,
-    images: [
-      {
-        url: absoluteUrl(siteConfig.defaultImagePath),
-        width: 64,
-        height: 64,
-        alt: `${siteConfig.name} icono`,
-      },
-    ],
+    images: [defaultSocialImage],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: siteConfig.name,
     description: siteConfig.description,
+    images: [defaultSocialImage],
   },
   robots: {
     index: true,
     follow: true,
   },
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
+  // Declared here because Next ignores file-based icons (app/apple-icon.png)
+  // once a layout sets `icons`.
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "256x256", type: "image/x-icon" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [
+      {
+        url: "/icons/apple-touch-icon.png",
+        sizes: "180x180",
+        type: "image/png",
+      },
+    ],
+  },
 };
 
 export const viewport: Viewport = {

@@ -5,7 +5,7 @@ import {
   recipeListInput,
   searchParamsFromRecord,
 } from "@/lib/recipe-filters";
-import { absoluteUrl, websiteJsonLd } from "@/lib/seo";
+import { absoluteUrl, defaultSocialImage, websiteJsonLd } from "@/lib/seo";
 import { getServerSession } from "@/server/auth/session";
 import { api, HydrateClient } from "@/trpc/server";
 import { type Metadata } from "next";
@@ -14,7 +14,7 @@ import { connection } from "next/server";
 export const metadata: Metadata = {
   title: "Descubre Recetas",
   description:
-    "Explora una colección de recetas seleccionadas con filtros por tipo de cocina, dificultad, ingredientes y estado de cocción.",
+    "Explora una colección de recetas seleccionadas y busca por nombre, ingrediente o etiqueta, con filtros por cocina, dificultad y estado de cocción.",
   alternates: {
     canonical: "/",
   },
@@ -23,7 +23,8 @@ export const metadata: Metadata = {
     url: absoluteUrl("/"),
     title: "Descubre Recetas | Recipe Hub",
     description:
-      "Explora una colección de recetas seleccionadas con filtros por tipo de cocina, dificultad, ingredientes y estado de cocción.",
+      "Explora una colección de recetas seleccionadas y busca por nombre, ingrediente o etiqueta, con filtros por cocina, dificultad y estado de cocción.",
+    images: [defaultSocialImage],
   },
 };
 

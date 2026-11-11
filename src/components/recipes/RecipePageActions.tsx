@@ -20,10 +20,12 @@ import { toast } from "sonner";
 
 type RecipePageActionsProps = {
   recipeId: string;
+  canDelete: boolean;
 };
 
 export function RecipePageActions({
   recipeId,
+  canDelete,
 }: Readonly<RecipePageActionsProps>) {
   const router = useRouter();
   const utils = api.useUtils();
@@ -52,42 +54,44 @@ export function RecipePageActions({
         </Link>
       </Button>
 
-      <AlertDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-      >
-        <AlertDialogTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-muted-foreground hover:text-destructive"
-          >
-            <Trash2 aria-hidden="true" />
-            Eliminar
-          </Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Eliminar receta</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta acción eliminará la receta de forma permanente. No se puede
-              deshacer.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteRecipe.isPending}>
-              Cancelar
-            </AlertDialogCancel>
+      {canDelete ? (
+        <AlertDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+        >
+          <AlertDialogTrigger asChild>
             <Button
-              variant="destructive"
-              onClick={() => deleteRecipe.mutate({ id: recipeId })}
-              disabled={deleteRecipe.isPending}
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-destructive"
             >
-              {deleteRecipe.isPending ? "Eliminando…" : "Eliminar"}
+              <Trash2 aria-hidden="true" />
+              Eliminar
             </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Eliminar receta</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta acción eliminará la receta de forma permanente. No se puede
+                deshacer.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deleteRecipe.isPending}>
+                Cancelar
+              </AlertDialogCancel>
+              <Button
+                variant="destructive"
+                onClick={() => deleteRecipe.mutate({ id: recipeId })}
+                disabled={deleteRecipe.isPending}
+              >
+                {deleteRecipe.isPending ? "Eliminando…" : "Eliminar"}
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      ) : null}
     </div>
   );
 }

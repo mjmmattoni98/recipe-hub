@@ -98,6 +98,8 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to see the a
 - `pnpm start` - Start the production server.
 - `pnpm lint` - Run Oxlint to check for code quality issues.
 - `pnpm typecheck` - Run TypeScript type checking.
+- `pnpm test` - Run the unit tests, and the database tests too when `DATABASE_URL` is set.
+- `pnpm fmt` / `pnpm fmt:check` - Format the code with Oxfmt / check that it is formatted.
 - `pnpm db:studio` - Open Prisma Studio to view/edit database records.
 
 ## 📂 Project Structure

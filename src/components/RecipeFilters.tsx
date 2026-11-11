@@ -13,7 +13,6 @@ interface RecipeFiltersProps {
   filters: FilterCriteria;
   onFilterChange: (filters: FilterCriteria) => void;
   availableCuisines: string[];
-  availableIngredients: string[];
   isLoggedIn: boolean;
 }
 
@@ -47,7 +46,6 @@ export function RecipeFilters({
   filters,
   onFilterChange,
   availableCuisines,
-  availableIngredients,
   isLoggedIn,
 }: Readonly<RecipeFiltersProps>) {
   return (
@@ -139,24 +137,6 @@ export function RecipeFilters({
                 onFilterChange({
                   ...filters,
                   cuisine: toggle(filters.cuisine, cuisine),
-                })
-              }
-            />
-          ))}
-        </FilterSection>
-      ) : null}
-
-      {availableIngredients.length > 0 ? (
-        <FilterSection title="Ingrediente principal">
-          {availableIngredients.map((ingredient) => (
-            <FilterChip
-              key={ingredient}
-              label={ingredient}
-              isActive={filters.ingredients.includes(ingredient)}
-              onClick={() =>
-                onFilterChange({
-                  ...filters,
-                  ingredients: toggle(filters.ingredients, ingredient),
                 })
               }
             />

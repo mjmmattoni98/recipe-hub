@@ -1,5 +1,5 @@
 import { SignInForm } from "@/components/auth/SignInForm";
-import { absoluteUrl } from "@/lib/seo";
+import { absoluteUrl, defaultSocialImage } from "@/lib/seo";
 import { type Metadata } from "next";
 
 type SignInPageProps = {
@@ -35,6 +35,7 @@ export const metadata: Metadata = {
     url: absoluteUrl("/sign-in"),
     title: "Iniciar Sesión | Recipe Hub",
     description: "Inicia sesión para gestionar tus recetas guardadas.",
+    images: [defaultSocialImage],
   },
 };
 

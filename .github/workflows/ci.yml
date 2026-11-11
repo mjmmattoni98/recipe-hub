@@ -46,6 +46,12 @@ jobs:
       - name: Apply database migrations
         run: pnpm db:migrate
 
+      - name: Test
+        run: pnpm test
+
+      - name: Check formatting
+        run: pnpm fmt:check
+
       - name: Lint
         run: pnpm lint
 

@@ -1,4 +1,5 @@
 import { recipeApplianceSchema } from "@/lib/recipe-appliances";
+import { MAX_SEARCH_LENGTH } from "@/lib/recipe-search";
 import {
   DIFFICULTY_LABELS,
   type CookingStatus,
@@ -40,7 +41,6 @@ const PARAMS = {
   search: "q",
   cuisine: "cuisine",
   difficulty: "difficulty",
-  ingredient: "ingredient",
   maxTotalTime: "maxTime",
   diet: "diet",
   status: "status",
@@ -50,7 +50,6 @@ export const EMPTY_FILTERS: FilterCriteria = {
   appliance: null,
   cuisine: [],
   difficulty: [],
-  ingredients: [],
   searchQuery: "",
   maxTotalTime: null,
   dietaryRestrictions: [],
@@ -92,12 +91,14 @@ export function parseRecipeFilters(
 
   return {
     appliance: appliance.success ? appliance.data : null,
-    searchQuery: params.get(PARAMS.search)?.trim() ?? "",
+    searchQuery: (params.get(PARAMS.search)?.trim() ?? "").slice(
+      0,
+      MAX_SEARCH_LENGTH,
+    ),
     cuisine: uniqueValues(params.getAll(PARAMS.cuisine)),
     difficulty: uniqueValues(params.getAll(PARAMS.difficulty)).filter(
       isDifficulty,
     ),
-    ingredients: uniqueValues(params.getAll(PARAMS.ingredient)),
     maxTotalTime:
       Number.isInteger(maxTotalTime) && maxTotalTime > 0 ? maxTotalTime : null,
     dietaryRestrictions: uniqueValues(params.getAll(PARAMS.diet)),
@@ -117,9 +118,6 @@ export function recipeFiltersToSearchParams(filters: FilterCriteria) {
   for (const value of filters.cuisine) params.append(PARAMS.cuisine, value);
   for (const value of filters.difficulty) {
     params.append(PARAMS.difficulty, value);
-  }
-  for (const value of filters.ingredients) {
-    params.append(PARAMS.ingredient, value);
   }
   if (filters.maxTotalTime !== null) {
     params.set(PARAMS.maxTotalTime, String(filters.maxTotalTime));
@@ -142,7 +140,6 @@ export function recipeListInput(filters: FilterCriteria) {
     searchQuery: filters.searchQuery.trim() || undefined,
     cuisine: filters.cuisine.length ? filters.cuisine : undefined,
     difficulty: filters.difficulty.length ? filters.difficulty : undefined,
-    ingredients: filters.ingredients.length ? filters.ingredients : undefined,
     maxTotalTime: filters.maxTotalTime ?? undefined,
     dietaryRestrictions: filters.dietaryRestrictions.length
       ? filters.dietaryRestrictions
@@ -157,7 +154,6 @@ export function countActiveFilters(filters: FilterCriteria) {
     (filters.appliance === null ? 0 : 1) +
     filters.cuisine.length +
     filters.difficulty.length +
-    filters.ingredients.length +
     (filters.maxTotalTime === null ? 0 : 1) +
     filters.dietaryRestrictions.length +
     (filters.cookingStatus === "all" ? 0 : 1)
